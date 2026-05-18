@@ -1,0 +1,1500 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Proposta Inside Rastreadores</title>
+  <style>
+    :root {
+      --navy: #091d42;
+      --navy-2: #0b2347;
+      --red: #b00b11;
+      --red-dark: #96070b;
+      --green: #16885f;
+      --gold: #c99a2e;
+      --ink: #172033;
+      --muted: #65728a;
+      --line: #dfe5ee;
+      --paper: #ffffff;
+      --soft: #f3f6fa;
+      --panel: #f8fafc;
+      --shadow: 0 24px 60px rgba(9, 29, 66, .18);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(176, 11, 17, .10), transparent 26%),
+        linear-gradient(315deg, rgba(9, 29, 66, .14), transparent 34%),
+        #edf2f8;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) 1fr;
+      gap: 28px;
+      width: min(1480px, calc(100% - 32px));
+      margin: 24px auto;
+      align-items: start;
+    }
+
+    .editor {
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      background: rgba(255, 255, 255, .92);
+      border: 1px solid rgba(223, 229, 238, .9);
+      border-radius: 8px;
+      box-shadow: 0 18px 44px rgba(6, 26, 50, .12);
+    }
+
+    .editor header {
+      padding: 18px 18px 14px;
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .editor h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .editor .subtitle {
+      margin-top: 6px;
+      color: rgba(255, 255, 255, .72);
+      font-size: 13px;
+    }
+
+    .form {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .group {
+      display: grid;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .group:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    .group-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--navy-2);
+      letter-spacing: .08em;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #3a4659;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cad3df;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px 11px;
+      min-height: 42px;
+      color: var(--ink);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+      line-height: 1.35;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(215, 25, 32, .12);
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .checks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .check input {
+      width: 16px;
+      height: 16px;
+      min-height: 0;
+      accent-color: var(--red);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      min-height: 42px;
+      cursor: pointer;
+      font-weight: 800;
+      color: #fff;
+      background: var(--red);
+    }
+
+    .btn.secondary {
+      background: var(--navy);
+    }
+
+    .stage {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+    }
+
+    .hint {
+      color: #55657a;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .proposal {
+      width: min(100%, 860px);
+      min-height: 1120px;
+      background: var(--paper);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid rgba(6, 26, 50, .08);
+    }
+
+    .proposal-top {
+      position: relative;
+      min-height: 265px;
+      padding: 28px 38px;
+      color: #fff;
+      background: var(--navy);
+      overflow: hidden;
+    }
+
+    .proposal-top::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(9, 29, 66, .98) 0%, rgba(9, 29, 66, .92) 58%, rgba(9, 29, 66, .72) 100%);
+      pointer-events: none;
+    }
+
+    .proposal-top > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 34px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      background: var(--red);
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .brand-name {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .14em;
+    }
+
+    .brand-small {
+      color: rgba(255, 255, 255, .72);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      margin-top: 2px;
+    }
+
+    .headline {
+      width: min(520px, 100%);
+    }
+
+    .hero-visual {
+      position: absolute;
+      z-index: 1;
+      right: 22px;
+      top: 18px;
+      width: 318px;
+      height: calc(100% - 36px);
+      object-fit: contain;
+      object-position: center;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, .18);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(215, 25, 32, .92);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .proposal h2 {
+      margin: 14px 0 8px;
+      font-size: 42px;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .proposal .lead {
+      margin: 0;
+      width: min(470px, 100%);
+      font-size: 16px;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, .82);
+    }
+
+    .content {
+      padding: 28px 38px 34px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .box-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 46px;
+      padding: 12px 14px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .16);
+      color: rgba(255, 255, 255, .88);
+      font-size: 11px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .box-body {
+      padding: 16px;
+      display: grid;
+      gap: 13px;
+    }
+
+    .vehicle-name {
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 900;
+      color: var(--navy);
+      white-space: pre-line;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .meta {
+      min-height: 60px;
+      padding: 10px;
+      border-radius: 8px;
+      background: var(--soft);
+      border: 1px solid #e7ecf3;
+    }
+
+    .meta .k {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .meta .v {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .price-card {
+      padding: 18px 18px 20px;
+      background: linear-gradient(180deg, #fff, #f8fafc);
+    }
+
+    .price-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .old-price {
+      margin-top: 8px;
+      color: #7b8798;
+      text-decoration: line-through;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .main-price {
+      margin-top: 2px;
+      color: var(--red);
+      font-size: 48px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .per {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .entry .value {
+      text-align: right;
+      color: var(--navy);
+      font-size: 24px;
+      font-weight: 950;
+    }
+
+    .entry .old {
+      display: block;
+      margin-bottom: 2px;
+      color: #7b8798;
+      font-size: 14px;
+      text-decoration: line-through;
+    }
+
+    .coverage {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .coverage-item {
+      min-height: 94px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      background: #fff;
+    }
+
+    .coverage-icon {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #eef3fa;
+      color: var(--navy);
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .coverage-title {
+      font-size: 13px;
+      line-height: 1.2;
+      font-weight: 900;
+      color: var(--navy);
+    }
+
+    .coverage-text {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .benefit-band {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 15px;
+      border-radius: 8px;
+      background: #fdf3f4;
+      border: 1px solid #f4cbd0;
+    }
+
+    .benefit-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      background: var(--red);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .benefit-title {
+      color: var(--red-dark);
+      font-size: 15px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .benefit-text {
+      margin-top: 3px;
+      color: #5f2530;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .approval {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .note {
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .note .k {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .note .v {
+      margin-top: 6px;
+      color: var(--navy);
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 850;
+      white-space: pre-line;
+    }
+
+    .gold-panel {
+      display: none;
+      border: 1px solid #ead8a6;
+      background: #fffbef;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .gold-panel.is-visible { display: block; }
+
+    .gold-head {
+      padding: 12px 14px;
+      background: var(--gold);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .gold-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .gold-cell {
+      min-height: 94px;
+      padding: 14px;
+      border-right: 1px solid #ead8a6;
+      display: grid;
+      gap: 6px;
+      align-content: center;
+      text-align: center;
+    }
+
+    .gold-cell:last-child { border-right: 0; }
+
+    .gold-cell .cap {
+      color: #6a5420;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .gold-cell .money {
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    .footer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-top: 4px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .address {
+      color: #3d4a5f;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .validity {
+      min-width: 185px;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--navy);
+      color: #fff;
+      text-align: center;
+    }
+
+    .validity .k {
+      color: rgba(255, 255, 255, .66);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .validity .v {
+      margin-top: 4px;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .print-only-note {
+      display: none;
+    }
+
+    .promo-banner {
+      display: block;
+      width: 100%;
+      aspect-ratio: 800 / 250;
+      object-fit: contain;
+      background: var(--navy);
+    }
+
+    .proposal {
+      width: min(100%, 790px);
+      min-height: 0;
+      background: #fdfdfd;
+    }
+
+    .proposal-top {
+      min-height: 0;
+      padding: 0;
+      background: var(--navy);
+    }
+
+    .proposal-top::before {
+      display: none;
+    }
+
+    .hero-visual {
+      right: 18px;
+      top: 18px;
+      width: 270px;
+      height: calc(100% - 36px);
+      padding: 10px;
+      border-radius: 7px;
+    }
+
+    .headline {
+      width: min(430px, calc(100% - 292px));
+    }
+
+    .brand-line {
+      margin-bottom: 18px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #d6131b, var(--red));
+      box-shadow: 0 10px 24px rgba(176, 11, 17, .35);
+    }
+
+    .brand-name {
+      font-size: 21px;
+    }
+
+    .eyebrow {
+      min-height: 26px;
+      border-radius: 6px;
+      background: var(--red);
+      box-shadow: 0 10px 22px rgba(176, 11, 17, .26);
+    }
+
+    .proposal h2 {
+      margin: 10px 0 5px;
+      max-width: 500px;
+      font-size: 34px;
+      line-height: 1.05;
+    }
+
+    .proposal .lead {
+      max-width: 510px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .content {
+      padding: 18px 22px 20px;
+      gap: 10px;
+    }
+
+    .summary {
+      grid-template-columns: 1fr 280px;
+      gap: 10px;
+    }
+
+    .box {
+      border-color: #e4e9f1;
+      box-shadow: 0 8px 22px rgba(9, 29, 66, .06);
+    }
+
+    .box-head {
+      min-height: 38px;
+      padding: 10px 12px;
+      font-size: 11px;
+      background: var(--navy);
+    }
+
+    .badge {
+      min-height: 20px;
+      border-radius: 6px;
+      font-size: 10px;
+    }
+
+    .box-body {
+      padding: 12px;
+      gap: 10px;
+    }
+
+    .vehicle-name {
+      font-size: 21px;
+      line-height: 1.12;
+    }
+
+    .meta-grid {
+      grid-template-columns: 1.25fr 1.15fr .82fr .92fr;
+      gap: 7px;
+    }
+
+    .meta {
+      min-height: 52px;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    .meta .k {
+      margin-bottom: 3px;
+      font-size: 9px;
+    }
+
+    .meta .v {
+      font-size: 12px;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+
+    .price-card {
+      padding: 14px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(245, 248, 252, .96)),
+        linear-gradient(135deg, rgba(176, 11, 17, .09), transparent 45%);
+    }
+
+    .price-label {
+      font-size: 10px;
+    }
+
+    .old-price {
+      margin-top: 5px;
+      font-size: 17px;
+    }
+
+    .main-price {
+      font-size: 43px;
+      color: var(--red);
+    }
+
+    .per {
+      font-size: 11px;
+    }
+
+    .entry {
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .entry .value {
+      font-size: 20px;
+    }
+
+    .entry .old {
+      font-size: 12px;
+    }
+
+    .coverage {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .coverage-item {
+      min-height: 48px;
+      border-radius: 6px;
+      padding: 8px 9px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f7f9fc;
+    }
+
+    .coverage-icon {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .coverage-title {
+      font-size: 12px;
+    }
+
+    .coverage-text {
+      display: none;
+    }
+
+    .benefit-band {
+      padding: 10px 12px;
+      gap: 10px;
+      border-radius: 6px;
+      background: #fff5f5;
+      border-color: #f2c5c8;
+    }
+
+    .benefit-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    .benefit-title {
+      font-size: 12px;
+    }
+
+    .benefit-text {
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .approval {
+      grid-template-columns: 1.15fr .85fr;
+      gap: 10px;
+    }
+
+    .note {
+      padding: 10px 12px;
+      border-radius: 6px;
+    }
+
+    .note .k {
+      font-size: 9px;
+    }
+
+    .note .v {
+      margin-top: 4px;
+      font-size: 12px;
+      line-height: 1.28;
+    }
+
+    .gold-head {
+      padding: 9px 12px;
+      font-size: 11px;
+      background: #c99a2e;
+    }
+
+    .gold-cell {
+      min-height: 66px;
+      padding: 10px;
+    }
+
+    .gold-cell .cap {
+      font-size: 10px;
+    }
+
+    .gold-cell .money {
+      font-size: 19px;
+    }
+
+    .footer {
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-top: 0;
+      padding-top: 10px;
+    }
+
+    .address {
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .validity {
+      min-width: 145px;
+      padding: 9px 10px;
+      border-radius: 6px;
+    }
+
+    .validity .k {
+      font-size: 9px;
+    }
+
+    .validity .v {
+      margin-top: 2px;
+      font-size: 15px;
+    }
+
+    @media (max-width: 1080px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .editor {
+        position: static;
+        max-height: none;
+      }
+
+      .proposal {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        width: min(100% - 18px, 640px);
+        margin: 10px auto;
+      }
+
+      .content {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .proposal-top {
+        min-height: 0;
+        padding: 0;
+      }
+
+      .hero-visual {
+        left: 20px;
+        right: 20px;
+        top: auto;
+        bottom: 16px;
+        width: auto;
+        height: 82px;
+      }
+
+      .headline {
+        width: 100%;
+      }
+
+      .proposal h2 {
+        font-size: 34px;
+      }
+
+      .summary,
+      .approval,
+      .footer {
+        grid-template-columns: 1fr;
+      }
+
+      .coverage,
+      .gold-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gold-cell {
+        border-right: 0;
+        border-bottom: 1px solid #ead8a6;
+      }
+
+      .gold-cell:last-child { border-bottom: 0; }
+
+      .main-price {
+        font-size: 42px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .editor,
+      .hint {
+        display: none;
+      }
+
+      .app {
+        display: block;
+        width: 100%;
+        margin: 0;
+      }
+
+      .proposal {
+        width: 100%;
+        min-height: 100vh;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .print-only-note {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="editor" aria-label="Editor da proposta">
+      <header>
+        <h1>Editor de proposta</h1>
+        <div class="subtitle">Inside Rastreadores</div>
+      </header>
+
+      <form class="form" id="proposalForm">
+        <section class="group">
+          <div class="group-title">Modelo</div>
+          <label>Tipo de proposta
+            <select id="template">
+              <option value="indenizacao">Indenização</option>
+              <option value="semIndenizacao">Sem indenização</option>
+              <option value="assistencia">Sem indenização + assistência</option>
+              <option value="gold">Tabela Gold</option>
+            </select>
+          </label>
+          <label>Status / aprovação
+            <input id="status" value="Pré-aprovado">
+          </label>
+          <div class="two">
+            <label>Cliente
+              <input id="client" value="Nome do cliente">
+            </label>
+            <label>CPF
+              <input id="document" value="000.000.000-00">
+            </label>
+          </div>
+        </section>
+
+        <section class="group">
+          <div class="group-title">Veículo</div>
+          <label>Veículo
+            <textarea id="vehicle">Yamaha XJ6 N 2013/2013</textarea>
+          </label>
+          <div class="two">
+            <label>Placa
+              <input id="plate" value="AAA0A00">
+            </label>
+            <label>Cor
+              <input id="color" value="Azul">
+            </label>
+          </div>
+        </section>
+
+        <section class="group">
+          <div class="group-title">Valores</div>
+          <div class="two">
+            <label>Entrada original
+              <input id="entryOld" value="R$ 369,00">
+            </label>
+            <label>Entrada proposta
+              <input id="entryNew" value="R$ 189,00">
+            </label>
+          </div>
+          <div class="two">
+            <label>Mensalidade original
+              <input id="monthlyOld" value="R$ 139,00">
+            </label>
+            <label>Mensalidade proposta
+              <input id="monthlyNew" value="R$ 99,00">
+            </label>
+          </div>
+          <label>Observação de preço
+            <input id="priceNote" value="cada veículo, quando aplicável">
+          </label>
+        </section>
+
+        <section class="group">
+          <div class="group-title">Cobertura</div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="tracking" checked> Rastreamento</label>
+            <label class="check"><input type="checkbox" id="satellite" checked> Satélite</label>
+            <label class="check"><input type="checkbox" id="response" checked> Pronta resposta</label>
+            <label class="check"><input type="checkbox" id="assistance" checked> Assistência 24h</label>
+          </div>
+          <label>Texto da assistência
+            <textarea id="benefitText">Cortesia de guincho, chaveiro e borracheiro 24h via reembolso.</textarea>
+          </label>
+        </section>
+
+        <section class="group" id="goldFields">
+          <div class="group-title">Tabela Gold</div>
+          <div class="two">
+            <label>Faixa 1
+              <input id="goldCap1" value="R$ 30.000,00">
+            </label>
+            <label>Valor 1
+              <input id="goldPrice1" value="R$ 89,00">
+            </label>
+          </div>
+          <div class="two">
+            <label>Faixa 2
+              <input id="goldCap2" value="R$ 20.000,00">
+            </label>
+            <label>Valor 2
+              <input id="goldPrice2" value="R$ 69,00">
+            </label>
+          </div>
+          <div class="two">
+            <label>Faixa 3
+              <input id="goldCap3" value="R$ 11.000,00">
+            </label>
+            <label>Valor 3
+              <input id="goldPrice3" value="R$ 59,00">
+            </label>
+          </div>
+        </section>
+
+        <section class="group">
+          <div class="group-title">Rodapé</div>
+          <label>Vendedor / responsável
+            <input id="seller" value="Equipe Inside">
+          </label>
+          <label>Endereço
+            <textarea id="address">R. Morishigue Akagui - Vila Progredior, São Paulo - SP, 05615-140</textarea>
+          </label>
+          <label>Validade
+            <input id="validity" value="24 horas">
+          </label>
+        </section>
+
+        <section class="actions">
+          <button type="button" class="btn secondary" id="resetBtn">Limpar</button>
+          <button type="button" class="btn" id="printBtn">Imprimir</button>
+        </section>
+      </form>
+    </aside>
+
+    <section class="stage">
+      <div class="hint">A área abaixo já está no formato pensado para print e envio no WhatsApp.</div>
+
+      <article class="proposal" id="proposalCard">
+        <section class="proposal-top">
+          <img class="promo-banner" src="assets/proposal-banner-final.png" alt="Inside Rastreadores - Proteção completa para seu veículo">
+        </section>
+
+        <section class="content">
+          <div class="summary">
+            <div class="box">
+              <div class="box-head">
+                <span>Dados do veículo</span>
+                <span class="badge" id="outTemplate">Indenização</span>
+              </div>
+              <div class="box-body">
+                <div class="vehicle-name" id="outVehicle">Yamaha XJ6 N 2013/2013</div>
+                <div class="meta-grid">
+                  <div class="meta">
+                    <span class="k">Cliente</span>
+                    <span class="v" id="outClient">Nome do cliente</span>
+                  </div>
+                  <div class="meta">
+                    <span class="k">CPF</span>
+                    <span class="v" id="outDocument">000.000.000-00</span>
+                  </div>
+                  <div class="meta">
+                    <span class="k">Placa</span>
+                    <span class="v" id="outPlate">AAA0A00</span>
+                  </div>
+                  <div class="meta">
+                    <span class="k">Cor</span>
+                    <span class="v" id="outColor">Azul</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="box price-card">
+              <div class="price-label">Mensalidade</div>
+              <div class="old-price" id="outMonthlyOld">R$ 139,00</div>
+              <div class="main-price" id="outMonthlyNew">R$ 99,00</div>
+              <div class="per" id="outPriceNote">cada veículo, quando aplicável</div>
+              <div class="entry">
+                <div>
+                  <div class="price-label">Entrada + habilitação</div>
+                </div>
+                <div class="value">
+                  <span class="old" id="outEntryOld">R$ 369,00</span>
+                  <span id="outEntryNew">R$ 189,00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="box-head">
+              <span>Cobertura inclusa</span>
+              <span class="badge">Plano Inside</span>
+            </div>
+            <div class="box-body">
+              <div class="coverage" id="coverageList"></div>
+            </div>
+          </div>
+
+          <div class="benefit-band" id="benefitBand">
+            <div class="benefit-icon">24</div>
+            <div>
+              <div class="benefit-title">Assistência em cortesia</div>
+              <div class="benefit-text" id="outBenefitText">Cortesia de guincho, chaveiro e borracheiro 24h via reembolso.</div>
+            </div>
+          </div>
+
+          <div class="gold-panel" id="goldPanel">
+            <div class="gold-head">Tabela Gold</div>
+            <div class="gold-grid">
+              <div class="gold-cell">
+                <div class="cap" id="outGoldCap1">R$ 30.000,00</div>
+                <div class="money" id="outGoldPrice1">R$ 89,00</div>
+              </div>
+              <div class="gold-cell">
+                <div class="cap" id="outGoldCap2">R$ 20.000,00</div>
+                <div class="money" id="outGoldPrice2">R$ 69,00</div>
+              </div>
+              <div class="gold-cell">
+                <div class="cap" id="outGoldCap3">R$ 11.000,00</div>
+                <div class="money" id="outGoldPrice3">R$ 59,00</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="approval">
+            <div class="note">
+              <div class="k">Condição comercial</div>
+              <div class="v" id="outCondition">Desconto aprovado para formalização da proposta.</div>
+            </div>
+            <div class="note">
+              <div class="k">Responsável</div>
+              <div class="v" id="outSeller">Equipe Inside</div>
+            </div>
+          </div>
+
+          <footer class="footer">
+            <div class="address" id="outAddress">R. Morishigue Akagui - Vila Progredior, São Paulo - SP, 05615-140</div>
+            <div class="validity">
+              <div class="k">Validade</div>
+              <div class="v" id="outValidity">24 horas</div>
+            </div>
+          </footer>
+        </section>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const templateLabels = {
+      indenizacao: "Indenização",
+      semIndenizacao: "Sem indenização",
+      assistencia: "Sem indenização + assistência",
+      gold: "Tabela Gold"
+    };
+
+    const presets = {
+      indenizacao: {
+        status: "Desconto aprovado",
+        client: "Nome do cliente",
+        document: "000.000.000-00",
+        vehicle: "Veículo do cliente",
+        plate: "AAA0A00",
+        color: "A informar",
+        entryOld: "R$ 369,00",
+        entryNew: "R$ 189,00",
+        monthlyOld: "R$ 139,00",
+        monthlyNew: "R$ 99,00",
+        priceNote: "condição especial Inside",
+        assistance: true,
+        benefitText: "Cortesia de guincho, chaveiro e borracheiro 24h via reembolso.",
+        condition: "Desconto aprovado para formalização da proposta."
+      },
+      semIndenizacao: {
+        status: "Pré-aprovado",
+        client: "Nome do cliente",
+        document: "000.000.000-00",
+        vehicle: "Veículo do cliente",
+        plate: "AAA0A00",
+        color: "A informar",
+        entryOld: "R$ 369,00",
+        entryNew: "R$ 289,00",
+        monthlyOld: "R$ 229,00",
+        monthlyNew: "R$ 189,00",
+        priceNote: "plano sem indenização",
+        assistance: false,
+        benefitText: "Assistência 24h não inclusa neste modelo.",
+        condition: "Plano sem indenização, com rastreamento e suporte operacional."
+      },
+      assistencia: {
+        status: "Pré-aprovado",
+        client: "Nome do cliente",
+        document: "000.000.000-00",
+        vehicle: "Yamaha XJ6 N 2013/2013",
+        plate: "AAA0A00",
+        color: "Azul",
+        entryOld: "R$ 369,00",
+        entryNew: "R$ 159,00",
+        monthlyOld: "R$ 89,00",
+        monthlyNew: "R$ 69,00",
+        priceNote: "cada veículo, quando aplicável",
+        assistance: true,
+        benefitText: "Assistência 24h inclusa para guincho, chaveiro e borracheiro, conforme condições do plano.",
+        condition: "Sem indenização + assistência, em condição promocional."
+      },
+      gold: {
+        status: "Aprovado",
+        client: "Nome do cliente",
+        document: "000.000.000-00",
+        vehicle: "Veículo do cliente",
+        plate: "AAA0A00",
+        color: "A informar",
+        entryOld: "R$ 369,00",
+        entryNew: "R$ 189,00",
+        monthlyOld: "R$ 189,00",
+        monthlyNew: "R$ 89,00",
+        priceNote: "consulte a faixa de cobertura Gold",
+        assistance: false,
+        benefitText: "Plano Gold com cobertura por faixa, rastreamento e suporte Inside.",
+        condition: "Tabela Gold aprovada para formalização da proposta."
+      }
+    };
+
+    const coverageItems = [
+      ["tracking", "R", "Rastreamento", "Monitoramento para localização e acompanhamento do veículo."],
+      ["satellite", "S", "Satélite", "Camada adicional de tecnologia para proteção operacional."],
+      ["response", "P", "Pronta resposta", "Equipe acionada para suporte em ocorrências elegíveis."],
+      ["assistance", "24", "Assistência 24h", "Guincho, chaveiro e borracheiro conforme condições do plano."]
+    ];
+
+    const fields = [
+      "status", "client", "document", "vehicle", "plate", "color", "entryOld", "entryNew",
+      "monthlyOld", "monthlyNew", "priceNote", "benefitText", "seller", "address", "validity",
+      "goldCap1", "goldPrice1", "goldCap2", "goldPrice2", "goldCap3", "goldPrice3"
+    ];
+
+    function text(id, value) {
+      const element = $(id);
+      if (!element) return;
+      element.textContent = value && String(value).trim() ? value : "-";
+    }
+
+    function renderCoverage() {
+      const list = $("coverageList");
+      list.innerHTML = "";
+      coverageItems
+        .filter(([id]) => $(id).checked)
+        .forEach(([id, icon, title, description]) => {
+          const item = document.createElement("div");
+          item.className = "coverage-item";
+          item.innerHTML = `
+            <div class="coverage-icon">${icon}</div>
+            <div class="coverage-title">${title}</div>
+            <div class="coverage-text">${description}</div>
+          `;
+          list.appendChild(item);
+        });
+
+      if (!list.children.length) {
+        const item = document.createElement("div");
+        item.className = "coverage-item";
+        item.innerHTML = '<div class="coverage-title">Cobertura a definir</div><div class="coverage-text">Selecione os itens inclusos no painel.</div>';
+        list.appendChild(item);
+      }
+    }
+
+    function render() {
+      const template = $("template").value;
+      text("outTemplate", templateLabels[template]);
+      text("outStatus", $("status").value);
+      text("outVehicle", $("vehicle").value);
+      text("outClient", $("client").value);
+      text("outDocument", $("document").value);
+      text("outPlate", $("plate").value);
+      text("outColor", $("color").value);
+      text("outMonthlyOld", $("monthlyOld").value);
+      text("outMonthlyNew", $("monthlyNew").value);
+      text("outPriceNote", $("priceNote").value);
+      text("outEntryOld", $("entryOld").value);
+      text("outEntryNew", $("entryNew").value);
+      text("outBenefitText", $("benefitText").value);
+      text("outSeller", $("seller").value);
+      text("outAddress", $("address").value);
+      text("outValidity", $("validity").value);
+      text("outGoldCap1", $("goldCap1").value);
+      text("outGoldPrice1", $("goldPrice1").value);
+      text("outGoldCap2", $("goldCap2").value);
+      text("outGoldPrice2", $("goldPrice2").value);
+      text("outGoldCap3", $("goldCap3").value);
+      text("outGoldPrice3", $("goldPrice3").value);
+
+      const hasAssistance = $("assistance").checked;
+      $("benefitBand").style.display = hasAssistance ? "grid" : "none";
+      $("goldPanel").classList.toggle("is-visible", template === "gold");
+      $("goldFields").style.display = template === "gold" ? "grid" : "none";
+      $("outCondition").textContent = presets[template].condition;
+      renderCoverage();
+    }
+
+    function applyPreset(template) {
+      const preset = presets[template];
+      Object.keys(preset).forEach((key) => {
+        const element = $(key);
+        if (!element || key === "condition") return;
+        if (element.type === "checkbox") {
+          element.checked = Boolean(preset[key]);
+        } else {
+          element.value = preset[key];
+        }
+      });
+      $("tracking").checked = true;
+      $("satellite").checked = true;
+      $("response").checked = true;
+      render();
+    }
+
+    fields.forEach((id) => $(id).addEventListener("input", render));
+    coverageItems.forEach(([id]) => $(id).addEventListener("change", render));
+
+    $("template").addEventListener("change", (event) => {
+      applyPreset(event.target.value);
+    });
+
+    $("resetBtn").addEventListener("click", () => {
+      applyPreset($("template").value);
+    });
+
+    $("printBtn").addEventListener("click", () => {
+      window.print();
+    });
+
+    applyPreset("indenizacao");
+  </script>
+</body>
+</html>
