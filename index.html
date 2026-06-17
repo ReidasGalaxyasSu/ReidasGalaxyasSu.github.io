@@ -165,6 +165,11 @@
 
     .actions {
       display: grid;
+      gap: 10px;
+    }
+
+    .actions .row {
+      display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
@@ -181,6 +186,28 @@
 
     .btn.secondary {
       background: var(--navy);
+    }
+
+    .btn.download {
+      min-height: 50px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(180deg, #16885f, #0f6b49);
+      box-shadow: 0 12px 26px rgba(22, 136, 95, .28);
+    }
+
+    .btn.download svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .btn[disabled] {
+      opacity: .65;
+      cursor: progress;
     }
 
     .stage {
@@ -1189,8 +1216,18 @@
         </section>
 
         <section class="actions">
-          <button type="button" class="btn secondary" id="resetBtn">Limpar</button>
-          <button type="button" class="btn" id="printBtn">Imprimir</button>
+          <button type="button" class="btn download" id="downloadBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12"></path>
+              <path d="m7 11 5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+            <span id="downloadBtnLabel">Baixar imagem da proposta</span>
+          </button>
+          <div class="row">
+            <button type="button" class="btn secondary" id="resetBtn">Limpar</button>
+            <button type="button" class="btn secondary" id="printBtn">Imprimir</button>
+          </div>
         </section>
       </form>
     </aside>
@@ -1309,6 +1346,7 @@
     </section>
   </main>
 
+  <script src="assets/vendor/html2canvas.min.js"></script>
   <script>
     const $ = (id) => document.getElementById(id);
 
@@ -1493,6 +1531,97 @@
     $("printBtn").addEventListener("click", () => {
       window.print();
     });
+
+    function slugify(value) {
+      return (value || "")
+        .normalize("NFD").replace(new RegExp("[\\u0300-\\u036f]", "g"), "")
+        .replace(/[^a-zA-Z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase();
+    }
+
+    function buildFileName() {
+      const parts = ["proposta-inside", slugify($("client").value), slugify($("plate").value)].filter(Boolean);
+      return parts.join("-").slice(0, 80) + ".png";
+    }
+
+    function captureProposal() {
+      const card = $("proposalCard");
+      const scale = Math.min(3, Math.max(2, window.devicePixelRatio || 1));
+      return html2canvas(card, {
+        scale,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false
+      });
+    }
+
+    function canvasToBlob(canvas) {
+      return new Promise((resolve) => {
+        if (canvas.toBlob) {
+          canvas.toBlob((blob) => resolve(blob), "image/png");
+          return;
+        }
+        const dataUrl = canvas.toDataURL("image/png");
+        const binary = atob(dataUrl.split(",")[1]);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        resolve(new Blob([bytes], { type: "image/png" }));
+      });
+    }
+
+    function triggerDownload(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+
+    async function downloadProposalImage() {
+      if (typeof html2canvas !== "function") {
+        alert("Não foi possível carregar o gerador de imagem. Verifique a conexão e recarregue a página.");
+        return;
+      }
+
+      const button = $("downloadBtn");
+      const label = $("downloadBtnLabel");
+      const originalLabel = label.textContent;
+      button.disabled = true;
+      label.textContent = "Gerando imagem…";
+
+      try {
+        const canvas = await captureProposal();
+        const blob = await canvasToBlob(canvas);
+        const fileName = buildFileName();
+        const file = new File([blob], fileName, { type: "image/png" });
+
+        // Em celular/tablet, abre o menu de compartilhar (WhatsApp, salvar imagem, etc.).
+        const preferShare = window.matchMedia("(pointer: coarse)").matches;
+        if (preferShare && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: "Proposta Inside Rastreadores" });
+            return;
+          } catch (err) {
+            if (err && err.name === "AbortError") return; // usuário cancelou
+            // qualquer outro erro: cai para o download normal
+          }
+        }
+
+        triggerDownload(blob, fileName);
+      } catch (err) {
+        console.error(err);
+        alert("Não foi possível gerar a imagem. Tente novamente.");
+      } finally {
+        button.disabled = false;
+        label.textContent = originalLabel;
+      }
+    }
+
+    $("downloadBtn").addEventListener("click", downloadProposalImage);
 
     applyPreset("indenizacao");
   </script>
