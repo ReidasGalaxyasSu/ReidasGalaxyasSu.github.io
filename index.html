@@ -1237,7 +1237,7 @@
 
       <article class="proposal" id="proposalCard">
         <section class="proposal-top">
-          <img class="promo-banner" src="assets/proposal-banner-final.png" alt="Inside Rastreadores - Proteção completa para seu veículo">
+          <img class="promo-banner" id="promoBanner" src="assets/proposal-banner-final.png" alt="Inside Rastreadores - Proteção completa para seu veículo">
         </section>
 
         <section class="content">
@@ -1346,9 +1346,19 @@
     </section>
   </main>
 
+  <script src="assets/banner-data.js"></script>
   <script src="assets/vendor/html2canvas.min.js"></script>
   <script>
     const $ = (id) => document.getElementById(id);
+
+    // Usa o banner embutido (data URI) para o gerador de imagem funcionar
+    // mesmo quando a página é aberta como arquivo local (file://).
+    (function () {
+      const banner = document.getElementById("promoBanner");
+      if (banner && window.__BANNER_DATA_URI) {
+        banner.src = window.__BANNER_DATA_URI;
+      }
+    })();
 
     const templateLabels = {
       indenizacao: "Indenização",
