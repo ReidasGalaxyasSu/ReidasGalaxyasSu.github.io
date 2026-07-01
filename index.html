@@ -11,7 +11,6 @@
       --red: #b00b11;
       --red-dark: #96070b;
       --green: #16885f;
-      --pending: #5b6779;
       --ink: #172033;
       --muted: #65728a;
       --line: #dfe5ee;
@@ -187,13 +186,13 @@
 
     .status-toggle-btn.is-active {
       color: #fff;
-      background: var(--red);
-      box-shadow: 0 8px 18px rgba(176, 11, 17, .28);
+      background: var(--green);
+      box-shadow: 0 8px 18px rgba(22, 136, 95, .28);
     }
 
     .status-toggle-btn.is-active[data-status="naoAprovado"] {
-      background: var(--pending);
-      box-shadow: 0 8px 18px rgba(30, 41, 59, .28);
+      background: var(--red);
+      box-shadow: 0 8px 18px rgba(176, 11, 17, .28);
     }
 
     .gold-hint {
@@ -223,6 +222,43 @@
 
     .gold-tier .two {
       flex: 1;
+    }
+
+    .money-field {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid #cad3df;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .money-field:focus-within {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(215, 25, 32, .12);
+    }
+
+    .money-prefix {
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      border-right: 1px solid var(--line);
+      user-select: none;
+    }
+
+    .money-field input {
+      border: 0;
+      border-radius: 0;
+      min-height: 40px;
+    }
+
+    .money-field input:focus {
+      border: 0;
+      box-shadow: none;
     }
 
     .actions {
@@ -375,11 +411,16 @@
       min-height: 28px;
       padding: 6px 10px;
       border-radius: 8px;
-      background: rgba(215, 25, 32, .92);
+      background: rgba(22, 136, 95, .94);
+      color: #fff;
       font-size: 12px;
       font-weight: 900;
       text-transform: uppercase;
       letter-spacing: .06em;
+    }
+
+    .eyebrow.is-denied {
+      background: rgba(176, 11, 17, .94);
     }
 
     .proposal h2 {
@@ -662,10 +703,6 @@
       white-space: pre-line;
     }
 
-    .eyebrow.is-denied {
-      background: var(--pending);
-    }
-
     .gold-cap-line {
       margin-top: 6px;
       color: var(--navy-2);
@@ -812,6 +849,11 @@
     .eyebrow {
       min-height: 26px;
       border-radius: 6px;
+      background: var(--green);
+      box-shadow: 0 10px 22px rgba(22, 136, 95, .26);
+    }
+
+    .eyebrow.is-denied {
       background: var(--red);
       box-shadow: 0 10px 22px rgba(176, 11, 17, .26);
     }
@@ -1179,18 +1221,18 @@
           <div class="group-title">Valores</div>
           <div class="two">
             <label>Entrada original
-              <input id="entryOld" value="R$ 369,00">
+              <div class="money-field"><span class="money-prefix">R$</span><input id="entryOld" value="369,00" inputmode="decimal"></div>
             </label>
             <label>Entrada proposta
-              <input id="entryNew" value="R$ 189,00">
+              <div class="money-field"><span class="money-prefix">R$</span><input id="entryNew" value="189,00" inputmode="decimal"></div>
             </label>
           </div>
           <div class="two" id="monthlyFields">
             <label>Mensalidade original
-              <input id="monthlyOld" value="R$ 139,00">
+              <div class="money-field"><span class="money-prefix">R$</span><input id="monthlyOld" value="139,00" inputmode="decimal"></div>
             </label>
             <label>Mensalidade proposta
-              <input id="monthlyNew" value="R$ 99,00">
+              <div class="money-field"><span class="money-prefix">R$</span><input id="monthlyNew" value="99,00" inputmode="decimal"></div>
             </label>
           </div>
           <div class="gold-hint" id="monthlyGoldNote" style="display:none">Mensalidade definida pela faixa Gold selecionada abaixo.</div>
@@ -1224,10 +1266,10 @@
             <input type="radio" name="goldTier" id="goldSelect1" value="1" checked aria-label="Selecionar faixa 1">
             <div class="two">
               <label>Faixa 1
-                <input id="goldCap1" value="R$ 30.000,00">
+                <div class="money-field"><span class="money-prefix">R$</span><input id="goldCap1" value="30.000,00" inputmode="decimal"></div>
               </label>
               <label>Valor 1
-                <input id="goldPrice1" value="R$ 89,00">
+                <div class="money-field"><span class="money-prefix">R$</span><input id="goldPrice1" value="89,00" inputmode="decimal"></div>
               </label>
             </div>
           </div>
@@ -1235,10 +1277,10 @@
             <input type="radio" name="goldTier" id="goldSelect2" value="2" aria-label="Selecionar faixa 2">
             <div class="two">
               <label>Faixa 2
-                <input id="goldCap2" value="R$ 20.000,00">
+                <div class="money-field"><span class="money-prefix">R$</span><input id="goldCap2" value="20.000,00" inputmode="decimal"></div>
               </label>
               <label>Valor 2
-                <input id="goldPrice2" value="R$ 69,00">
+                <div class="money-field"><span class="money-prefix">R$</span><input id="goldPrice2" value="69,00" inputmode="decimal"></div>
               </label>
             </div>
           </div>
@@ -1246,10 +1288,10 @@
             <input type="radio" name="goldTier" id="goldSelect3" value="3" aria-label="Selecionar faixa 3">
             <div class="two">
               <label>Faixa 3
-                <input id="goldCap3" value="R$ 11.000,00">
+                <div class="money-field"><span class="money-prefix">R$</span><input id="goldCap3" value="11.000,00" inputmode="decimal"></div>
               </label>
               <label>Valor 3
-                <input id="goldPrice3" value="R$ 59,00">
+                <div class="money-field"><span class="money-prefix">R$</span><input id="goldPrice3" value="59,00" inputmode="decimal"></div>
               </label>
             </div>
           </div>
@@ -1427,10 +1469,10 @@
         vehicle: "Veículo do cliente",
         plate: "AAA0A00",
         color: "A informar",
-        entryOld: "R$ 369,00",
-        entryNew: "R$ 189,00",
-        monthlyOld: "R$ 139,00",
-        monthlyNew: "R$ 99,00",
+        entryOld: "369,00",
+        entryNew: "189,00",
+        monthlyOld: "139,00",
+        monthlyNew: "99,00",
         priceNote: "condição especial Inside",
         assistance: true,
         benefitText: "Cortesia de guincho, chaveiro e borracheiro 24h via reembolso.",
@@ -1442,10 +1484,10 @@
         vehicle: "Veículo do cliente",
         plate: "AAA0A00",
         color: "A informar",
-        entryOld: "R$ 369,00",
-        entryNew: "R$ 289,00",
-        monthlyOld: "R$ 229,00",
-        monthlyNew: "R$ 189,00",
+        entryOld: "369,00",
+        entryNew: "289,00",
+        monthlyOld: "229,00",
+        monthlyNew: "189,00",
         priceNote: "plano sem indenização",
         assistance: false,
         benefitText: "Assistência 24h não inclusa neste modelo.",
@@ -1457,10 +1499,10 @@
         vehicle: "Yamaha XJ6 N 2013/2013",
         plate: "AAA0A00",
         color: "Azul",
-        entryOld: "R$ 369,00",
-        entryNew: "R$ 159,00",
-        monthlyOld: "R$ 89,00",
-        monthlyNew: "R$ 69,00",
+        entryOld: "369,00",
+        entryNew: "159,00",
+        monthlyOld: "89,00",
+        monthlyNew: "69,00",
         priceNote: "cada veículo, quando aplicável",
         assistance: true,
         benefitText: "Assistência 24h inclusa para guincho, chaveiro e borracheiro, conforme condições do plano.",
@@ -1472,8 +1514,8 @@
         vehicle: "Veículo do cliente",
         plate: "AAA0A00",
         color: "A informar",
-        entryOld: "R$ 369,00",
-        entryNew: "R$ 189,00",
+        entryOld: "369,00",
+        entryNew: "189,00",
         priceNote: "cada veículo, quando aplicável",
         assistance: false,
         benefitText: "Plano Gold com cobertura por faixa, rastreamento e suporte Inside.",
@@ -1527,6 +1569,11 @@
       }
     }
 
+    function money(id) {
+      const value = $(id).value.trim();
+      return value ? "R$ " + value : "";
+    }
+
     function render() {
       const template = $("template").value;
       text("outTemplate", templateLabels[template]);
@@ -1535,21 +1582,15 @@
       text("outDocument", $("document").value);
       text("outPlate", $("plate").value);
       text("outColor", $("color").value);
-      text("outMonthlyOld", $("monthlyOld").value);
-      text("outMonthlyNew", $("monthlyNew").value);
+      text("outMonthlyOld", money("monthlyOld"));
+      text("outMonthlyNew", money("monthlyNew"));
       text("outPriceNote", $("priceNote").value);
-      text("outEntryOld", $("entryOld").value);
-      text("outEntryNew", $("entryNew").value);
+      text("outEntryOld", money("entryOld"));
+      text("outEntryNew", money("entryNew"));
       text("outBenefitText", $("benefitText").value);
       text("outSeller", $("seller").value);
       text("outAddress", $("address").value);
       text("outValidity", $("validity").value);
-      text("outGoldCap1", $("goldCap1").value);
-      text("outGoldPrice1", $("goldPrice1").value);
-      text("outGoldCap2", $("goldCap2").value);
-      text("outGoldPrice2", $("goldPrice2").value);
-      text("outGoldCap3", $("goldCap3").value);
-      text("outGoldPrice3", $("goldPrice3").value);
 
       const hasAssistance = $("assistance").checked;
       $("benefitBand").style.display = hasAssistance ? "grid" : "none";
@@ -1562,10 +1603,10 @@
       if (isGold) {
         const selectedRadio = document.querySelector('input[name="goldTier"]:checked');
         const tier = selectedRadio ? selectedRadio.value : "1";
-        text("outMonthlyNew", $("goldPrice" + tier).value);
+        text("outMonthlyNew", money("goldPrice" + tier));
         $("outMonthlyOld").style.display = "none";
         $("outGoldCapLine").style.display = "block";
-        text("outGoldCapLine", "Cobertura até " + $("goldCap" + tier).value);
+        text("outGoldCapLine", "Cobertura até " + money("goldCap" + tier));
       } else {
         $("outMonthlyOld").style.display = "";
         $("outGoldCapLine").style.display = "none";
@@ -1606,6 +1647,24 @@
     coverageItems.forEach(([id]) => $(id).addEventListener("change", render));
     document.querySelectorAll('input[name="goldTier"]').forEach((radio) => radio.addEventListener("change", render));
     $("showActivation").addEventListener("change", render);
+
+    const moneyFieldIds = [
+      "entryOld", "entryNew", "monthlyOld", "monthlyNew",
+      "goldCap1", "goldPrice1", "goldCap2", "goldPrice2", "goldCap3", "goldPrice3"
+    ];
+
+    function normalizeMoneyValue(value) {
+      const trimmed = (value || "").trim();
+      if (!trimmed) return trimmed;
+      return trimmed.includes(",") ? trimmed : trimmed + ",00";
+    }
+
+    moneyFieldIds.forEach((id) => {
+      $(id).addEventListener("blur", () => {
+        $(id).value = normalizeMoneyValue($(id).value);
+        render();
+      });
+    });
 
     statusButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
