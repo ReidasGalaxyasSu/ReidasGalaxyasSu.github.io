@@ -673,6 +673,45 @@
       font-weight: 700;
     }
 
+    .fip-band {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 15px;
+      border-radius: 8px;
+      background: #eef3fa;
+      border: 1px solid #d7e1ef;
+    }
+
+    .fip-icon {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      background: var(--navy);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .fip-title {
+      color: var(--navy);
+      font-size: 15px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .fip-text {
+      margin-top: 3px;
+      color: #33445e;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
     .approval {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1026,6 +1065,28 @@
       line-height: 1.25;
     }
 
+    .fip-band {
+      padding: 10px 12px;
+      gap: 10px;
+      border-radius: 6px;
+    }
+
+    .fip-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+
+    .fip-title {
+      font-size: 12px;
+    }
+
+    .fip-text {
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
     .approval {
       grid-template-columns: 1.15fr .85fr;
       gap: 10px;
@@ -1252,10 +1313,15 @@
             <label class="check"><input type="checkbox" id="tracking" checked> Rastreamento</label>
             <label class="check"><input type="checkbox" id="satellite" checked> Satélite</label>
             <label class="check"><input type="checkbox" id="response" checked> Pronta resposta</label>
+            <label class="check"><input type="checkbox" id="blocking" checked> Bloqueio</label>
             <label class="check"><input type="checkbox" id="assistance" checked> Assistência 24h</label>
+            <label class="check"><input type="checkbox" id="fipIndemnity"> Indenização 100% FIP</label>
           </div>
           <label>Texto da assistência
             <textarea id="benefitText">Cortesia de guincho, chaveiro e borracheiro 24h via reembolso.</textarea>
+          </label>
+          <label>Texto da indenização 100% FIP
+            <textarea id="fipText">Indenização 100% Tabela FIP em caso de roubo e não recuperação do veículo.</textarea>
           </label>
         </section>
 
@@ -1418,6 +1484,14 @@
             </div>
           </div>
 
+          <div class="fip-band" id="fipBand">
+            <div class="fip-icon">FIP</div>
+            <div>
+              <div class="fip-title">Indenização 100% Tabela FIP</div>
+              <div class="fip-text" id="outFipText">Indenização 100% Tabela FIP em caso de roubo e não recuperação do veículo.</div>
+            </div>
+          </div>
+
           <div class="approval">
             <div class="note">
               <div class="k">Condição comercial</div>
@@ -1476,6 +1550,7 @@
         priceNote: "condição especial Inside",
         assistance: true,
         benefitText: "Cortesia de guincho, chaveiro e borracheiro 24h via reembolso.",
+        fipIndemnity: true,
         condition: "Desconto aprovado para formalização da proposta."
       },
       semIndenizacao: {
@@ -1491,6 +1566,7 @@
         priceNote: "plano sem indenização",
         assistance: false,
         benefitText: "Assistência 24h não inclusa neste modelo.",
+        fipIndemnity: false,
         condition: "Plano sem indenização, com rastreamento e suporte operacional."
       },
       assistencia: {
@@ -1506,6 +1582,7 @@
         priceNote: "cada veículo, quando aplicável",
         assistance: true,
         benefitText: "Assistência 24h inclusa para guincho, chaveiro e borracheiro, conforme condições do plano.",
+        fipIndemnity: false,
         condition: "Sem indenização + assistência, em condição promocional."
       },
       gold: {
@@ -1519,6 +1596,7 @@
         priceNote: "cada veículo, quando aplicável",
         assistance: false,
         benefitText: "Plano Gold com cobertura por faixa, rastreamento e suporte Inside.",
+        fipIndemnity: true,
         condition: "Tabela Gold aprovada para formalização da proposta."
       }
     };
@@ -1527,12 +1605,14 @@
       ["tracking", "R", "Rastreamento", "Monitoramento para localização e acompanhamento do veículo."],
       ["satellite", "S", "Satélite", "Camada adicional de tecnologia para proteção operacional."],
       ["response", "P", "Pronta resposta", "Equipe acionada para suporte em ocorrências elegíveis."],
-      ["assistance", "24", "Assistência 24h", "Guincho, chaveiro e borracheiro conforme condições do plano."]
+      ["blocking", "B", "Bloqueio", "Bloqueio remoto do veículo em caso de ocorrência, conforme condições do plano."],
+      ["assistance", "24", "Assistência 24h", "Guincho, chaveiro e borracheiro conforme condições do plano."],
+      ["fipIndemnity", "FIP", "Indenização 100% FIP", "Indenização 100% Tabela FIP em caso de roubo e não recuperação do veículo."]
     ];
 
     const fields = [
       "client", "document", "vehicle", "plate", "color", "entryOld", "entryNew",
-      "monthlyOld", "monthlyNew", "priceNote", "benefitText", "seller", "address", "validity",
+      "monthlyOld", "monthlyNew", "priceNote", "benefitText", "fipText", "seller", "address", "validity",
       "goldCap1", "goldPrice1", "goldCap2", "goldPrice2", "goldCap3", "goldPrice3"
     ];
 
@@ -1588,12 +1668,16 @@
       text("outEntryOld", money("entryOld"));
       text("outEntryNew", money("entryNew"));
       text("outBenefitText", $("benefitText").value);
+      text("outFipText", $("fipText").value);
       text("outSeller", $("seller").value);
       text("outAddress", $("address").value);
       text("outValidity", $("validity").value);
 
       const hasAssistance = $("assistance").checked;
       $("benefitBand").style.display = hasAssistance ? "grid" : "none";
+
+      const hasFipIndemnity = $("fipIndemnity").checked;
+      $("fipBand").style.display = hasFipIndemnity ? "grid" : "none";
 
       const isGold = template === "gold";
       $("goldFields").style.display = isGold ? "grid" : "none";
@@ -1638,6 +1722,7 @@
       $("tracking").checked = true;
       $("satellite").checked = true;
       $("response").checked = true;
+      $("blocking").checked = true;
       approvalStatus = "aprovado";
       statusButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.status === "aprovado"));
       render();
