@@ -1243,9 +1243,13 @@
           <label>Tipo de proposta
             <select id="template">
               <option value="indenizacao">Indenização</option>
+              <option value="indenizacaoSemHab">Indenização (sem habilitação do sistema)</option>
               <option value="semIndenizacao">Sem indenização</option>
+              <option value="semIndenizacaoSemHab">Sem indenização (sem habilitação do sistema)</option>
               <option value="assistencia">Sem indenização + assistência</option>
+              <option value="assistenciaSemHab">Sem indenização + assistência (sem habilitação do sistema)</option>
               <option value="gold">Tabela Gold</option>
+              <option value="goldSemHab">Tabela Gold (sem habilitação do sistema)</option>
             </select>
           </label>
           <label>Status / aprovação</label>
@@ -1280,11 +1284,11 @@
 
         <section class="group">
           <div class="group-title">Valores</div>
-          <div class="two">
-            <label>Entrada original
+          <div class="two" id="entryFields">
+            <label>Habilitação original
               <div class="money-field"><span class="money-prefix">R$</span><input id="entryOld" value="369,00" inputmode="decimal"></div>
             </label>
-            <label>Entrada proposta
+            <label>Habilitação proposta
               <div class="money-field"><span class="money-prefix">R$</span><input id="entryNew" value="189,00" inputmode="decimal"></div>
             </label>
           </div>
@@ -1439,9 +1443,9 @@
               <div class="main-price" id="outMonthlyNew">R$ 99,00</div>
               <div class="per" id="outPriceNote">cada veículo, quando aplicável</div>
               <div class="gold-cap-line" id="outGoldCapLine" style="display:none">Cobertura até R$ 30.000,00</div>
-              <div class="entry">
+              <div class="entry" id="entryBlock">
                 <div>
-                  <div class="price-label">Entrada + habilitação</div>
+                  <div class="price-label">Habilitação do sistema</div>
                 </div>
                 <div class="value">
                   <span class="old" id="outEntryOld">R$ 369,00</span>
@@ -1531,9 +1535,13 @@
 
     const templateLabels = {
       indenizacao: "Indenização",
+      indenizacaoSemHab: "Indenização (sem habilitação do sistema)",
       semIndenizacao: "Sem indenização",
+      semIndenizacaoSemHab: "Sem indenização (sem habilitação do sistema)",
       assistencia: "Sem indenização + assistência",
-      gold: "Tabela Gold"
+      assistenciaSemHab: "Sem indenização + assistência (sem habilitação do sistema)",
+      gold: "Tabela Gold",
+      goldSemHab: "Tabela Gold (sem habilitação do sistema)"
     };
 
     const presets = {
@@ -1600,6 +1608,12 @@
         condition: "Tabela Gold aprovada para formalização da proposta."
       }
     };
+
+    // Variantes "(sem habilitação do sistema)": mesmos dados do modelo base,
+    // mas a proposta não exibe o valor da habilitação — só a mensalidade.
+    ["indenizacao", "semIndenizacao", "assistencia", "gold"].forEach((key) => {
+      presets[key + "SemHab"] = Object.assign({}, presets[key]);
+    });
 
     const coverageItems = [
       ["tracking", "R", "Rastreamento", "Monitoramento para localização e acompanhamento do veículo."],
@@ -1679,7 +1693,11 @@
       const hasFipIndemnity = $("fipIndemnity").checked;
       $("fipBand").style.display = hasFipIndemnity ? "grid" : "none";
 
-      const isGold = template === "gold";
+      const showEntry = !template.endsWith("SemHab");
+      $("entryBlock").style.display = showEntry ? "grid" : "none";
+      $("entryFields").style.display = showEntry ? "grid" : "none";
+
+      const isGold = template === "gold" || template === "goldSemHab";
       $("goldFields").style.display = isGold ? "grid" : "none";
       $("monthlyFields").style.display = isGold ? "none" : "grid";
       $("monthlyGoldNote").style.display = isGold ? "block" : "none";
