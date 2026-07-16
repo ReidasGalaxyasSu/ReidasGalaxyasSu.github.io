@@ -1670,7 +1670,9 @@
 
     function render() {
       const template = $("template").value;
-      text("outTemplate", templateLabels[template]);
+      // No card enviado ao cliente aparece só o nome base do plano;
+      // o sufixo "(sem habilitação do sistema)" é informação interna do editor.
+      text("outTemplate", templateLabels[template.replace(/SemHab$/, "")]);
       text("outVehicle", $("vehicle").value);
       text("outClient", $("client").value);
       text("outDocument", $("document").value);
