@@ -262,3 +262,9 @@ body.ready #loader { opacity: 0; visibility: hidden; }
   .panel article, .panel article.active, #room-tag { transition: opacity .2s; }
   .hint i { animation: none; }
 }
+
+/* ---------------------------------------------------------------- modo filme (gravação de vídeo) */
+body.film *, body.film *::before { transition: none !important; animation: none !important; }
+body.film #loader, body.film .hint { display: none !important; }
+body.film-clean .topbar, body.film-clean .panel, body.film-clean #room-tag, body.film-clean .progress,
+body.film-clean #scrim, body.film-clean #fade { display: none !important; }

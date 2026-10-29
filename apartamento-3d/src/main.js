@@ -18,6 +18,7 @@ const seg = (p, a, b) => clamp((p - a) / (b - a));
 
 const isMobile = () => window.innerWidth < 820 || window.innerWidth / window.innerHeight < 0.9;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const film = { reveal: null, cam: null }; // sobreposições do modo filme (?film)
 
 // ------------------------------------------------------------------ renderer e cena
 const canvas = document.getElementById('scene');
@@ -289,7 +290,8 @@ let nightAmount = 0;
 function applyScene(p) {
   // a planta se desenha sozinha ao abrir a página (e também acompanha o scroll)
   const intro = stillFrames < Infinity ? 1 : seg(performance.now() - introStart, 300, 3300);
-  sheetUniforms.uReveal.value = lerp(-0.08, 1.12, Math.max(ease(intro), ease(seg(p, 0.012, 0.1))));
+  const rev = film.reveal !== null ? film.reveal : Math.max(ease(intro), ease(seg(p, 0.012, 0.1)));
+  sheetUniforms.uReveal.value = lerp(-0.08, 1.12, rev);
 
   // paredes sobem do papel, uma após a outra (de oeste para leste)
   const sorted = house.walls;
@@ -419,7 +421,10 @@ function adaptQuality(dt) {
 
 function draw(p) {
   const aspect = window.innerWidth / window.innerHeight;
-  const cam = cameraAt(p, aspect);
+  const cam = film.cam ? {
+    pos: new THREE.Vector3(...film.cam.pos), tgt: new THREE.Vector3(...film.cam.tgt),
+    fov: film.cam.fov ?? 35, ui: film.cam.ui ?? 0, fade: 0,
+  } : cameraAt(p, aspect);
   camera.position.copy(cam.pos);
   camera.lookAt(cam.tgt);
   camera.fov = cam.fov;
@@ -731,6 +736,30 @@ planReady.then(warmUp).then(() => {
     document.body.classList.add('ready');
   });
 });
+
+// ------------------------------------------------------------------ modo filme (?film): quadros exatos para gravar vídeos
+// __film.frame(p, { reveal, cam: { pos, tgt, fov, ui }, ui }) desenha um quadro determinístico (sem suavização nem relógio)
+if (new URLSearchParams(location.search).has('film')) {
+  document.body.classList.add('film');
+  window.__film = {
+    frame(p, opts = {}) {
+      film.reveal = opts.reveal ?? null;
+      film.cam = opts.cam ?? null;
+      document.body.classList.toggle('film-clean', !opts.ui);
+      current = target = lastDrawn = p;
+      draw(p);
+      return true;
+    },
+    // posição na tela (px) de pontos do mundo, com a câmera do último quadro
+    project(points) {
+      return points.map(([x, y, z]) => {
+        const v = new THREE.Vector3(x, y, z).project(camera);
+        return [(v.x + 1) / 2 * window.innerWidth, (1 - v.y) / 2 * window.innerHeight];
+      });
+    },
+    sheet: SHEET, plan: PLAN_BOUNDS,
+  };
+}
 
 // Testes: ?debug expõe o renderer; ?p=0.5 posiciona o scroll
 if (new URLSearchParams(location.search).has('debug')) window.__app = { renderer, scene, house, buildMs, enterFree, exitFree, goToSpot, spots, free };
