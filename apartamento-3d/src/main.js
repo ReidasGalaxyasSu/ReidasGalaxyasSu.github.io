@@ -21,12 +21,16 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 // ------------------------------------------------------------------ renderer e cena
 const canvas = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.5 : 1.75));
+// Resolução: começa limitada e se ajusta sozinha ao desempenho da máquina (ver adaptQuality)
+const maxRatio = () => Math.min(window.devicePixelRatio || 1, 1.5);
+let pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+renderer.setPixelRatio(pixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false; // a sombra só é recalculada quando a cena muda
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.05, 600);
@@ -52,6 +56,8 @@ const sky = new THREE.Mesh(
         vec3 top = mix(dayTop, nTop, uNight), hor = mix(dayHor, nHor, uNight), low = mix(dayLow, nLow, uNight);
         vec3 c = y > 0.0 ? mix(hor, top, pow(clamp(y,0.0,1.0), 0.5)) : mix(hor, low, pow(clamp(-y*3.0,0.0,1.0), 0.6));
         gl_FragColor = vec4(c, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
       }`,
   }),
 );
@@ -72,7 +78,9 @@ sun.shadow.normalBias = 0.03;
 scene.add(sun, sun.target);
 
 // ------------------------------------------------------------------ casa
+const _tb = performance.now();
 const house = buildHouse();
+const buildMs = performance.now() - _tb;
 scene.add(house.root);
 
 // ------------------------------------------------------------------ folha da planta (papel) com revelação animada
@@ -184,7 +192,9 @@ const city = (() => {
 scene.add(city);
 
 // ------------------------------------------------------------------ pós-processamento (bloom nas fitas de LED)
-const composer = new EffectComposer(renderer);
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: isMobile() ? 0 : 4 }));
+composer.setPixelRatio(pixelRatio);
+composer.setSize(window.innerWidth, window.innerHeight);
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.55, 0.82);
 composer.addPass(bloom);
@@ -268,6 +278,7 @@ const roomWindows = { cozinha: [0.295, 0.355], sala: [0.345, 0.41], jantar: [0.4
 const ledBase = house.leds.map(m => m.color.clone());
 const screenBase = house.screens.map(m => m.color.clone());
 const dayEnv = 0.85, nightEnv = 0.14;
+let nightAmount = 0;
 
 function applyScene(p) {
   // a planta se desenha sozinha ao abrir a página (e também acompanha o scroll)
@@ -288,7 +299,7 @@ function applyScene(p) {
 
   // o papel dá lugar ao piso
   const fl = ease(seg(p, 0.225, 0.285));
-  house.floorMats.forEach(m => { m.opacity = fl; m.transparent = fl < 1; m.depthWrite = fl > 0.5; });
+  house.floorMats.forEach(m => { m.opacity = fl; });
   house.floors.visible = fl > 0;
   sheetMat.opacity = 1 - ease(seg(p, 0.235, 0.3));
   sheet.visible = sheetMat.opacity > 0.001 && !!sheetMat.map;
@@ -311,15 +322,15 @@ function applyScene(p) {
   house.coves.visible = n > 0.01;
   hemi.intensity = lerp(1.2, 0.05, n);
   sun.intensity = lerp(2.8, 0.0, n);
-  sun.castShadow = n < 0.99;
   for (const m of house.allMaterials) m.envMapIntensity = lerp(dayEnv, nightEnv, n);
   sheetMat.envMapIntensity = dayEnv;
-  for (const l of house.nightLights) { l.intensity = l.userData.max * n * 0.6; l.visible = n > 0.001; }
+  for (const l of house.nightLights) l.intensity = l.userData.max * n * 0.6;
   house.leds.forEach((m, i) => m.color.copy(ledBase[i]).multiplyScalar(0.12 + n * (i === 0 ? 2.6 : 1.5)));
   house.screens.forEach((m, i) => m.color.copy(screenBase[i]).multiplyScalar(1 + n * 1.6));
   for (const g of house.glows) g.material.opacity = g.userData.maxOpacity * n;
   city.material.opacity = n;
-  bloom.strength = lerp(0.08, 0.42, n);
+  bloom.strength = 0.42 * n;
+  nightAmount = n;
   renderer.toneMappingExposure = lerp(1.0, 0.95, n);
 }
 
@@ -378,11 +389,29 @@ function viewOffset(ui) {
   else camera.setViewOffset(W, Hh, -W * 0.08 * ui, Hh * 0.08 * ui, W, Hh);
 }
 
-function frame(now) {
-  const dt = Math.min(0.1, (now - last) / 1000); last = now;
-  current += (target - current) * (reduceMotion ? 1 : 1 - Math.exp(-dt * 5.5));
-  if (Math.abs(target - current) < 0.00002) current = target;
-  const p = current;
+let lastDrawn = -1, needsDraw = true, introDone = false, drewLast = false;
+const frameTimes = [];
+let qualityCooldown = 0;
+
+// Se a máquina não sustenta ~45 fps, reduz a resolução interna; se sobra folga, volta a subir
+function adaptQuality(dt) {
+  frameTimes.push(dt);
+  if (frameTimes.length < 24) return;
+  const avg = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+  frameTimes.length = 0;
+  if (qualityCooldown-- > 0) return;
+  let next = pixelRatio;
+  if (avg > 0.022 && pixelRatio > 0.7) next = Math.max(0.7, pixelRatio - 0.2);
+  else if (avg < 0.012 && pixelRatio < maxRatio()) next = Math.min(maxRatio(), pixelRatio + 0.1);
+  if (next !== pixelRatio) {
+    pixelRatio = next;
+    renderer.setPixelRatio(pixelRatio);
+    composer.setPixelRatio(pixelRatio);
+    qualityCooldown = 2;
+  }
+}
+
+function draw(p) {
   const aspect = window.innerWidth / window.innerHeight;
   const cam = cameraAt(p, aspect);
   camera.position.copy(cam.pos);
@@ -393,7 +422,23 @@ function frame(now) {
   house.ceilings.visible = camera.position.y < H;
   applyScene(p);
   updateUI(p, cam);
+  if (nightAmount < 0.98) renderer.shadowMap.needsUpdate = true;
+  bloom.enabled = nightAmount > 0.01; // de dia o bloom fica desligado
   composer.render();
+}
+
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  current += (target - current) * (reduceMotion ? 1 : 1 - Math.exp(-dt * 9));
+  if (Math.abs(target - current) < 0.00002) current = target;
+  const introRunning = !introDone && now - introStart < 3400;
+  if (!introRunning && introStart !== Infinity) introDone = true;
+  if (needsDraw || introRunning || current !== lastDrawn) {
+    draw(current);
+    lastDrawn = current; needsDraw = false;
+    if (drewLast && stillFrames === Infinity) adaptQuality(dt); // só mede quadros seguidos
+    drewLast = true;
+  } else drewLast = false;
   if (stillFrames-- > 0) requestAnimationFrame(frame);
 }
 // ?still=1 (testes): renderiza poucos quadros e para — útil em navegadores sem GPU
@@ -401,22 +446,40 @@ let stillFrames = new URLSearchParams(location.search).has('still') ? 2 : Infini
 
 function onResize() {
   const W = window.innerWidth, Hh = window.innerHeight;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.5 : 1.75));
+  pixelRatio = Math.min(pixelRatio, maxRatio());
+  renderer.setPixelRatio(pixelRatio);
+  composer.setPixelRatio(pixelRatio);
   renderer.setSize(W, Hh);
   composer.setSize(W, Hh);
   camera.aspect = W / Hh;
   readScroll();
+  needsDraw = true;
 }
 window.addEventListener('resize', onResize);
 
-planReady.then(() => {
+async function warmUp() {
+  // tudo visível de uma vez para o compilador ver todos os materiais
+  house.root.traverse(o => { o.visible = true; });
+  sheet.visible = !!sheetMat.map;
+  camera.position.set(4.27, 15, 3.04); camera.lookAt(4.27, 0, 3);
+  // compila já para o alvo do pós-processamento (é nele que a cena é desenhada)
+  renderer.setRenderTarget(composer.renderTarget1);
+  try { await renderer.compileAsync(scene, camera); } catch (e) { /* navegadores antigos: compila no primeiro quadro */ }
+  renderer.setRenderTarget(null);
+  renderer.shadowMap.needsUpdate = true;
+  bloom.enabled = true;
+  composer.render();
+}
+
+planReady.then(warmUp).then(() => {
   readScroll(); current = target;
   requestAnimationFrame(t => {
-    last = t; introStart = t; frame(t);
+    last = t; introStart = t; needsDraw = true; frame(t);
     document.body.classList.add('ready');
   });
 });
 
-// Atalho para testes: ?p=0.5 posiciona o scroll
+// Testes: ?debug expõe o renderer; ?p=0.5 posiciona o scroll
+if (new URLSearchParams(location.search).has('debug')) window.__app = { renderer, scene, house, buildMs };
 const qp = new URLSearchParams(location.search).get('p');
 if (qp !== null) planReady.then(() => { window.scrollTo(0, +qp * maxScroll()); readScroll(); current = target; });

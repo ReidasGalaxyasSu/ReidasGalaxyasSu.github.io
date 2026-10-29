@@ -3,6 +3,7 @@
 // Origem: canto interno noroeste da sala.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import * as T from './textures.js';
 
 export const H = 2.7; // pé-direito
@@ -121,6 +122,27 @@ function roundedSlab(cx, cz, w, d, r, t, yTop, mat) {
 function tube(points, radius, mat, seg = 40) {
   const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
   return mesh(new THREE.TubeGeometry(curve, seg, radius, 8, false), mat);
+}
+
+// Junta as peças de um grupo que usam o mesmo material numa malha só (menos chamadas de desenho)
+function mergeByMaterial(group) {
+  const buckets = new Map();
+  for (const m of [...group.children]) {
+    if (!m.isMesh || Array.isArray(m.material)) continue;
+    m.updateMatrix();
+    const g = (m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone()).applyMatrix4(m.matrix);
+    for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
+    if (!g.attributes.uv || !g.attributes.normal) continue;
+    if (!buckets.has(m.material)) buckets.set(m.material, { geos: [], cast: m.castShadow });
+    buckets.get(m.material).geos.push(g);
+    group.remove(m);
+  }
+  for (const [mat, { geos, cast }] of buckets) {
+    const merged = new THREE.Mesh(mergeGeometries(geos), mat);
+    merged.castShadow = cast; merged.receiveShadow = true;
+    group.add(merged);
+  }
+  return group;
 }
 
 // ---------------------------------------------------------------- construção
@@ -263,6 +285,7 @@ export function buildHouse() {
     openings.add(bx(6.12, 6.62, 1.65, 2.15, -0.11, -0.09, M.glass));
     openings.add(bx(6.12, 6.62, 1.63, 1.66, -0.15, -0.05, M.black));
   }
+  mergeByMaterial(openings);
   root.add(openings);
 
   // Painéis de acabamento que acompanham as paredes
@@ -279,6 +302,7 @@ export function buildHouse() {
     const z = 0.66 + i * 0.05;
     finishes.add(bx(8.48, 8.54, 0, H, z, z + 0.032, M.walnutDark));
   }
+  mergeByMaterial(finishes);
   root.add(finishes);
 
   // Forros (só são vistos de dentro: a face aponta para baixo)
@@ -315,6 +339,7 @@ export function buildHouse() {
     coves.add(ledBox(3.97, 8.5, y1, y2, 4.31, 4.34));
     coves.add(ledBox(4.58, 6.75, y1, y2, 0.03, 0.06));        // banho
   }
+  mergeByMaterial(coves);
   root.add(coves);
 
   // ------------------------------------------------ mobiliário por ambiente
@@ -327,6 +352,7 @@ export function buildHouse() {
     const c = new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3());
     g.children.forEach(m => { m.position.x -= c.x; m.position.z -= c.z; });
     g.position.set(c.x, 0, c.z);
+    mergeByMaterial(g);
     r.add(g); r.userData.items.push(g);
     return g;
   }
@@ -691,12 +717,10 @@ export function buildHouse() {
     l.position.set(x, y, z); l.userData.max = intensity;
     nightLights.push(l); root.add(l);
   }
-  pl(2.2, 2.3, 3.2, 5.5, 5);    // sala
+  pl(2.4, 2.3, 2.4, 6.5, 6);    // sala + home office
   pl(0.6, 1.4, 2.6, 2.5, 3.2);  // cozinha (sob armários)
-  pl(2.9, 2.2, 0.8, 3.5, 4);    // home office
   pl(2.64, 1.75, 5.16, 4.5, 4); // pendente do jantar
   pl(7.8, 1.9, 2.85, 4.5, 4);   // escultura
-  pl(7.9, 0.9, 1.62, 1.6, 2.5); // abajur
   pl(5.6, 2.3, 3.2, 3.0, 4.5);  // dormitório geral
   pl(5.4, 2.1, 0.7, 2.5, 2.6);  // banho
 

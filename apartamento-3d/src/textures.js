@@ -22,84 +22,81 @@ function tex(c, { repeat = [1, 1], srgb = true } = {}) {
   return t;
 }
 
-// Manchas suaves sobrepostas: base para cimento queimado / concreto
-function blotches(ctx, w, h, r, count, colors, alpha) {
-  for (let i = 0; i < count; i++) {
-    const x = r() * w, y = r() * h, rad = (0.04 + r() * 0.22) * w;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
-    const col = colors[Math.floor(r() * colors.length)];
-    g.addColorStop(0, col.replace('A', String(alpha * (0.4 + r() * 0.6))));
-    g.addColorStop(1, col.replace('A', '0'));
-    ctx.fillStyle = g;
-    // desenha com wrap para a textura ficar contínua
-    for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) {
-      ctx.save(); ctx.translate(dx, dy); ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2); ctx.restore();
+// Ruído suave e repetível (tileable), calculado direto nos pixels — rápido mesmo em CPU
+function smoothNoise(N, r, cells) {
+  const g = new Float32Array(cells * cells);
+  for (let i = 0; i < g.length; i++) g[i] = r();
+  const out = new Float32Array(N * N);
+  for (let y = 0; y < N; y++) {
+    const fy = y / N * cells, y0 = Math.floor(fy), ty = fy - y0, sy = ty * ty * (3 - 2 * ty), y1 = (y0 + 1) % cells;
+    for (let x = 0; x < N; x++) {
+      const fx = x / N * cells, x0 = Math.floor(fx), tx = fx - x0, sx = tx * tx * (3 - 2 * tx), x1 = (x0 + 1) % cells;
+      const a = g[y0 * cells + x0], b = g[y0 * cells + x1], c = g[y1 * cells + x0], d = g[y1 * cells + x1];
+      out[y * N + x] = a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
     }
   }
+  return out;
 }
+function clouds(N, r) {
+  const a = smoothNoise(N, r, 4), b = smoothNoise(N, r, 9), c = smoothNoise(N, r, 23);
+  for (let i = 0; i < a.length; i++) a[i] = a[i] * 0.55 + b[i] * 0.3 + c[i] * 0.15;
+  return a;
+}
+function rgbOf(hex) { const v = parseInt(hex.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; }
 
-function grain(ctx, w, h, r, amount) {
-  const img = ctx.getImageData(0, 0, w, h);
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const n = (r() - 0.5) * amount;
-    d[i] += n; d[i + 1] += n; d[i + 2] += n;
+// Pinta a cor base modulada por um campo de ruído (manchas) + granulado
+function paint(N, base, field, strength, grainAmt, r) {
+  const [c, ctx] = canvas(N);
+  const [R, G, B] = typeof base === 'string' ? rgbOf(base) : base;
+  const img = ctx.createImageData(N, N), d = img.data;
+  for (let i = 0, p = 0; i < N * N; i++, p += 4) {
+    const k = 1 + (field[i] - 0.5) * 2 * strength, n = (r() - 0.5) * grainAmt;
+    d[p] = R * k + n; d[p + 1] = G * k + n; d[p + 2] = B * k + n; d[p + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
+  return [c, ctx];
 }
 
 export function concrete(base = '#8a8580', seed = 1, repeat = [1, 1], strength = 0.16) {
-  const [c, ctx] = canvas(512);
   const r = rng(seed);
-  ctx.fillStyle = base; ctx.fillRect(0, 0, 512, 512);
-  blotches(ctx, 512, 512, r, 70, ['rgba(255,250,240,A)', 'rgba(40,36,32,A)'], strength);
-  grain(ctx, 512, 512, r, 22);
+  const [c] = paint(512, base, clouds(512, r), strength * 1.6, 20, r);
   return tex(c, { repeat });
 }
 
-// Porcelanato grande (90x90) com rejunte fino
+// Porcelanato grande (90x90) com rejunte fino — a textura tem 2x2 placas
 export function tiles(base = '#6f6d6a', seed = 3, size = 0.9) {
-  const [c, ctx] = canvas(1024);
   const r = rng(seed);
-  ctx.fillStyle = base; ctx.fillRect(0, 0, 1024, 1024);
-  blotches(ctx, 1024, 1024, r, 90, ['rgba(255,255,255,A)', 'rgba(20,20,20,A)'], 0.09);
-  grain(ctx, 1024, 1024, r, 12);
-  ctx.strokeStyle = 'rgba(20,18,16,0.55)'; ctx.lineWidth = 3;
-  for (let i = 0; i <= 2; i++) {
-    ctx.beginPath(); ctx.moveTo(i * 512, 0); ctx.lineTo(i * 512, 1024); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, i * 512); ctx.lineTo(1024, i * 512); ctx.stroke();
-  }
+  const [c, ctx] = paint(512, base, clouds(512, r), 0.14, 10, r);
+  ctx.fillStyle = 'rgba(20,18,16,0.55)';
+  for (const i of [0, 256, 511]) { ctx.fillRect(i - 1, 0, 2, 512); ctx.fillRect(0, i - 1, 512, 2); }
   const t = tex(c);
-  t.userData.tileSize = size * 2; // a textura tem 2x2 placas
+  t.userData.tileSize = size * 2;
   return t;
 }
 
-// Madeira (nogueira) — veios longitudinais
+// Madeira (nogueira) — veios longitudinais com leve ondulação, réguas com tons diferentes
 export function wood(base = [92, 58, 36], seed = 7, { dark = 0.0 } = {}) {
-  const [c, ctx] = canvas(512);
-  const r = rng(seed);
+  const N = 512, r = rng(seed);
   const [R, G, B] = base.map(v => v * (1 - dark));
-  ctx.fillStyle = `rgb(${R},${G},${B})`; ctx.fillRect(0, 0, 512, 512);
-  // tábuas
-  for (let p = 0; p < 4; p++) {
-    const k = 0.85 + r() * 0.3;
-    ctx.fillStyle = `rgba(${R * k},${G * k},${B * k},0.6)`;
-    ctx.fillRect(p * 128, 0, 128, 512);
+  const profile = new Float32Array(N);
+  for (let k = 0; k < 90; k++) {
+    const c0 = r() * N, w = 0.6 + r() * 3.5, amp = (r() - 0.6) * 0.22;
+    for (let dx = -12; dx <= 12; dx++) profile[((Math.round(c0) + dx) % N + N) % N] += amp * Math.exp(-(dx / w) * (dx / w));
   }
-  // veios
-  for (let i = 0; i < 260; i++) {
-    const x0 = r() * 512, amp = 1 + r() * 5, freq = 0.004 + r() * 0.012, ph = r() * 6;
-    const light = r() > 0.5;
-    ctx.strokeStyle = light ? `rgba(255,220,180,${0.02 + r() * 0.04})` : `rgba(20,10,4,${0.04 + r() * 0.08})`;
-    ctx.lineWidth = 0.5 + r() * 1.4;
-    ctx.beginPath();
-    for (let y = -8; y <= 520; y += 8) {
-      const x = x0 + Math.sin(y * freq + ph) * amp + Math.sin(y * 0.05 + ph) * 1.5;
-      y === -8 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  const planks = [0, 1, 2, 3].map(() => 0.88 + r() * 0.24);
+  const ph1 = r() * 6.28, ph2 = r() * 6.28;
+  const [c, ctx] = canvas(N);
+  const img = ctx.createImageData(N, N), d = img.data;
+  for (let y = 0; y < N; y++) {
+    const wy = Math.sin(y / N * 6.283 + ph1) * 5 + Math.sin(y / N * 18.85 + ph2) * 2;
+    for (let x = 0; x < N; x++) {
+      const warp = wy * (1 + 0.6 * Math.sin(x / N * 12.566));
+      const k = planks[x >> 7] * (1 + profile[((x + Math.round(warp)) % N + N) % N]);
+      const n = (r() - 0.5) * 8, p = (y * N + x) * 4;
+      d[p] = R * k + n; d[p + 1] = G * k + n; d[p + 2] = B * k + n; d[p + 3] = 255;
     }
-    ctx.stroke();
   }
-  grain(ctx, 512, 512, r, 10);
+  ctx.putImageData(img, 0, 0);
   return tex(c);
 }
 
@@ -150,24 +147,22 @@ export function stone(seed = 11) {
 
 // Tecido (sofá, cama) — trama fina
 export function fabric(base = '#5a5550', seed = 5) {
-  const [c, ctx] = canvas(256);
-  const r = rng(seed);
-  ctx.fillStyle = base; ctx.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 256; i += 2) {
-    ctx.fillStyle = `rgba(255,255,255,${0.02 + r() * 0.03})`; ctx.fillRect(0, i, 256, 1);
-    ctx.fillStyle = `rgba(0,0,0,${0.03 + r() * 0.04})`; ctx.fillRect(i, 0, 1, 256);
+  const N = 256, r = rng(seed);
+  const [R, G, B] = rgbOf(base);
+  const [c, ctx] = canvas(N);
+  const img = ctx.createImageData(N, N), d = img.data;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const k = 1 + (y % 2 ? 0.03 : -0.01) - (x % 2 ? 0.04 : 0) + (r() - 0.5) * 0.12, p = (y * N + x) * 4;
+    d[p] = R * k; d[p + 1] = G * k; d[p + 2] = B * k; d[p + 3] = 255;
   }
-  grain(ctx, 256, 256, r, 16);
+  ctx.putImageData(img, 0, 0);
   return tex(c);
 }
 
 // Couro (sofá caramelo) — manchas + poros
 export function leather(base = '#7b3f1d', seed = 9) {
-  const [c, ctx] = canvas(512);
   const r = rng(seed);
-  ctx.fillStyle = base; ctx.fillRect(0, 0, 512, 512);
-  blotches(ctx, 512, 512, r, 80, ['rgba(255,190,130,A)', 'rgba(30,10,0,A)'], 0.1);
-  grain(ctx, 512, 512, r, 26);
+  const [c] = paint(512, base, clouds(512, r), 0.16, 22, r);
   return tex(c);
 }
 

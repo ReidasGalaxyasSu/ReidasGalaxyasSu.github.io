@@ -38,3 +38,12 @@ npm run build   # gera app.js
 ```
 
 Para testar uma posição específica do scroll, abra `index.html?p=0.5`.
+
+## Desempenho
+
+- As texturas são calculadas pixel a pixel, em vez de desenhadas com pincéis do canvas. A montagem da cena caiu de ~5 s para ~0,5 s.
+- Todos os shaders são compilados durante a tela de carregamento. As luzes e as sombras nunca são ligadas e desligadas, porque isso obrigaria a recompilar tudo no meio do scroll.
+- As peças de cada móvel são unidas por material, o que reduziu ~440 objetos para ~175.
+- A cena só é redesenhada quando o scroll ou uma animação muda algo. A sombra só é recalculada de dia, e o bloom só liga à noite.
+- A resolução interna se ajusta sozinha se a máquina não sustentar ~45 fps.
+- O CSS não usa `backdrop-filter` sobre o canvas.
