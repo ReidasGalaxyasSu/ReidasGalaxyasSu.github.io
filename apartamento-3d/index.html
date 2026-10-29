@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ARCO · Do papel ao 3D</title>
+  <meta name="description" content="Role a página e veja a planta baixa virar o apartamento decorado em 3D.">
+  <meta name="theme-color" content="#0d0c0b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="scene" aria-label="Apartamento em 3D"></canvas>
+  <div id="scrim"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#" data-goto="0" data-until="0">ARCO<small>studio</small></a>
+    <nav aria-label="Capítulos">
+      <a href="#" data-goto="0" data-until="0.11">Planta</a>
+      <a href="#" data-goto="0.11" data-until="0.29">Estrutura</a>
+      <a href="#" data-goto="0.29" data-until="0.565">Ambientes</a>
+      <a href="#" data-goto="0.565" data-until="0.66">Noite</a>
+      <a href="#" data-goto="0.66" data-until="0.95">Tour</a>
+    </nav>
+    <a class="cta-top" href="#" data-goto="0.97" data-until="2">Agendar visita</a>
+  </header>
+
+  <aside class="panel">
+    <article data-chapter data-from="0" data-to="0.11">
+      <p class="kicker"><b>01</b> Planta baixa · Apto tipo</p>
+      <h1>Todo lar começa <br>como um <em>plano</em></h1>
+      <p>Desenhamos cada metro desta planta e, a seguir, levantamos as paredes, mobiliamos cada ambiente e acendemos as luzes. Role a página e acompanhe.</p>
+      <dl>
+        <div><dt>Dormitórios</dt><dd>1</dd></div>
+        <div><dt>Área útil</dt><dd>≈ 42 m²</dd></div>
+        <div><dt>Terraço</dt><dd>3,70 × 1,50</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.11" data-to="0.29">
+      <p class="kicker"><b>02</b> Estrutura</p>
+      <h2>As paredes saem <br>do <em>papel</em></h2>
+      <p>Com as cotas da planta, o volume ganha altura: 2,70 m de pé-direito, a parede da TV que divide sala e dormitório e o arco de pedra que integra o terraço à sala.</p>
+      <dl>
+        <div><dt>Sala + cozinha</dt><dd>4,40 × 4,35</dd></div>
+        <div><dt>Dormitório</dt><dd>4,60 × 4,35</dd></div>
+        <div><dt>Banho</dt><dd>2,24 × 1,24</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.29" data-to="0.35">
+      <p class="kicker"><b>03</b> Cozinha</p>
+      <h2>Cozinha <em>integrada</em></h2>
+      <p>Marcenaria em nogueira, bancada de granito preto, torneira gourmet e fita de LED sob os armários e no rodapé. Uma geladeira preta fecha a composição ao lado da entrada.</p>
+      <dl><div><dt>Bancada</dt><dd>3,50 m linear</dd></div><div><dt>Acabamento</dt><dd>Nogueira + granito</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.35" data-to="0.405">
+      <p class="kicker"><b>04</b> Estar & home office</p>
+      <h2>Sala de <em>estar</em></h2>
+      <p>A ilha em cimento queimado separa a cozinha do estar sem fechar o espaço. O sofá de couro caramelo encosta nela e fica de frente para a parede preta da TV. O home office aproveita a parede da entrada.</p>
+      <dl><div><dt>Ilha</dt><dd>2,30 m</dd></div><div><dt>Banquetas</dt><dd>Laca vermelha</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.405" data-to="0.448">
+      <p class="kicker"><b>05</b> Terraço</p>
+      <h2>Jantar sob o <br>arco de <em>pedra</em></h2>
+      <p>O terraço foi incorporado à sala. A mesa em nogueira, as poltronas de veludo verde e o pendente trançado ficam sob um arco revestido de pedra, protegidos por mureta e guarda-corpo de vidro de 1,20 m.</p>
+      <dl><div><dt>Terraço</dt><dd>5,55 m²</dd></div><div><dt>Guarda-corpo</dt><dd>Vidro · 1,20 m</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.448" data-to="0.492">
+      <p class="kicker"><b>06</b> Banho</p>
+      <h2>Banho <em>spa</em></h2>
+      <p>Bancada de pedra com gabinete suspenso, espelho com luz de fundo, revestimento escuro e box de vidro com perfil dourado, ducha de teto e nicho iluminado.</p>
+      <dl><div><dt>Área</dt><dd>2,78 m²</dd></div><div><dt>Metais</dt><dd>Dourado escovado</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.492" data-to="0.565">
+      <p class="kicker"><b>07</b> Dormitório</p>
+      <h2>Suíte de <em>descanso</em></h2>
+      <p>Cama em plataforma flutuante de nogueira, cabeceira estofada de ponta a ponta e uma escultura esférica com fenda luminosa. Completam o quarto um armário de vidro fumê iluminado, um painel ripado e cortinas de linho.</p>
+      <dl><div><dt>Área</dt><dd>≈ 15 m²</dd></div><div><dt>Cama</dt><dd>Queen 1,58 × 1,98</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.565" data-to="0.66">
+      <p class="kicker"><b>08</b> Noite</p>
+      <h2>Quando a <br>luz <em>cai</em></h2>
+      <p>À noite, a luz indireta toma conta. Há sancas no encontro com o forro, LEDs sob a marcenaria, rodapés iluminados e luminárias pontuais. A cidade acende lá fora.</p>
+      <dl><div><dt>Temperatura</dt><dd>2700 K</dd></div><div><dt>Pontos de luz</dt><dd>Indiretos</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.66" data-to="0.95" class="tour-intro">
+      <p class="kicker"><b>09</b> Tour</p>
+      <h2>Entre e <em>sinta</em></h2>
+    </article>
+
+    <article data-chapter data-from="0.95" data-to="1.01" class="final">
+      <p class="kicker"><b>10</b> Do papel ao 3D</p>
+      <h2>Imagine o seu <br>lançamento <em>assim</em></h2>
+      <p>Uma planta que vira o apartamento decorado enquanto o cliente rola a página. É a mesma experiência, adaptada a cada tipologia do seu empreendimento.</p>
+      <div class="actions">
+        <a class="btn" href="mailto:?subject=Quero%20agendar%20uma%20visita">Agendar visita</a>
+        <a class="btn ghost" href="#" data-goto="0" data-until="0">Ver a planta de novo</a>
+      </div>
+    </article>
+  </aside>
+
+  <div id="room-tag" aria-live="polite"><em></em><strong></strong><span></span></div>
+  <div class="hint">Role para construir <i></i></div>
+  <div class="progress" aria-hidden="true"><i></i></div>
+  <div id="fade"></div>
+  <div id="loader"><span>ARCO</span><small>preparando o projeto…</small></div>
+
+  <div id="scroll-space"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

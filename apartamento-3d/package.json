@@ -1,0 +1,14 @@
+{
+  "name": "apartamento-3d",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Planta baixa que vira apartamento 3D decorado conforme o scroll",
+  "scripts": {
+    "build": "node scripts/embed-plan.mjs && esbuild src/main.js --bundle --minify --format=iife --target=es2020 --outfile=app.js",
+    "watch": "esbuild src/main.js --bundle --format=iife --target=es2020 --outfile=app.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0",
+    "three": "0.160.0"
+  }
+}
