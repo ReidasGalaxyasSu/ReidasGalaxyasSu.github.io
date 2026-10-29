@@ -4,6 +4,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { buildHouse, PLAN_BOUNDS, H } from './house.js';
 import { glow } from './textures.js';
 import planImageURL from './planImage.js';
@@ -22,15 +23,15 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 const canvas = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 // Resolução: começa limitada e se ajusta sozinha ao desempenho da máquina (ver adaptQuality)
-const maxRatio = () => Math.min(window.devicePixelRatio || 1, 1.5);
-let pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+const maxRatio = () => Math.min(window.devicePixelRatio || 1, 2);
+let pixelRatio = Math.min(window.devicePixelRatio || 1, isMobile() ? 1.5 : 1.75);
 renderer.setPixelRatio(pixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.shadowMap.autoUpdate = false; // a sombra só é recalculada quando a cena muda
+// cada luz decide quando refazer a sombra (shadow.autoUpdate = false): só quando a cena muda
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.05, 600);
@@ -71,9 +72,11 @@ const sun = new THREE.DirectionalLight('#ffe7c9', 2.8);
 sun.position.set(-3, 13, 10);
 sun.target.position.set(4.3, 0, 3);
 sun.castShadow = true;
-sun.shadow.mapSize.set(isMobile() ? 1024 : 2048, isMobile() ? 1024 : 2048);
+const sunMap = isMobile() ? 2048 : Math.min(4096, renderer.capabilities.maxTextureSize);
+sun.shadow.mapSize.set(sunMap, sunMap);
+sun.shadow.autoUpdate = false;
 Object.assign(sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 40 });
-sun.shadow.bias = -0.0004;
+sun.shadow.bias = -0.0003;
 sun.shadow.normalBias = 0.03;
 scene.add(sun, sun.target);
 
@@ -81,6 +84,9 @@ scene.add(sun, sun.target);
 const _tb = performance.now();
 const house = buildHouse();
 const buildMs = performance.now() - _tb;
+// filtro anisotrópico máximo: texturas nítidas mesmo em ângulos rasantes (piso, paredes)
+const maxAniso = renderer.capabilities.getMaxAnisotropy();
+for (const mat of house.allMaterials) for (const k of ['map', 'bumpMap']) if (mat[k]) mat[k].anisotropy = maxAniso;
 scene.add(house.root);
 
 // ------------------------------------------------------------------ folha da planta (papel) com revelação animada
@@ -389,7 +395,7 @@ function viewOffset(ui) {
   else camera.setViewOffset(W, Hh, -W * 0.08 * ui, Hh * 0.08 * ui, W, Hh);
 }
 
-let lastDrawn = -1, needsDraw = true, introDone = false, drewLast = false;
+let lastDrawn = -1, needsDraw = true, introDone = false, drewLast = false, lastShadowP = -1;
 const frameTimes = [];
 let qualityCooldown = 0;
 
@@ -422,13 +428,14 @@ function draw(p) {
   house.ceilings.visible = camera.position.y < H;
   applyScene(p);
   updateUI(p, cam);
-  if (nightAmount < 0.98) renderer.shadowMap.needsUpdate = true;
+  if (nightAmount < 0.98 && p !== lastShadowP) { sun.shadow.needsUpdate = true; lastShadowP = p; }
   bloom.enabled = nightAmount > 0.01; // de dia o bloom fica desligado
   composer.render();
 }
 
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (free.active) { frameFree(now, dt); requestAnimationFrame(frame); return; }
   current += (target - current) * (reduceMotion ? 1 : 1 - Math.exp(-dt * 9));
   if (Math.abs(target - current) < 0.00002) current = target;
   const introRunning = !introDone && now - introStart < 3400;
@@ -452,10 +459,254 @@ function onResize() {
   renderer.setSize(W, Hh);
   composer.setSize(W, Hh);
   camera.aspect = W / Hh;
-  readScroll();
+  if (!free.active) readScroll();
   needsDraw = true;
 }
 window.addEventListener('resize', onResize);
+
+
+// ------------------------------------------------------------------ modo livre: navegar à vontade pela maquete
+const free = { active: false, mode: 'orbit', controls: null, tween: null, night: 0, nightTarget: 0, savedScroll: 0, move: 0, strafe: 0, wheel: 0 };
+const freeHelp = document.getElementById('free-help');
+const labelsEl = document.getElementById('free-labels');
+const roomsNav = document.querySelector('.free-rooms');
+const dayNightBtn = document.getElementById('btn-daynight');
+const touchUI = window.matchMedia('(pointer: coarse)').matches;
+
+const spots = [
+  { id: 'geral', name: 'Visão geral', orbit: true, pos: [-3.6, 11.5, 13.6], tgt: [4.27, 0.3, 3.0] },
+  { id: 'sala', name: 'Sala', anchor: [2.7, 1.0, 3.4], pos: [3.35, 1.55, 4.4], tgt: [0.8, 1.05, 2.4] },
+  { id: 'cozinha', name: 'Cozinha', anchor: [0.4, 1.4, 1.9], pos: [0.95, 1.6, 4.15], tgt: [0.55, 1.15, 1.2] },
+  { id: 'terraco', name: 'Terraço', anchor: [2.6, 1.0, 5.6], pos: [1.15, 1.5, 5.8], tgt: [3.6, 1.0, 3.2] },
+  { id: 'escritorio', name: 'Home office', anchor: [2.9, 1.2, 0.4], pos: [3.5, 1.55, 1.9], tgt: [2.4, 1.0, 0.2] },
+  { id: 'banho', name: 'Banho', anchor: [5.6, 1.0, 0.6], pos: [6.55, 1.55, 1.05], tgt: [4.9, 1.25, 0.05] },
+  { id: 'dormitorio', name: 'Dormitório', anchor: [6.9, 1.0, 3.0], pos: [4.5, 1.55, 3.1], tgt: [8.5, 1.3, 2.85] },
+];
+// áreas onde dá para caminhar (x1, x2, z1, z2) — evita atravessar paredes
+const walkable = [
+  [0.75, 4.25, 0.25, 2.15], [0.75, 3.6, 2.0, 5.85],
+  [4.2, 4.8, 1.5, 2.1], [4.65, 8.25, 1.5, 4.15], [4.4, 4.7, 2.45, 4.15], [7.05, 8.3, 0.75, 1.6],
+  [4.2, 4.8, 0.5, 1.0], [4.7, 6.65, 0.55, 1.12],
+];
+const canWalk = (x, z) => walkable.some(([a, b, c, d]) => x >= a && x <= b && z >= c && z <= d);
+
+// botões de ambiente e rótulos clicáveis na maquete
+for (const s of spots) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = s.name; b.dataset.spot = s.id;
+  b.addEventListener('click', () => goToSpot(s));
+  roomsNav.appendChild(b);
+  if (s.anchor) {
+    const l = document.createElement('button');
+    l.type = 'button'; l.className = 'spot-label'; l.innerHTML = `<i></i>${s.name}`;
+    l.addEventListener('click', () => goToSpot(s));
+    labelsEl.appendChild(l); s.label = l;
+  }
+}
+
+function setHelp() {
+  freeHelp.textContent = free.mode === 'orbit'
+    ? (touchUI ? 'Arraste para girar · pinça para aproximar · dois dedos para mover · toque num ambiente para entrar'
+      : 'Arraste para girar · role para aproximar · botão direito para mover · clique num ambiente para entrar')
+    : (touchUI ? 'Arraste para olhar em volta · use ▲ ▼ para andar'
+      : 'Arraste para olhar em volta · role o mouse, use W A S D ou as setas para andar');
+}
+
+function setMode(mode, pos, tgt) {
+  const c = free.controls;
+  free.mode = mode;
+  document.body.classList.toggle('walk', mode === 'walk');
+  camera.position.copy(pos);
+  if (mode === 'walk') {
+    // olhar em volta = girar em torno de um ponto logo à frente dos olhos
+    const dir = tgt.clone().sub(pos).normalize();
+    c.target.copy(pos).addScaledVector(dir, 0.1);
+    Object.assign(c, { enableZoom: false, enablePan: false, rotateSpeed: -0.45, minDistance: 0.1, maxDistance: 0.1, minPolarAngle: Math.PI * 0.28, maxPolarAngle: Math.PI * 0.74 });
+    camera.fov = window.innerWidth / window.innerHeight < 1 ? 74 : 64;
+  } else {
+    c.target.copy(tgt);
+    Object.assign(c, { enableZoom: true, enablePan: true, rotateSpeed: 0.7, minDistance: 3, maxDistance: 28, minPolarAngle: 0.02, maxPolarAngle: 1.3 });
+    camera.fov = window.innerWidth / window.innerHeight < 1 ? 48 : 38;
+  }
+  camera.updateProjectionMatrix();
+  c.update();
+  roomsNav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.spot === free.spotId));
+  setHelp();
+}
+
+function goToSpot(s) {
+  if (!free.active || free.tween) return;
+  free.spotId = s.id;
+  const toWalk = !s.orbit;
+  const to = { pos: new THREE.Vector3(...s.pos), tgt: new THREE.Vector3(...s.tgt) };
+  if (!toWalk && free.mode === 'orbit') { // mantém a distância atual ao voltar para a visão geral
+    to.pos.sub(to.tgt).setLength(Math.max(12, camera.position.distanceTo(free.controls.target))).add(to.tgt);
+  }
+  free.tween = {
+    from: { pos: camera.position.clone(), tgt: free.controls.target.clone() }, to,
+    t0: performance.now(), dur: (toWalk || free.mode === 'walk') ? 1000 : 1300,
+    cut: toWalk || free.mode === 'walk', toWalk, switched: false,
+  };
+  free.controls.enabled = false;
+  roomsNav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.spot === s.id));
+}
+
+function stepTween(now) {
+  const tw = free.tween, t = clamp((now - tw.t0) / tw.dur);
+  if (tw.cut) { // atravessa paredes com um escurecimento rápido
+    fadeEl.style.opacity = clamp((1 - Math.abs(2 * t - 1)) * 2.2);
+    if (t >= 0.5 && !tw.switched) { tw.switched = true; setMode(tw.toWalk ? 'walk' : 'orbit', tw.to.pos, tw.to.tgt); }
+  } else {
+    const e = ease(t);
+    const tgt = tw.from.tgt.clone().lerp(tw.to.tgt, e);
+    const sa = new THREE.Spherical().setFromVector3(_v.copy(tw.from.pos).sub(tw.from.tgt));
+    const sb = new THREE.Spherical().setFromVector3(_v.copy(tw.to.pos).sub(tw.to.tgt));
+    let dT = sb.theta - sa.theta;
+    if (dT > Math.PI) dT -= Math.PI * 2; if (dT < -Math.PI) dT += Math.PI * 2;
+    _sph.set(lerp(sa.radius, sb.radius, e), lerp(sa.phi, sb.phi, e), sa.theta + dT * e);
+    camera.position.setFromSpherical(_sph).add(tgt);
+    free.controls.target.copy(tgt);
+    camera.lookAt(tgt);
+  }
+  if (t >= 1) {
+    if (!tw.cut) setMode('orbit', tw.to.pos, tw.to.tgt);
+    fadeEl.style.opacity = 0;
+    free.tween = null;
+    free.controls.enabled = true;
+  }
+}
+
+// caminhar: frente/trás pela direção do olhar, sem atravessar paredes
+function walkStep(dt) {
+  const speed = 1.5;
+  let fwd = free.move + free.wheel, side = free.strafe;
+  free.wheel *= Math.exp(-dt * 6);
+  if (Math.abs(free.wheel) < 0.01) free.wheel = 0;
+  if (!fwd && !side) return false;
+  const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; dir.normalize();
+  const right = new THREE.Vector3(-dir.z, 0, dir.x);
+  const d = dir.multiplyScalar(fwd * speed * dt).addScaledVector(right, side * speed * dt);
+  const p = camera.position;
+  let dx = d.x, dz = d.z;
+  if (!canWalk(p.x + dx, p.z + dz)) { // desliza junto à parede
+    if (canWalk(p.x + dx, p.z)) dz = 0; else if (canWalk(p.x, p.z + dz)) dx = 0; else return false;
+  }
+  p.x += dx; p.z += dz;
+  free.controls.target.x += dx; free.controls.target.z += dz;
+  return true;
+}
+
+const _lv = new THREE.Vector3();
+function updateLabels() {
+  const W = window.innerWidth, Hh = window.innerHeight, show = free.mode === 'orbit' && !free.tween;
+  for (const s of spots) {
+    if (!s.label) continue;
+    _lv.set(...s.anchor).project(camera);
+    const vis = show && _lv.z < 1 && Math.abs(_lv.x) < 1.05 && Math.abs(_lv.y) < 1.05;
+    s.label.classList.toggle('show', vis);
+    if (vis) s.label.style.transform = `translate(${((_lv.x + 1) / 2 * W).toFixed(1)}px, ${((1 - _lv.y) / 2 * Hh).toFixed(1)}px) translate(-50%, -50%)`;
+  }
+}
+
+function drawFree() {
+  house.ceilings.visible = camera.position.y < H;
+  applyScene(0.56 + 0.1 * free.night);
+  updateLabels();
+  bloom.enabled = nightAmount > 0.01;
+  composer.render();
+}
+
+function frameFree(now, dt) {
+  let changed = needsDraw;
+  if (free.tween) { stepTween(now); changed = true; }
+  else {
+    if (free.mode === 'walk') changed = walkStep(dt) || changed;
+    changed = free.controls.update() || changed;
+  }
+  if (free.night !== free.nightTarget) {
+    const k = Math.sign(free.nightTarget - free.night) * dt / 1.2;
+    free.night = clamp(free.night + k);
+    if (Math.abs(free.night - free.nightTarget) < 0.01) free.night = free.nightTarget;
+    changed = true;
+  }
+  if (changed) {
+    drawFree();
+    needsDraw = false;
+    if (drewLast) adaptQuality(dt);
+    drewLast = true;
+  } else drewLast = false;
+}
+
+function setNightButton() {
+  dayNightBtn.textContent = free.nightTarget ? '☀ Ver de dia' : '☾ Ver à noite';
+}
+
+function enterFree() {
+  if (free.active || !document.body.classList.contains('ready')) return;
+  free.active = true;
+  free.savedScroll = window.scrollY;
+  document.documentElement.classList.add('free-lock');
+  document.body.classList.add('free');
+  free.night = free.nightTarget = current >= 0.6 ? 1 : 0;
+  setNightButton();
+  const c = free.controls = new OrbitControls(camera, canvas);
+  c.enableDamping = true; c.dampingFactor = 0.08; c.screenSpacePanning = false;
+  c.addEventListener('change', () => { // mantém o alvo dentro do apartamento
+    if (free.mode === 'orbit') {
+      c.target.x = clamp(c.target.x, -1, 9.5); c.target.y = clamp(c.target.y, 0, 2.2); c.target.z = clamp(c.target.z, -1, 7);
+    }
+  });
+  camera.clearViewOffset();
+  // começa de onde a câmera do tour estava: dentro de um ambiente = caminhando; fora = maquete
+  const cam = cameraAt(current, window.innerWidth / window.innerHeight);
+  if (cam.pos.y < H) { free.spotId = null; setMode('walk', cam.pos, cam.tgt); }
+  else { free.spotId = null; setMode('orbit', cam.pos, cam.tgt); goToSpot(spots[0]); }
+  fadeEl.style.opacity = 0;
+  sun.shadow.needsUpdate = true;
+  needsDraw = true;
+}
+
+function exitFree() {
+  if (!free.active) return;
+  free.active = false;
+  free.tween = null; free.move = free.strafe = free.wheel = 0;
+  free.controls.dispose(); free.controls = null;
+  canvas.style.touchAction = '';
+  document.documentElement.classList.remove('free-lock');
+  document.body.classList.remove('free', 'walk');
+  labelsEl.querySelectorAll('.show').forEach(l => l.classList.remove('show'));
+  fadeEl.style.opacity = 0;
+  window.scrollTo(0, free.savedScroll);
+  readScroll(); current = target; lastShadowP = -1;
+  needsDraw = true;
+}
+
+document.querySelectorAll('[data-explore]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); enterFree(); }));
+document.getElementById('btn-exit').addEventListener('click', exitFree);
+dayNightBtn.addEventListener('click', () => { free.nightTarget = free.nightTarget ? 0 : 1; setNightButton(); });
+
+canvas.addEventListener('wheel', e => {
+  if (!free.active || free.mode !== 'walk') return;
+  e.preventDefault();
+  free.wheel = clamp(free.wheel - Math.sign(e.deltaY) * 0.9, -2.2, 2.2);
+}, { passive: false });
+
+const keyMap = { KeyW: ['move', 1], ArrowUp: ['move', 1], KeyS: ['move', -1], ArrowDown: ['move', -1], KeyA: ['strafe', -1], ArrowLeft: ['strafe', -1], KeyD: ['strafe', 1], ArrowRight: ['strafe', 1] };
+window.addEventListener('keydown', e => {
+  if (!free.active) return;
+  if (e.code === 'Escape') { exitFree(); return; }
+  const k = keyMap[e.code];
+  if (k && free.mode === 'walk') { free[k[0]] = k[1]; e.preventDefault(); }
+});
+window.addEventListener('keyup', e => {
+  const k = keyMap[e.code];
+  if (k && free[k[0]] === k[1]) free[k[0]] = 0;
+});
+document.querySelectorAll('[data-walk]').forEach(b => {
+  const go = v => e => { e.preventDefault(); free.move = v; };
+  b.addEventListener('pointerdown', go(+b.dataset.walk));
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, go(0));
+});
 
 async function warmUp() {
   // tudo visível de uma vez para o compilador ver todos os materiais
@@ -466,7 +717,9 @@ async function warmUp() {
   renderer.setRenderTarget(composer.renderTarget1);
   try { await renderer.compileAsync(scene, camera); } catch (e) { /* navegadores antigos: compila no primeiro quadro */ }
   renderer.setRenderTarget(null);
-  renderer.shadowMap.needsUpdate = true;
+  // sombras: a do sol e as das luzes noturnas (estas nunca mais precisam ser refeitas)
+  sun.shadow.needsUpdate = true;
+  for (const l of house.nightLights) if (l.castShadow) l.shadow.needsUpdate = true;
   bloom.enabled = true;
   composer.render();
 }
@@ -480,6 +733,6 @@ planReady.then(warmUp).then(() => {
 });
 
 // Testes: ?debug expõe o renderer; ?p=0.5 posiciona o scroll
-if (new URLSearchParams(location.search).has('debug')) window.__app = { renderer, scene, house, buildMs };
+if (new URLSearchParams(location.search).has('debug')) window.__app = { renderer, scene, house, buildMs, enterFree, exitFree, goToSpot, spots, free };
 const qp = new URLSearchParams(location.search).get('p');
 if (qp !== null) planReady.then(() => { window.scrollTo(0, +qp * maxScroll()); readScroll(); current = target; });

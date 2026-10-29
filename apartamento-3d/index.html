@@ -25,7 +25,10 @@
       <a href="#" data-goto="0.565" data-until="0.66">Noite</a>
       <a href="#" data-goto="0.66" data-until="0.95">Tour</a>
     </nav>
-    <a class="cta-top" href="#" data-goto="0.97" data-until="2">Agendar visita</a>
+    <div class="top-actions">
+      <button class="explore-btn" type="button" data-explore><span aria-hidden="true">⟲</span> Explorar em 3D</button>
+      <a class="cta-top" href="#" data-goto="0.97" data-until="2">Agendar visita</a>
+    </div>
   </header>
 
   <aside class="panel">
@@ -104,6 +107,7 @@
       <p>Uma planta que vira o apartamento decorado enquanto o cliente rola a página. É a mesma experiência, adaptada a cada tipologia do seu empreendimento.</p>
       <div class="actions">
         <a class="btn" href="mailto:?subject=Quero%20agendar%20uma%20visita">Agendar visita</a>
+        <button class="btn ghost" type="button" data-explore>Explorar livremente</button>
         <a class="btn ghost" href="#" data-goto="0" data-until="0">Ver a planta de novo</a>
       </div>
     </article>
@@ -112,6 +116,21 @@
   <div id="room-tag" aria-live="polite"><em></em><strong></strong><span></span></div>
   <div class="hint">Role para construir <i></i></div>
   <div class="progress" aria-hidden="true"><i></i></div>
+  <div id="free-ui">
+    <div class="free-head">
+      <div class="free-title"><b>Modo livre</b><p id="free-help"></p></div>
+      <div class="free-actions">
+        <button id="btn-daynight" class="pill" type="button">☾ Ver à noite</button>
+        <button id="btn-exit" class="pill solid" type="button">✕ Voltar ao tour</button>
+      </div>
+    </div>
+    <div id="free-labels"></div>
+    <div class="walk-pad">
+      <button type="button" data-walk="1" aria-label="Andar para frente">▲</button>
+      <button type="button" data-walk="-1" aria-label="Andar para trás">▼</button>
+    </div>
+    <nav class="free-rooms" aria-label="Ambientes"></nav>
+  </div>
   <div id="fade"></div>
   <div id="loader"><span>ARCO</span><small>preparando o projeto…</small></div>
 

@@ -18,7 +18,17 @@ function std(params) {
   allMaterials.add(m);
   return m;
 }
+function phys(params) {
+  const m = new THREE.MeshPhysicalMaterial(params);
+  allMaterials.add(m);
+  return m;
+}
 function withRepeat(t, size) { t.repeat.set(1 / size, 1 / size); return t; }
+// tecido: brilho aveludado (sheen) + relevo da trama
+function cloth(color, seed, size, sheenColor, extra = {}) {
+  const t = withRepeat(T.fabric(color, seed), size);
+  return phys({ map: t, bumpMap: t, bumpScale: 0.35, roughness: 0.92, sheen: 1, sheenRoughness: 0.55, sheenColor, ...extra });
+}
 
 function makeMaterials() {
   const stone = T.stone();
@@ -26,43 +36,48 @@ function makeMaterials() {
   const walnutTex = withRepeat(T.wood([96, 60, 38], 7), 1.2);
   const walnutDarkTex = withRepeat(T.wood([70, 44, 28], 8), 1.2);
   const floorWood = withRepeat(T.wood([120, 92, 70], 12), 1.6);
+  const wallTex = withRepeat(T.concrete('#7e7973', 2, [1, 1], 0.045, 1024), 2.6);
+  const tileTex = withRepeat(T.tiles('#77736e', 3), 1.8);
+  const bathTex = withRepeat(T.tiles('#4a4744', 6, 0.6, 512), 1.2);
+  const leatherTex = withRepeat(T.leather('#5e2f17'), 1.2);
+  const cementTex = withRepeat(T.concrete('#8e8a85', 5), 1.4);
   return {
-    wall: std({ map: withRepeat(T.concrete('#7e7973', 2, [1, 1], 0.045), 2.6), roughness: 0.92 }),
-    wallDark: std({ map: withRepeat(T.concrete('#4f4b47', 4), 2.0), roughness: 0.9 }),
+    wall: std({ map: wallTex, bumpMap: wallTex, bumpScale: 0.35, roughness: 0.9 }),
+    wallDark: std({ map: withRepeat(T.concrete('#4f4b47', 4), 2.0), roughness: 0.6 }),
     cut: std({ color: '#181615', roughness: 1 }),
-    black: std({ color: '#121212', roughness: 0.75 }),
-    blackGloss: std({ color: '#0d0d0e', roughness: 0.25, metalness: 0.2 }),
-    floorTile: std({ map: withRepeat(T.tiles('#77736e', 3), 1.8), roughness: 0.55 }),
-    floorBath: std({ map: withRepeat(T.tiles('#4a4744', 6), 1.2), roughness: 0.5 }),
-    floorWood: std({ map: floorWood, roughness: 0.6 }),
+    black: std({ color: '#121212', roughness: 0.7 }),
+    blackGloss: phys({ color: '#0b0b0c', roughness: 0.3, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.08 }),
+    floorTile: std({ map: tileTex, bumpMap: tileTex, bumpScale: 0.8, roughness: 0.34 }),
+    floorBath: std({ map: bathTex, bumpMap: bathTex, bumpScale: 0.8, roughness: 0.3 }),
+    floorWood: std({ map: floorWood, bumpMap: floorWood, bumpScale: 0.5, roughness: 0.48 }),
     slab: std({ map: withRepeat(T.concrete('#3a3735', 9), 3), roughness: 1 }),
-    walnut: std({ map: walnutTex, roughness: 0.55 }),
-    walnutDark: std({ map: walnutDarkTex, roughness: 0.55 }),
-    granite: std({ color: '#141414', roughness: 0.22, metalness: 0.1 }),
-    cement: std({ map: withRepeat(T.concrete('#8e8a85', 5), 1.4), roughness: 0.8 }),
-    stoneTop: std({ map: withRepeat(T.concrete('#7c7873', 15), 0.8), roughness: 0.45 }),
+    walnut: std({ map: walnutTex, bumpMap: walnutTex, bumpScale: 0.45, roughness: 0.48 }),
+    walnutDark: std({ map: walnutDarkTex, bumpMap: walnutDarkTex, bumpScale: 0.45, roughness: 0.5 }),
+    granite: phys({ map: withRepeat(T.granite(), 0.6), roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.06 }),
+    cement: std({ map: cementTex, bumpMap: cementTex, bumpScale: 0.4, roughness: 0.78 }),
+    stoneTop: std({ map: withRepeat(T.concrete('#7c7873', 15), 0.8), roughness: 0.32 }),
     stone: std({ map: stone.map, bumpMap: stone.bump, bumpScale: 3, roughness: 0.95 }),
-    leather: std({ map: withRepeat(T.leather('#5e2f17'), 1.2), roughness: 0.58 }),
-    redLacquer: std({ color: '#9d1518', roughness: 0.35 }),
-    greenVelvet: std({ map: withRepeat(T.fabric('#1f3a2a', 13), 0.4), roughness: 0.9 }),
-    linen: std({ map: withRepeat(T.fabric('#8e867c', 14), 0.5), roughness: 0.95 }),
-    duvet: std({ map: withRepeat(T.fabric('#6d6760', 15), 0.6), roughness: 0.95 }),
-    charcoal: std({ map: withRepeat(T.fabric('#2c2a28', 16), 0.5), roughness: 0.95 }),
-    headboard: std({ map: withRepeat(T.fabric('#4a433c', 17), 0.5), roughness: 0.95 }),
-    rug: std({ map: withRepeat(T.fabric('#45423f', 18), 0.8), roughness: 1 }),
-    rugDark: std({ map: withRepeat(T.fabric('#33302d', 19), 0.8), roughness: 1 }),
-    curtain: std({ map: withRepeat(T.fabric('#a39684', 20), 0.6), roughness: 0.95, side: THREE.DoubleSide }),
-    steel: std({ color: '#b9b9b6', roughness: 0.25, metalness: 0.95 }),
-    brass: std({ color: '#b08a55', roughness: 0.3, metalness: 0.95 }),
-    ceramic: std({ color: '#efede8', roughness: 0.2 }),
-    terracotta: std({ color: '#a8643f', roughness: 0.8 }),
-    leaf: std({ color: '#2f4728', roughness: 0.75 }),
+    leather: phys({ map: leatherTex, bumpMap: leatherTex, bumpScale: 0.5, roughness: 0.52, clearcoat: 0.35, clearcoatRoughness: 0.45 }),
+    redLacquer: phys({ color: '#9d1518', roughness: 0.35, clearcoat: 0.9, clearcoatRoughness: 0.12 }),
+    greenVelvet: cloth('#1f3a2a', 13, 0.4, '#6f9c7b', { sheenRoughness: 0.4 }),
+    linen: cloth('#8e867c', 14, 0.5, '#d8cfc2'),
+    duvet: cloth('#6d6760', 15, 0.6, '#b9b1a6'),
+    charcoal: cloth('#2c2a28', 16, 0.5, '#6e6a66'),
+    headboard: cloth('#4a433c', 17, 0.5, '#91877b'),
+    rug: cloth('#45423f', 18, 0.8, '#7d7873', { bumpScale: 0.8, roughness: 1 }),
+    rugDark: cloth('#33302d', 19, 0.8, '#69645f', { bumpScale: 0.8, roughness: 1 }),
+    curtain: cloth('#a39684', 20, 0.6, '#efe3d0', { side: THREE.DoubleSide }),
+    steel: std({ color: '#b9b9b6', roughness: 0.22, metalness: 1 }),
+    brass: std({ color: '#b8925c', roughness: 0.28, metalness: 1 }),
+    ceramic: phys({ color: '#f1efea', roughness: 0.15, clearcoat: 1, clearcoatRoughness: 0.05 }),
+    terracotta: std({ color: '#a8643f', roughness: 0.85 }),
+    leaf: std({ color: '#2f4728', roughness: 0.6 }),
     branch: std({ color: '#5b4330', roughness: 0.9 }),
-    art: std({ map: T.roundArt(), roughness: 0.7 }),
+    art: std({ map: T.roundArt(), roughness: 0.6 }),
     sphere: std({ map: T.panelSphere(), roughness: 0.85 }),
-    screenOff: std({ color: '#060708', roughness: 0.15, metalness: 0.3 }),
-    glass: (() => { const m = new THREE.MeshStandardMaterial({ color: '#a9c2c8', roughness: 0.04, metalness: 0.1, transparent: true, opacity: 0.18, depthWrite: false }); allMaterials.add(m); return m; })(),
-    glassDark: (() => { const m = new THREE.MeshStandardMaterial({ color: '#1c1a18', roughness: 0.08, metalness: 0.2, transparent: true, opacity: 0.45, depthWrite: false }); allMaterials.add(m); return m; })(),
+    screenOff: phys({ color: '#060708', roughness: 0.1, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.03 }),
+    glass: (() => { const m = new THREE.MeshStandardMaterial({ color: '#a9c2c8', roughness: 0.03, metalness: 0.1, transparent: true, opacity: 0.16, depthWrite: false, envMapIntensity: 1.4 }); allMaterials.add(m); return m; })(),
+    glassDark: (() => { const m = new THREE.MeshStandardMaterial({ color: '#1c1a18', roughness: 0.06, metalness: 0.2, transparent: true, opacity: 0.45, depthWrite: false }); allMaterials.add(m); return m; })(),
     mirror: std({ color: '#c9ccd0', roughness: 0.02, metalness: 1 }),
     weave: (() => { const m = new THREE.MeshStandardMaterial({ color: '#2a2018', roughness: 0.9, alphaMap: T.weave(), alphaTest: 0.5, side: THREE.DoubleSide }); allMaterials.add(m); return m; })(),
   };
@@ -692,10 +707,14 @@ export function buildHouse() {
     {
       const g = new THREE.PlaneGeometry(2.3, H - 0.08, 80, 1);
       const p = g.attributes.position;
-      for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getX(i) * 26) * 0.035);
+      for (let i = 0; i < p.count; i++) { const x = p.getX(i); p.setZ(i, Math.sin(x * 24) * 0.045 + Math.sin(x * 7.3) * 0.015); }
       g.computeVertexNormals(); worldUV(g);
       const cur = mesh(g, M.curtain, 5.15, (H - 0.08) / 2 + 0.02, 4.24);
-      item(bed, [cur, bx(3.98, 6.32, 2.62, 2.64, 4.15, 4.33, M.black)]);
+      const sheer = mesh(g.clone(), M.curtain.clone(), 5.15, (H - 0.08) / 2 + 0.02, 4.31);
+      Object.assign(sheer.material, { transparent: true, opacity: 0.5, depthWrite: false, sheen: 0, color: new THREE.Color('#e9e2d6') });
+      allMaterials.add(sheer.material); sheer.castShadow = false;
+      cur.scale.x = 0.42; cur.position.x = 4.55; // cortina pesada recolhida no canto; voil cobre a janela
+      item(bed, [sheer, cur, bx(3.98, 6.32, 2.62, 2.64, 4.15, 4.33, M.black)]);
     }
     // oliveira em vaso
     {
@@ -712,16 +731,24 @@ export function buildHouse() {
 
   // ------------------------------------------------ luzes noturnas (intensidade animada)
   const nightLights = [];
-  function pl(x, y, z, intensity, distance, color = '#ffb070') {
+  function pl(x, y, z, intensity, distance, color = '#ffb070', shadow = false) {
     const l = new THREE.PointLight(color, 0, distance, 2);
     l.position.set(x, y, z); l.userData.max = intensity;
+    if (shadow) {
+      // sombra suave das luzes da noite: a cena não se move à noite, então o mapa é gerado só uma vez
+      l.castShadow = true;
+      l.shadow.mapSize.set(512, 512);
+      l.shadow.camera.near = 0.08; l.shadow.camera.far = distance;
+      l.shadow.bias = -0.004; l.shadow.normalBias = 0.03; l.shadow.radius = 4;
+      l.shadow.autoUpdate = false;
+    }
     nightLights.push(l); root.add(l);
   }
-  pl(2.4, 2.3, 2.4, 6.5, 6);    // sala + home office
+  pl(2.4, 2.3, 2.4, 6.5, 6, undefined, true);    // sala + home office
   pl(0.6, 1.4, 2.6, 2.5, 3.2);  // cozinha (sob armários)
-  pl(2.64, 1.75, 5.16, 4.5, 4); // pendente do jantar
-  pl(7.8, 1.9, 2.85, 4.5, 4);   // escultura
-  pl(5.6, 2.3, 3.2, 3.0, 4.5);  // dormitório geral
+  pl(2.64, 1.62, 5.16, 4.5, 4.5, undefined, true); // pendente do jantar
+  pl(7.75, 1.95, 2.85, 4.5, 4.5, undefined, true); // escultura
+  pl(5.6, 2.3, 3.2, 3.0, 4.5, undefined, true);  // dormitório geral
   pl(5.4, 2.1, 0.7, 2.5, 2.6);  // banho
 
   // Sombras e bounding dos itens (para a animação de "queda")
