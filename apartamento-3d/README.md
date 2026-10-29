@@ -20,6 +20,15 @@ A experiência foi pensada primeiro para o computador. No celular, o texto vai p
 | 66–95% | Tour interno em 6 takes |
 | 95–100% | Chamada final |
 
+## Modo livre (Explorar em 3D)
+
+O botão **Explorar em 3D**, no topo e no final da página, pausa o roteiro e libera a navegação:
+
+- **Visão geral (maquete):** arraste para girar, use a roda do mouse ou a pinça para aproximar e o botão direito ou dois dedos para mover. Os rótulos sobre a maquete levam para dentro de cada ambiente.
+- **Dentro dos ambientes:** arraste para olhar em volta. Para andar, use a roda do mouse, W A S D, as setas do teclado ou os botões ▲ ▼ na tela. As paredes não deixam atravessar.
+- **Dia e noite:** alterna a iluminação a qualquer momento.
+- **Voltar ao tour (ou Esc):** retoma o scroll exatamente de onde parou.
+
 ## Estrutura
 
 - `index.html`, `style.css`: textos e layout
@@ -47,3 +56,4 @@ Para testar uma posição específica do scroll, abra `index.html?p=0.5`.
 - A cena só é redesenhada quando o scroll ou uma animação muda algo. A sombra só é recalculada de dia, e o bloom só liga à noite.
 - A resolução interna se ajusta sozinha se a máquina não sustentar ~45 fps.
 - O CSS não usa `backdrop-filter` sobre o canvas.
+- As luzes da noite têm sombras suaves. Como nada se move à noite, os mapas de sombra são gerados uma única vez no carregamento.

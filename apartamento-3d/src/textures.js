@@ -57,41 +57,42 @@ function paint(N, base, field, strength, grainAmt, r) {
   return [c, ctx];
 }
 
-export function concrete(base = '#8a8580', seed = 1, repeat = [1, 1], strength = 0.16) {
+export function concrete(base = '#8a8580', seed = 1, repeat = [1, 1], strength = 0.16, N = 512) {
   const r = rng(seed);
-  const [c] = paint(512, base, clouds(512, r), strength * 1.6, 20, r);
+  const [c] = paint(N, base, clouds(N, r), strength * 1.6, 20, r);
   return tex(c, { repeat });
 }
 
 // Porcelanato grande (90x90) com rejunte fino — a textura tem 2x2 placas
-export function tiles(base = '#6f6d6a', seed = 3, size = 0.9) {
+export function tiles(base = '#6f6d6a', seed = 3, size = 0.9, N = 1024) {
   const r = rng(seed);
-  const [c, ctx] = paint(512, base, clouds(512, r), 0.14, 10, r);
-  ctx.fillStyle = 'rgba(20,18,16,0.55)';
-  for (const i of [0, 256, 511]) { ctx.fillRect(i - 1, 0, 2, 512); ctx.fillRect(0, i - 1, 512, 2); }
+  const [c, ctx] = paint(N, base, clouds(N, r), 0.14, 10, r);
+  ctx.fillStyle = 'rgba(20,18,16,0.6)';
+  const g = Math.max(2, N / 256);
+  for (const i of [0, N / 2, N]) { ctx.fillRect(i - g / 2, 0, g, N); ctx.fillRect(0, i - g / 2, N, g); }
   const t = tex(c);
   t.userData.tileSize = size * 2;
   return t;
 }
 
 // Madeira (nogueira) — veios longitudinais com leve ondulação, réguas com tons diferentes
-export function wood(base = [92, 58, 36], seed = 7, { dark = 0.0 } = {}) {
-  const N = 512, r = rng(seed);
+export function wood(base = [92, 58, 36], seed = 7, { dark = 0.0, N = 1024 } = {}) {
+  const r = rng(seed);
   const [R, G, B] = base.map(v => v * (1 - dark));
   const profile = new Float32Array(N);
   for (let k = 0; k < 90; k++) {
-    const c0 = r() * N, w = 0.6 + r() * 3.5, amp = (r() - 0.6) * 0.22;
-    for (let dx = -12; dx <= 12; dx++) profile[((Math.round(c0) + dx) % N + N) % N] += amp * Math.exp(-(dx / w) * (dx / w));
+    const c0 = r() * N, w = (0.6 + r() * 3.5) * N / 512, amp = (r() - 0.6) * 0.22;
+    for (let dx = -24; dx <= 24; dx++) profile[((Math.round(c0) + dx) % N + N) % N] += amp * Math.exp(-(dx / w) * (dx / w));
   }
   const planks = [0, 1, 2, 3].map(() => 0.88 + r() * 0.24);
   const ph1 = r() * 6.28, ph2 = r() * 6.28;
   const [c, ctx] = canvas(N);
   const img = ctx.createImageData(N, N), d = img.data;
   for (let y = 0; y < N; y++) {
-    const wy = Math.sin(y / N * 6.283 + ph1) * 5 + Math.sin(y / N * 18.85 + ph2) * 2;
+    const wy = (Math.sin(y / N * 6.283 + ph1) * 5 + Math.sin(y / N * 18.85 + ph2) * 2) * N / 512;
     for (let x = 0; x < N; x++) {
       const warp = wy * (1 + 0.6 * Math.sin(x / N * 12.566));
-      const k = planks[x >> 7] * (1 + profile[((x + Math.round(warp)) % N + N) % N]);
+      const k = planks[Math.floor(x * 4 / N)] * (1 + profile[((x + Math.round(warp)) % N + N) % N]);
       const n = (r() - 0.5) * 8, p = (y * N + x) * 4;
       d[p] = R * k + n; d[p + 1] = G * k + n; d[p + 2] = B * k + n; d[p + 3] = 255;
     }
@@ -143,6 +144,18 @@ export function stone(seed = 11) {
   }
   ctx.putImageData(img, 0, 0); bctx.putImageData(bimg, 0, 0);
   return { map: tex(c), bump: tex(cb, { srgb: false }) };
+}
+
+// Granito preto — base escura com grãos claros
+export function granite(seed = 41) {
+  const N = 512, r = rng(seed);
+  const [c, ctx] = paint(N, '#161616', clouds(N, r), 0.25, 14, r);
+  for (let i = 0; i < 2600; i++) {
+    const v = 70 + r() * 110;
+    ctx.fillStyle = `rgba(${v},${v * 0.97},${v * 0.92},${0.25 + r() * 0.5})`;
+    ctx.fillRect(r() * N, r() * N, 1 + r() * 2, 1 + r() * 2);
+  }
+  return tex(c);
 }
 
 // Tecido (sofá, cama) — trama fina
