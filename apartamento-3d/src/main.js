@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { buildHouse, PLAN_BOUNDS, H } from './house.js';
@@ -18,6 +19,7 @@ const seg = (p, a, b) => clamp((p - a) / (b - a));
 
 const isMobile = () => window.innerWidth < 820 || window.innerWidth / window.innerHeight < 0.9;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const film = { reveal: null, cam: null }; // sobreposições do modo filme (?film)
 
 // ------------------------------------------------------------------ renderer e cena
 const canvas = document.getElementById('scene');
@@ -121,7 +123,7 @@ function makeSheetTextures(img) {
   // carimbo
   ictx.fillStyle = 'rgba(30,28,26,0.85)';
   ictx.font = 'bold 34px monospace';
-  ictx.fillText('ARCO — APARTAMENTO TIPO · 1 DORMITÓRIO', 80, Hh - 90);
+  ictx.fillText('PLANTA VIVA — APARTAMENTO TIPO · 1 DORMITÓRIO', 80, Hh - 90);
   ictx.font = '26px monospace';
   ictx.fillText('PLANTA BAIXA  ·  ESC. 1:50  ·  COTAS EM METROS', 80, Hh - 52);
   ictx.textAlign = 'right';
@@ -202,6 +204,17 @@ const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, 
 composer.setPixelRatio(pixelRatio);
 composer.setSize(window.innerWidth, window.innerHeight);
 composer.addPass(new RenderPass(scene, camera));
+// um pixel inválido (NaN/infinito) vindo de algum material espalharia preto pela tela inteira no bloom: zera antes
+composer.addPass(new ShaderPass({
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+    void main(){
+      vec4 c = texture2D(tDiffuse, vUv);
+      bool bad = c.r != c.r || c.g != c.g || c.b != c.b || c.a != c.a || any(greaterThan(abs(c.rgb), vec3(60000.0)));
+      gl_FragColor = bad ? vec4(0.0, 0.0, 0.0, 1.0) : max(c, vec4(0.0));
+    }`,
+}));
 const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.1, 0.55, 0.82);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
@@ -289,7 +302,8 @@ let nightAmount = 0;
 function applyScene(p) {
   // a planta se desenha sozinha ao abrir a página (e também acompanha o scroll)
   const intro = stillFrames < Infinity ? 1 : seg(performance.now() - introStart, 300, 3300);
-  sheetUniforms.uReveal.value = lerp(-0.08, 1.12, Math.max(ease(intro), ease(seg(p, 0.012, 0.1))));
+  const rev = film.reveal !== null ? film.reveal : Math.max(ease(intro), ease(seg(p, 0.012, 0.1)));
+  sheetUniforms.uReveal.value = lerp(-0.08, 1.12, rev);
 
   // paredes sobem do papel, uma após a outra (de oeste para leste)
   const sorted = house.walls;
@@ -359,6 +373,12 @@ navLinks.forEach(a => a.addEventListener('click', e => {
 
 function updateUI(p, cam) {
   progressBar.style.transform = `scaleX(${p})`;
+  if (document.body.classList.contains('film')) { // gravação: o texto do capítulo entra e sai em função do scroll, sem relógio
+    for (const c of chapters) {
+      const o = clamp((p - c.from) / 0.014) * (c.to > 1 ? 1 : clamp((c.to - p) / 0.014));
+      c.el.style.opacity = o; c.el.style.visibility = o > 0 ? 'visible' : 'hidden';
+    }
+  }
   const idx = chapters.findIndex(c => p >= c.from && p < c.to);
   const ci = idx === -1 ? chapters.length - 1 : idx;
   if (ci !== activeChapter) {
@@ -419,7 +439,10 @@ function adaptQuality(dt) {
 
 function draw(p) {
   const aspect = window.innerWidth / window.innerHeight;
-  const cam = cameraAt(p, aspect);
+  const cam = film.cam ? {
+    pos: new THREE.Vector3(...film.cam.pos), tgt: new THREE.Vector3(...film.cam.tgt),
+    fov: film.cam.fov ?? 35, ui: film.cam.ui ?? 0, fade: 0,
+  } : cameraAt(p, aspect);
   camera.position.copy(cam.pos);
   camera.lookAt(cam.tgt);
   camera.fov = cam.fov;
@@ -471,7 +494,7 @@ const freeHelp = document.getElementById('free-help');
 const labelsEl = document.getElementById('free-labels');
 const roomsNav = document.querySelector('.free-rooms');
 const dayNightBtn = document.getElementById('btn-daynight');
-const touchUI = window.matchMedia('(pointer: coarse)').matches;
+let touchUI = window.matchMedia('(pointer: coarse)').matches;
 
 const spots = [
   { id: 'geral', name: 'Visão geral', orbit: true, pos: [-3.6, 11.5, 13.6], tgt: [4.27, 0.3, 3.0] },
@@ -731,6 +754,51 @@ planReady.then(warmUp).then(() => {
     document.body.classList.add('ready');
   });
 });
+
+// ------------------------------------------------------------------ modo filme (?film): quadros exatos para gravar vídeos
+// __film.frame(p, { reveal, cam: { pos, tgt, fov, ui }, ui }) desenha um quadro determinístico (sem suavização nem relógio)
+if (new URLSearchParams(location.search).has('film')) {
+  document.body.classList.add('film');
+  window.__film = {
+    frame(p, opts = {}) {
+      film.reveal = opts.reveal ?? null;
+      film.cam = opts.cam ?? null;
+      document.body.classList.toggle('film-clean', !opts.ui);
+      current = target = lastDrawn = p;
+      draw(p);
+      return true;
+    },
+    // posição na tela (px) de pontos do mundo, com a câmera do último quadro
+    project(points) {
+      return points.map(([x, y, z]) => {
+        const v = new THREE.Vector3(x, y, z).project(camera);
+        return [(v.x + 1) / 2 * window.innerWidth, (1 - v.y) / 2 * window.innerHeight];
+      });
+    },
+    // modo livre com câmera explícita: { cam, night, walk, spot } — mostra a interface real do modo livre
+    free(opts = {}) {
+      document.body.classList.add('free');
+      document.body.classList.remove('film-clean');
+      document.body.classList.toggle('walk', !!opts.walk);
+      if (opts.touch !== undefined) touchUI = opts.touch;
+      free.mode = opts.walk ? 'walk' : 'orbit';
+      free.night = free.nightTarget = opts.night ?? 0;
+      dayNightBtn.textContent = (opts.nightLabel ?? free.night > 0.5) ? '☀ Ver de dia' : '☾ Ver à noite';
+      roomsNav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.spot === opts.spot));
+      setHelp();
+      fadeEl.style.opacity = opts.fade ?? 0;
+      camera.clearViewOffset();
+      camera.position.set(...opts.cam.pos); camera.lookAt(...opts.cam.tgt);
+      camera.fov = opts.cam.fov ?? 38; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+      sun.shadow.needsUpdate = true;
+      drawFree();
+      return true;
+    },
+    rect(sel) { const r = document.querySelector(sel).getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; },
+    labels() { return spots.filter(s => s.label && s.label.classList.contains('show')).map(s => [s.id, ...window.__film.rect(`#free-labels .spot-label:nth-child(${spots.filter(x => x.label).indexOf(s) + 1})`)]); },
+    sheet: SHEET, plan: PLAN_BOUNDS,
+  };
+}
 
 // Testes: ?debug expõe o renderer; ?p=0.5 posiciona o scroll
 if (new URLSearchParams(location.search).has('debug')) window.__app = { renderer, scene, house, buildMs, enterFree, exitFree, goToSpot, spots, free };

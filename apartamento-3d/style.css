@@ -40,7 +40,14 @@ body {
   font-family: var(--display); font-size: 26px; letter-spacing: 0.06em;
   color: var(--ink); text-decoration: none; display: flex; align-items: baseline; gap: 6px;
 }
-.brand small { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; }
+.brand { align-items: center; gap: 10px; }
+.brand img { display: block; width: 30px; height: 30px; }
+.brand span { line-height: 1; }
+.brand small { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: #b9b2a7; text-transform: uppercase; }
+.made-by { display: flex; align-items: center; gap: 14px; margin-top: 26px; }
+.made-by span { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.made-by img { display: block; width: 230px; height: auto; }
+#loader img { margin: 0 auto 6px; }
 .topbar nav {
   display: flex; gap: 2px; padding: 4px;
   border: 1px solid var(--line); border-radius: 999px;
@@ -223,7 +230,11 @@ body.ready #loader { opacity: 0; visibility: hidden; }
 @media (max-width: 820px), (max-aspect-ratio: 9/10) {
   .topbar { padding: 14px 16px; }
   .topbar nav { display: none; }
-  .brand { font-size: 22px; }
+  .brand { font-size: 22px; gap: 8px; }
+  .brand img { width: 26px; height: 26px; }
+  .brand small { display: none; }
+  .made-by { margin-top: 16px; }
+  .made-by img { width: 190px; }
   .cta-top { display: none; }
   .explore-btn { padding: 8px 12px; font-size: 10px; }
   .free-head { top: 56px; left: 16px; right: 16px; flex-direction: column; }
@@ -262,3 +273,9 @@ body.ready #loader { opacity: 0; visibility: hidden; }
   .panel article, .panel article.active, #room-tag { transition: opacity .2s; }
   .hint i { animation: none; }
 }
+
+/* ---------------------------------------------------------------- modo filme (gravação de vídeo) */
+body.film *, body.film *::before { transition: none !important; animation: none !important; }
+body.film #loader, body.film .hint { display: none !important; }
+body.film-clean .topbar, body.film-clean .panel, body.film-clean #room-tag, body.film-clean .progress,
+body.film-clean #scrim, body.film-clean #fade { display: none !important; }
