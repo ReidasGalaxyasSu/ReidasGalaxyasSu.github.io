@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 240" role="img" aria-label="GPC Software Solutions">
+  <g transform="translate(0 0)">
+    <g fill="none" stroke="#151719" stroke-width="12" stroke-linejoin="miter" stroke-linecap="square">
+      <path d="M105 22 31 66v51"/><path d="m135 22 74 44v43"/><path d="M209 132v42l-74 44"/><path d="m105 218-74-44v-36"/>
+    </g>
+    <path d="M111 48C70 65 42 96 31 137" fill="none" stroke="#151719" stroke-width="5" stroke-linecap="round"/>
+    <path d="M208 106c-3 45-34 84-91 105" fill="none" stroke="#151719" stroke-width="5" stroke-linecap="round"/>
+    <path d="M120 70c4 31 10 43 43 50-33 7-39 19-43 52-4-33-10-45-43-52 33-7 39-19 43-50Z" fill="#151719"/>
+  </g>
+  <g transform="translate(270 48)" fill="none" stroke="#151719" stroke-width="12" stroke-linecap="square" stroke-linejoin="round">
+    <path d="M150 5H43C20 5 5 21 5 44s15 39 38 39h107V48H92"/>
+    <path d="M190 83V5h105c28 0 43 11 43 29s-15 30-43 30h-78"/>
+    <path d="M523 5h-98c-25 0-40 16-40 39s15 39 40 39h98"/>
+  </g>
+  <text x="275" y="178" fill="#151719" font-family="DejaVu Sans, sans-serif" font-size="20" letter-spacing="7">SOFTWARE SOLUTIONS</text>
+</svg>
