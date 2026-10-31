@@ -1,0 +1,15 @@
+{
+  "name": "rastreador-j4",
+  "private": true,
+  "version": "1.0.0",
+  "description": "RealTracker J4 em 3D: desenho técnico que vira o equipamento, desmontagem e remontagem guiadas pelo scroll",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=iife --target=es2020 --loader:.glb=binary --outfile=app.js",
+    "watch": "esbuild src/main.js --bundle --format=iife --target=es2020 --loader:.glb=binary --outfile=app.js --watch",
+    "video": "node scripts/render-video.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0",
+    "three": "0.160.0"
+  }
+}
