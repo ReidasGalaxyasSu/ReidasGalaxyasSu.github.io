@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>J4 em 3D · RealTracker</title>
+  <meta name="description" content="Role a página e veja o desenho técnico do rastreador RealTracker J4 virar o equipamento em 3D, desmontar peça por peça e montar de novo.">
+  <meta name="theme-color" content="#e9e8ef">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="scene" aria-label="Rastreador J4 em 3D"></canvas>
+  <div id="scrim"></div>
+  <div id="callouts" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#" data-goto="0" data-until="0" aria-label="RealTracker J4 em 3D">
+      <span class="mark" aria-hidden="true"></span><span class="bt">RealTracker</span><small>J4 · 3D</small>
+    </a>
+    <nav aria-label="Capítulos">
+      <a href="#" data-goto="0" data-until="0.095">Desenho</a>
+      <a href="#" data-goto="0.095" data-until="0.31">Volume</a>
+      <a href="#" data-goto="0.31" data-until="0.50">Desmontagem</a>
+      <a href="#" data-goto="0.50" data-until="0.668">Placa</a>
+      <a href="#" data-goto="0.668" data-until="0.712">Chicote</a>
+      <a href="#" data-goto="0.712" data-until="0.782">Explodido</a>
+      <a href="#" data-goto="0.782" data-until="2">Montagem</a>
+    </nav>
+    <div class="top-actions">
+      <a class="pill ghost-pill" href="video/j4-desmontagem-montagem.mp4" target="_blank" rel="noopener">▶ Vídeo</a>
+      <button class="explore-btn" type="button" data-explore><span aria-hidden="true">⟲</span> Explorar em 3D</button>
+    </div>
+  </header>
+
+  <aside class="panel">
+    <article data-chapter data-from="0" data-to="0.095">
+      <p class="kicker"><b>01</b> Desenho técnico</p>
+      <h1>Todo rastreador começa como um <em>desenho</em></h1>
+      <p>Este é o J4 visto de cima e de lado, com as proporções tiradas das fotos do equipamento. Role a página e acompanhe o desenho virar peça.</p>
+      <dl>
+        <div><dt>Conjuntos</dt><dd>5</dd></div>
+        <div><dt>Placa principal</dt><dd>1</dd></div>
+        <div><dt>Chicote</dt><dd>7 fios</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.095" data-to="0.19">
+      <p class="kicker"><b>02</b> Volume</p>
+      <h2>Do papel para o <em>volume</em></h2>
+      <p>Cada linha do desenho ganha espessura e material: plástico preto texturizado, placa azul, blindagens metálicas e a película prateada da bateria. As cinco peças são independentes e cada uma ocupa o seu lugar no conjunto montado.</p>
+      <dl>
+        <div><dt>Comprimento</dt><dd>L</dd></div>
+        <div><dt>Largura</dt><dd>0,56 L</dd></div>
+        <div><dt>Espessura</dt><dd>0,27 L</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.19" data-to="0.31">
+      <p class="kicker"><b>03</b> Montado</p>
+      <h2>J4 <em>fechado</em></h2>
+      <p>O equipamento gira para mostrar a face de baixo, marcada <b>THIS SIDE UP</b>, com a etiqueta de código de barras. Na lateral fica a indicação 4G ● ● GPS, e o chicote sai pelo passa-fios da ponta.</p>
+      <dl>
+        <div><dt>Rede</dt><dd>4G</dd></div>
+        <div><dt>Posição</dt><dd>GNSS</dd></div>
+        <div><dt>Bateria</dt><dd>Interna</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.31" data-to="0.37">
+      <p class="kicker"><b>04</b> Desmontagem · tampa</p>
+      <h2>Primeiro sai a <em>tampa</em></h2>
+      <p>Ela tem o mesmo comprimento e a mesma largura da carcaça. Por baixo há uma lingueta que entra no degrau da borda, quatro pinos que entram nos furos dos cantos e as travas laterais.</p>
+    </article>
+
+    <article data-chapter data-from="0.37" data-to="0.43">
+      <p class="kicker"><b>05</b> Desmontagem · bateria</p>
+      <h2>A bateria fica sobre as <em>blindagens</em></h2>
+      <p>Bateria de lítio em bolsa de alumínio, com fita amarela na ponta e dois fios curtos, vermelho e preto, que chegam aos pads 1V8 e GND da placa. Ela não cobre o porta-SIM.</p>
+    </article>
+
+    <article data-chapter data-from="0.43" data-to="0.50">
+      <p class="kicker"><b>06</b> Desmontagem · placa</p>
+      <h2>A placa sai <em>com o chicote</em></h2>
+      <p>O passa-fios é encaixado num rasgo em U, aberto para o lado da tampa. Por isso a placa e o chicote sobem juntos e a carcaça fica vazia, mostrando o rasgo, os ressaltos dos cantos com os furos dos pinos e o degrau onde a tampa encaixa.</p>
+    </article>
+
+    <article data-chapter data-from="0.50" data-to="0.585">
+      <p class="kicker"><b>07</b> Placa · face das blindagens</p>
+      <h2>Uma placa, <em>duas faces</em></h2>
+      <p>Esta face fica voltada para a tampa. Nela estão as duas blindagens metálicas, o porta-SIM, os capacitores de tântalo, a barra de pads onde chegam os fios do chicote e os dois pads da bateria.</p>
+    </article>
+
+    <article data-chapter data-from="0.585" data-to="0.668">
+      <p class="kicker"><b>08</b> Placa · face da antena</p>
+      <h2>A antena olha para o <em>THIS SIDE UP</em></h2>
+      <p>Virando a placa aparecem a antena patch GNSS e o módulo celular com a etiqueta. Montada, esta face fica voltada para o fundo da carcaça, o lado marcado THIS SIDE UP. Os fios do chicote são soldados por este lado.</p>
+    </article>
+
+    <article data-chapter data-from="0.668" data-to="0.712">
+      <p class="kicker"><b>09</b> Chicote</p>
+      <h2>Sete fios, <em>dois conectores</em></h2>
+      <p>O passa-fios é uma peça única. Vermelho, preto, laranja e amarelo vão para o conector de 4 vias. Verde, branco e roxo vão para o de 3 vias. Os fios seguem separados por todo o caminho.</p>
+    </article>
+
+    <article data-chapter data-from="0.712" data-to="0.782">
+      <p class="kicker"><b>10</b> Vista explodida</p>
+      <h2>Cinco conjuntos, <em>nenhuma sobra</em></h2>
+      <p>Esta é a posição EXPLODIDO: as mesmas peças do equipamento montado, afastadas para cima, sem deformação nem cópia.</p>
+      <dl>
+        <div><dt>Carcaça</dt><dd>01</dd></div>
+        <div><dt>Placa</dt><dd>02</dd></div>
+        <div><dt>Chicote</dt><dd>03</dd></div>
+        <div><dt>Bateria</dt><dd>04</dd></div>
+        <div><dt>Tampa</dt><dd>05</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.782" data-to="0.955">
+      <p class="kicker"><b>11</b> Montagem</p>
+      <h2>Montagem em <em>4 passos</em></h2>
+      <ol class="steps">
+        <li data-step><b>1</b><span>Carcaça na base</span></li>
+        <li data-step><b>2</b><span>Placa com o chicote</span></li>
+        <li data-step><b>3</b><span>Bateria sobre as blindagens</span></li>
+        <li data-step><b>4</b><span>Tampa</span></li>
+      </ol>
+      <p class="small">A desmontagem segue a ordem inversa. O chicote acompanha a placa o tempo todo.</p>
+    </article>
+
+    <article data-chapter data-from="0.955" data-to="1.01" class="final">
+      <p class="kicker"><b>12</b> Pronto</p>
+      <h2>Monte, desmonte, <em>explore</em></h2>
+      <p>O modelo tem cinco conjuntos separados, com as posições MONTADO e EXPLODIDO. Gire à vontade, esconda peças ou baixe o arquivo 3D.</p>
+      <div class="actions">
+        <button class="btn" type="button" data-explore>Explorar em 3D</button>
+        <a class="btn ghost" href="modelo/j4_rastreador.glb" download>Baixar modelo</a>
+        <a class="btn ghost" href="video/j4-desmontagem-montagem.mp4" target="_blank" rel="noopener">Assistir ao vídeo</a>
+      </div>
+      <p class="note">Escala normalizada (1,0 = comprimento da carcaça), tirada das fotos. As medidas precisam de conferência.</p>
+      <div class="made-by"><span>Visualização 3D</span><img src="assets/gpc-logo-horizontal-dark.svg" alt="GPC Software Solutions" width="190" height="53"></div>
+    </article>
+  </aside>
+
+  <div class="hint">Role para montar o 3D <i></i></div>
+  <div class="progress" aria-hidden="true"><i></i></div>
+
+  <div id="free-ui">
+    <div class="free-head">
+      <div class="free-title"><b>Modo livre</b><p id="free-help"></p></div>
+      <div class="free-actions">
+        <button id="btn-montado" class="pill" type="button">Montado</button>
+        <button id="btn-explodido" class="pill" type="button">Explodido</button>
+        <button id="btn-virar" class="pill" type="button">↻ Virar placa</button>
+        <button id="btn-exit" class="pill solid" type="button">✕ Voltar ao roteiro</button>
+      </div>
+    </div>
+    <nav class="free-sets" aria-label="Mostrar ou esconder conjuntos"></nav>
+  </div>
+
+  <div id="film-ui" aria-hidden="true">
+    <div class="ftags"></div>
+    <div class="fcap"><p class="fk"></p><p class="fh"></p><p class="fs"></p></div>
+    <div class="fend"><span class="mark"></span><b>RealTracker</b><i>J4 · composição 3D</i><img src="assets/gpc-logo-horizontal-dark.svg" alt="" width="170" height="47"></div>
+  </div>
+
+  <div id="loader"><span class="mark" aria-hidden="true"></span><span>J4</span><small>montando o modelo 3D…</small></div>
+  <div id="scroll-space"></div>
+  <script src="app.js"></script>
+</body>
+</html>
