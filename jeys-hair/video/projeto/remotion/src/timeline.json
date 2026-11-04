@@ -1,0 +1,177 @@
+{
+ "fps": 30,
+ "dur": 58,
+ "bpm": 120,
+ "scenes": [
+  {
+   "name": "opener",
+   "kind": "card",
+   "start": 0,
+   "end": 4,
+   "src": "opener",
+   "trim": 0
+  },
+  {
+   "name": "intro",
+   "kind": "phone",
+   "start": 4,
+   "end": 9.5,
+   "src": "a_intro",
+   "trim": 0,
+   "rate": 1.0
+  },
+  {
+   "name": "catalog",
+   "kind": "phone",
+   "start": 9.5,
+   "end": 18.5,
+   "src": "b_catalog",
+   "trim": 0.2,
+   "rate": 1.3997
+  },
+  {
+   "name": "booking",
+   "kind": "phone",
+   "start": 18.5,
+   "end": 30,
+   "src": "c_booking",
+   "trim": 0.3,
+   "rate": 1.4335
+  },
+  {
+   "name": "sinal",
+   "kind": "card",
+   "start": 30,
+   "end": 34,
+   "src": "sinal",
+   "trim": 0
+  },
+  {
+   "name": "conta",
+   "kind": "phone",
+   "start": 34,
+   "end": 41,
+   "src": "f_conta",
+   "trim": 1.0,
+   "rate": 1.6372
+  },
+  {
+   "name": "admin",
+   "kind": "phone",
+   "start": 41,
+   "end": 49,
+   "src": "g_admin",
+   "trim": 0.6,
+   "rate": 1.4546
+  },
+  {
+   "name": "benef",
+   "kind": "card",
+   "start": 49,
+   "end": 52,
+   "src": "beneficios",
+   "trim": 0
+  },
+  {
+   "name": "final",
+   "kind": "card",
+   "start": 52,
+   "end": 58,
+   "src": "final",
+   "trim": 0
+  }
+ ],
+ "taps": [
+  {
+   "scene": "catalog",
+   "t": 11.509,
+   "press": 11.809,
+   "x": 323.8671875,
+   "y": 305.65625
+  },
+  {
+   "scene": "catalog",
+   "t": 13.895,
+   "press": 14.195,
+   "x": 104.5,
+   "y": 502.625
+  },
+  {
+   "scene": "catalog",
+   "t": 16.538,
+   "press": 16.838,
+   "x": 195,
+   "y": 776
+  },
+  {
+   "scene": "booking",
+   "t": 19.855,
+   "press": 20.148,
+   "x": 242.1328125,
+   "y": 261.234375
+  },
+  {
+   "scene": "booking",
+   "t": 21.969,
+   "press": 22.262,
+   "x": 314.328125,
+   "y": 224.234375
+  },
+  {
+   "scene": "booking",
+   "t": 23.706,
+   "press": 23.999,
+   "x": 195,
+   "y": 246.234375
+  },
+  {
+   "scene": "booking",
+   "t": 24.506,
+   "press": 24.799,
+   "x": 195,
+   "y": 343.234375
+  },
+  {
+   "scene": "booking",
+   "t": 27.035,
+   "press": 27.328,
+   "x": 195,
+   "y": 588.234375
+  },
+  {
+   "scene": "conta",
+   "t": 35.581,
+   "press": 35.838,
+   "x": 195,
+   "y": 567.234375
+  },
+  {
+   "scene": "conta",
+   "t": 39.584,
+   "press": 39.84,
+   "x": 188.234375,
+   "y": 279.484375
+  },
+  {
+   "scene": "admin",
+   "t": 41.685,
+   "press": 41.974,
+   "x": 195,
+   "y": 530
+  },
+  {
+   "scene": "admin",
+   "t": 45.988,
+   "press": 46.277,
+   "x": 219,
+   "y": 610.15625
+  },
+  {
+   "scene": "admin",
+   "t": 47.409,
+   "press": 47.697,
+   "x": 195,
+   "y": 722
+  }
+ ]
+}
