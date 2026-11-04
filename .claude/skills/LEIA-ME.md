@@ -1,4 +1,4 @@
-# Skills de design e motion para sites
+# Skills de design, motion e áudio
 
 Instaladas aqui para que as sessões do Claude Code neste repositório as carreguem sozinhas.
 
@@ -11,6 +11,8 @@ Instaladas aqui para que as sessões do Claude Code neste repositório as carreg
 | `transitions-dev` | [Jakubantalik/transitions.dev](https://github.com/Jakubantalik/transitions.dev) | 35 transições de UI em CSS + polish de motion |
 | `react-bits` | [DavidHDev/react-bits](https://github.com/DavidHDev/react-bits) | Catálogo dos 218 componentes animados (o repositório não tem skill própria) |
 | `extract-design` | [Manavarya09/design-extract](https://github.com/Manavarya09/design-extract) | Extrair design tokens de um site de referência |
+| `sfx-kit` | [wyzowl/sfx-kit](https://github.com/wyzowl/sfx-kit) | 320 efeitos sonoros CC0 para vídeo/animação, com ponto de sincronia e nível (WAVs baixados sob demanda) |
+| `openverse-audio` | [WordPress/openverse](https://github.com/WordPress/openverse) | Busca e download de música e áudio com licença aberta pela API do Openverse, guardando os créditos |
 
 Cada pasta também pode ser zipada e enviada à conta do claude.ai (Configurações → Skills → enviar
 .zip). Licenças em cada pasta e em `site-premium-motion/LICENSES.md`: uso nos seus projetos e na sua
