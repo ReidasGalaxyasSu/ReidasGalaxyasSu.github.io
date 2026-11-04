@@ -23,3 +23,4 @@ O botão **Imprimir** continua disponível para gerar PDF/impressão.
 
 - `apartamento-3d/` — Planta Viva: a planta baixa vira o apartamento decorado em 3D com o scroll.
 - `rastreador-j4-lite/` — RealTracker J4 Lite: o desenho técnico vira o rastreador em 3D, que desmonta e monta de novo com o scroll. Inclui vídeo e modelo GLB/glTF/.blend (veja o README da pasta).
+- `jeys-hair/` — Jey's Hair: apresentação do novo site (vídeo 9:16) com o protótipo navegável do site, da área da cliente e do painel (`jeys-hair/app/`). Dados de demonstração em `localStorage`.

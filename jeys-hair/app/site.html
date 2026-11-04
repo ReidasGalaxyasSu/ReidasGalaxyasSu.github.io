@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Jey's Hair — Trancista na Zona Oeste de SP · Raposo Tavares</title>
+<meta name="description" content="Jey's Hair: tranças box braids, nagô, fulani, crochet e prótese capilar afro na Raposo Tavares, Zona Oeste de São Paulo. Agende online.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+<script src="./vendor/gsap.min.js"></script>
+<script src="./vendor/ScrollTrigger.min.js"></script>
+<script src="jeys-seed.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#F5F3EE;color:#13241A;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+*{box-sizing:border-box}
+::selection{background:#3F7A47;color:#F5F3EE}
+a{color:#2F6A38;text-underline-offset:4px}
+a:hover{color:#13241A}
+:focus-visible{outline:2px solid #3F7A47;outline-offset:3px}
+img{display:block}
+</style>
+</helmet>
+<sc-if value="{{ showIntro }}" hint-placeholder-val="{{ true }}">
+  <div data-intro="" onClick="{{ skipIntro }}" style="position:fixed;inset:0;z-index:200;background:#15301D;color:#F5F3EE;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(28px,4vh,44px);clip-path:inset(0% 0% 0% 0%);cursor:pointer">
+    <div style="position:relative;width:clamp(168px,22vw,260px);height:clamp(168px,22vw,260px)">
+      <svg viewBox="0 0 100 100" aria-hidden="true" style="position:absolute;left:-9%;top:-9%;width:118%;height:118%;overflow:visible;transform:rotate(-90deg)"><circle data-ring="" cx="50" cy="50" r="49.5" fill="none" stroke="#A9D9AE" stroke-width="0.35" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"></circle></svg>
+      <img data-intro-logo="" src="assets/logo.png" alt="Jey's Hair" style="width:100%;height:100%;border-radius:999px;clip-path:circle(0% at 50% 50%)">
+    </div>
+    <div style="overflow:hidden;padding-bottom:4px"><span data-intro-cap="" style="display:block;font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-size:clamp(22px,2vw,30px);color:#DCE4DA">Trancista · Zona Oeste de São Paulo</span></div>
+    <div data-intro-meta="" style="position:absolute;left:clamp(20px,5vw,72px);right:clamp(20px,5vw,72px);bottom:calc(clamp(28px,5vh,56px) + env(safe-area-inset-bottom));display:flex;align-items:center;gap:20px;font-size:13px;font-weight:500;color:#DCE4DA;font-variant-numeric:tabular-nums;letter-spacing:0.08em">
+      <span>JEY'S HAIR</span>
+      <span style="flex:1;height:1px;background:rgba(245,243,238,0.16);position:relative;overflow:hidden"><span data-bar="" style="position:absolute;inset:0;background:#A9D9AE;transform:scaleX(0);transform-origin:0 50%"></span></span>
+      <span data-count="">000</span>
+    </div>
+  </div>
+</sc-if>
+
+<div style="position:relative;z-index:50">
+  <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+    <nav aria-label="Principal" style="position:fixed;top:16px;left:16px;right:16px;margin:0 auto;max-width:1200px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 8px 0 8px;border-radius:999px;background:{{ navBg }};color:{{ navInk }};border:1px solid {{ navBd }};box-shadow:{{ navSh }};backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);transition:background .4s, color .4s, border-color .4s">
+      <button onClick="{{ goHome }}" aria-label="Jey's Hair, início" style="display:flex;align-items:center;gap:12px;background:none;border:0;padding:0 8px 0 0;color:inherit;cursor:pointer;min-height:48px">
+        <img src="assets/logo.png" alt="" style="width:48px;height:48px;border-radius:999px">
+        <span style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Jey's Hair</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <sc-for list="{{ navLinks }}" as="l" hint-placeholder-count="4">
+          <button onClick="{{ l.go }}" style="min-height:44px;padding:0 16px;border-radius:999px;border:0;background:transparent;color:inherit;font:500 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:background .18s" style-hover="background:rgba(127,127,127,0.14)">{{ l.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px"><a href="conta.html" style="min-height:44px;display:flex;align-items:center;gap:8px;padding:0 16px;border-radius:999px;color:inherit;text-decoration:none;white-space:nowrap;font:500 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;transition:background .18s" style-hover="background:rgba(127,127,127,0.14);color:inherit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"></path></svg>{{ accountLabel }}</a><button onClick="{{ goBook }}" style="white-space:nowrap;height:48px;padding:0 24px;border-radius:999px;border:0;background:#3F7A47;color:#FFFFFF;font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:transform .14s, background .18s" style-hover="background:#356B3D" style-active="transform:scale(0.97)">Agendar horário</button></div>
+    </nav>
+    <a href="{{ waGeneral }}" target="_blank" rel="noopener" aria-label="Conversar com a Jey no WhatsApp" style="position:fixed;right:24px;bottom:24px;width:64px;height:64px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(63,122,71,0.82);color:#FFFFFF;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(19,36,26,0.28), inset 0 1px 0 rgba(255,255,255,0.35);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);transition:transform .18s" style-hover="transform:scale(1.06);color:#FFFFFF" style-active="transform:scale(0.95)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.480-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.360.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.28-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.950L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 0 0-3.48-8.41Z"></path></svg>
+    </a>
+  </sc-if>
+  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ goHome }}" aria-label="Jey's Hair, início" style="position:fixed;top:calc(12px + env(safe-area-inset-top));left:12px;height:52px;display:flex;align-items:center;gap:10px;padding:0 18px 0 4px;border-radius:999px;background:{{ navBg }};color:{{ navInk }};border:1px solid {{ navBd }};box-shadow:{{ navSh }};backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);cursor:pointer;transition:background .4s, color .4s">
+      <img src="assets/logo.png" alt="" style="width:44px;height:44px;border-radius:999px">
+      <span style="font-size:16px;font-weight:600;letter-spacing:-0.01em">Jey's Hair</span>
+    </button>
+    <a href="conta.html" aria-label="{{ accountLabel }}" style="position:fixed;top:calc(12px + env(safe-area-inset-top));right:12px;width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:{{ navBg }};color:{{ navInk }};border:1px solid {{ navBd }};box-shadow:{{ navSh }};backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);transition:background .4s, color .4s" style-active="transform:scale(0.94)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"></path></svg></a>
+    <nav aria-label="Abas" style="position:fixed;left:12px;right:88px;bottom:calc(12px + env(safe-area-inset-bottom));height:64px;display:flex;align-items:stretch;padding:4px;border-radius:999px;background:{{ tabBg }};color:{{ tabInk }};border:1px solid {{ tabBd }};box-shadow:{{ tabSh }};backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);transition:background .4s, color .4s">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.go }}" aria-current="{{ t.current }}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:999px;background:{{ t.bg }};color:{{ t.ink }};cursor:pointer;font:600 11px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;transition:background .25s, color .25s">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ t.d }}"></path></svg>
+          <span>{{ t.label }}</span>
+        </button>
+      </sc-for>
+    </nav>
+    <a href="{{ waGeneral }}" target="_blank" rel="noopener" aria-label="Conversar com a Jey no WhatsApp" style="position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:64px;height:64px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(63,122,71,0.84);color:#FFFFFF;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(19,36,26,0.28), inset 0 1px 0 rgba(255,255,255,0.35);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6)" style-active="transform:scale(0.94)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.48-.88-.79-1.480-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.28-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 0 0-3.48-8.41Z"></path></svg>
+    </a>
+  </sc-if>
+</div>
+
+<main>
+  <section id="inicio" data-hero="" data-tone="dark" data-screen-label="01 Início" style="position:relative;min-height:100svh;background:#15301D;color:#F5F3EE;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:clamp(40px,5vw,88px);align-items:center;padding:clamp(108px,15vh,168px) clamp(20px,5vw,72px) clamp(48px,7vh,88px);overflow:hidden">
+    <div style="display:flex;flex-direction:column;gap:32px;max-width:680px">
+      <h1 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(56px,7.6vw,128px);line-height:0.94;letter-spacing:-0.025em;color:#F5F3EE">
+        <span style="display:block;overflow:hidden;padding-bottom:0.08em"><span data-hl="" style="display:block">O cabelo que</span></span>
+        <span style="display:block;overflow:hidden;padding-bottom:0.08em"><span data-hl="" style="display:block">você quiser.</span></span>
+      </h1>
+      <p data-hero-fade="" style="margin:0;max-width:30em;font-size:clamp(17px,1.35vw,20px);line-height:1.55;color:#DCE4DA;text-wrap:pretty">Jey's Hair é trancista na Raposo Tavares, Zona Oeste de São Paulo. Box braids, nagô, fulani, crochet e prótese capilar afro — sempre com hora marcada.</p>
+      <div data-hero-fade="" style="display:flex;flex-wrap:wrap;gap:12px">
+        <button onClick="{{ goBook }}" style="height:56px;padding:0 30px;border-radius:999px;border:0;background:#F5F3EE;color:#13241A;font:600 17px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:transform .14s, background .18s" style-hover="background:#FFFFFF" style-active="transform:scale(0.97)">Agendar horário</button>
+        <button onClick="{{ goCatalog }}" style="height:56px;padding:0 26px;border-radius:999px;background:rgba(255,255,255,0.1);color:#F5F3EE;border:1px solid rgba(255,255,255,0.24);box-shadow:inset 0 1px 0 rgba(255,255,255,0.16);backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);font:600 17px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:background .18s, transform .14s" style-hover="background:rgba(255,255,255,0.18)" style-active="transform:scale(0.97)">Ver catálogo</button>
+      </div>
+      <div data-hero-fade="" style="display:flex;flex-wrap:wrap;gap:12px 28px;padding-top:24px;border-top:1px solid rgba(245,243,238,0.18);font-size:15px;line-height:1.4;color:#DCE4DA;font-variant-numeric:tabular-nums">
+        <span><strong style="color:#F5F3EE;font-weight:600">2.219</strong> trabalhos publicados</span>
+        <span><strong style="color:#F5F3EE;font-weight:600">5.061</strong> seguidores no Instagram</span>
+        <span><strong style="color:#F5F3EE;font-weight:600">Agenda de dezembro</strong> aberta</span>
+      </div>
+    </div>
+    <div aria-hidden="true" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.3vw,18px);height:clamp(460px,76vh,780px)">
+      <div data-strand="" style="position:relative;overflow:hidden;border-radius:999px;background:#1E3D27">
+        <div data-track="" style="display:flex;flex-direction:column;gap:clamp(10px,1.3vw,18px)">
+          <sc-for list="{{ strand0 }}" as="s" hint-placeholder-count="6"><img src="{{ s }}" alt="" style="width:100%;aspect-ratio:349/372;object-fit:cover"></sc-for>
+        </div>
+      </div>
+      <div data-strand="" style="position:relative;overflow:hidden;border-radius:999px;background:#1E3D27">
+        <div data-track="" style="display:flex;flex-direction:column;gap:clamp(10px,1.3vw,18px)">
+          <sc-for list="{{ strand1 }}" as="s" hint-placeholder-count="6"><img src="{{ s }}" alt="" style="width:100%;aspect-ratio:349/372;object-fit:cover"></sc-for>
+        </div>
+      </div>
+      <div data-strand="" style="position:relative;overflow:hidden;border-radius:999px;background:#1E3D27">
+        <div data-track="" style="display:flex;flex-direction:column;gap:clamp(10px,1.3vw,18px)">
+          <sc-for list="{{ strand2 }}" as="s" hint-placeholder-count="6"><img src="{{ s }}" alt="" style="width:100%;aspect-ratio:349/372;object-fit:cover"></sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="catalogo" data-tone="light" data-screen-label="02 Catálogo" style="background:#F5F3EE;color:#13241A;padding:clamp(96px,12vw,176px) clamp(20px,5vw,72px) clamp(80px,10vw,150px)">
+    <div style="max-width:1296px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(36px,4vw,56px)">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px 48px">
+        <h2 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(48px,6vw,96px);line-height:0.96;letter-spacing:-0.025em;overflow:hidden;padding-bottom:0.06em"><span data-mask="" style="display:block">Catálogo de estilos</span></h2>
+        <p data-rise="" style="margin:0;max-width:26em;font-size:17px;line-height:1.55;color:#13241A;text-wrap:pretty">Trabalhos reais feitos no salão. Toque em um estilo para ver de perto e levar para o seu pedido de horário.</p>
+      </div>
+      <div data-rise="" role="tablist" aria-label="Filtrar estilos" style="display:flex;gap:4px;padding:4px;border-radius:999px;background:#E8E5DC;overflow-x:auto;scrollbar-width:none;align-self:flex-start;max-width:100%">
+        <sc-for list="{{ segs }}" as="f" hint-placeholder-count="6">
+          <button role="tab" aria-selected="{{ f.on }}" onClick="{{ f.pick }}" style="flex:none;min-height:44px;padding:0 18px;border-radius:999px;border:0;background:{{ f.bg }};color:{{ f.ink }};font:500 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;white-space:nowrap;transition:background .24s, color .24s">{{ f.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(max(150px,22%),1fr));gap:clamp(28px,3vw,44px) clamp(12px,1.6vw,24px)">
+        <sc-for list="{{ cards }}" as="c" hint-placeholder-count="8">
+          <button data-card="" onClick="{{ c.open }}" aria-label="{{ c.aria }}" style="display:flex;flex-direction:column;gap:14px;padding:0;border:0;background:none;text-align:left;color:#13241A;cursor:pointer">
+            <div data-shutter="" style="width:100%;aspect-ratio:349/372;overflow:hidden;background:#E8E5DC">
+              <img src="{{ c.src }}" alt="{{ c.name }}" loading="lazy" style="width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(0.16,1,0.3,1)" style-hover="transform:scale(1.06)">
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;width:100%">
+              <span style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                <span style="font-size:17px;font-weight:600;letter-spacing:-0.01em;line-height:1.25">{{ c.name }}</span>
+                <span style="font-size:14px;color:#4A5A4F;line-height:1.3">{{ c.cat }}</span>
+              </span>
+              <span aria-hidden="true" style="flex:none;font-size:20px;line-height:1;color:#3F7A47">→</span>
+            </div>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <div>
+    <section id="como" data-steps="" data-tone="dark" data-screen-label="03 Como funciona" style="position:relative;min-height:100svh;background:#15301D;color:#F5F3EE;display:flex;flex-direction:column;justify-content:center;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none">
+      <div data-steps-track="" style="display:flex;align-items:stretch;gap:clamp(16px,3vw,48px);padding:clamp(96px,12vh,140px) clamp(20px,5vw,72px);width:max-content">
+        <div style="scroll-snap-align:start;width:clamp(290px,40vw,600px);display:flex;flex-direction:column;justify-content:space-between;gap:32px">
+          <h2 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(46px,5.4vw,88px);line-height:0.98;letter-spacing:-0.025em;overflow:hidden;padding-bottom:0.06em"><span data-mask="" style="display:block">Do estilo à cadeira, em quatro passos.</span></h2>
+          <p style="margin:0;max-width:24em;font-size:17px;line-height:1.55;color:#DCE4DA">Todo atendimento é com hora marcada. Assim a sua trança tem o tempo que ela pede.</p>
+        </div>
+        <article style="scroll-snap-align:start;width:clamp(290px,46vw,700px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:28px;align-items:end;padding:clamp(24px,3vw,40px);background:#1C3A25">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span data-num="" style="font-family:'Instrument Serif',Georgia,serif;font-size:clamp(96px,11vw,180px);line-height:0.8;color:#A9D9AE">01</span>
+            <h3 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em">Escolha o estilo</h3>
+            <p style="margin:0;font-size:17px;line-height:1.5;color:#DCE4DA">Navegue pelo catálogo ou mande uma foto de referência sua.</p>
+          </div>
+          <img src="assets/p/r3c1.png" alt="Tranças nagô desenhadas" loading="lazy" style="width:100%;aspect-ratio:349/372;object-fit:cover">
+        </article>
+        <article style="scroll-snap-align:start;width:clamp(290px,46vw,700px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:28px;align-items:end;padding:clamp(24px,3vw,40px);background:#1C3A25">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span data-num="" style="font-family:'Instrument Serif',Georgia,serif;font-size:clamp(96px,11vw,180px);line-height:0.8;color:#A9D9AE">02</span>
+            <h3 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em">Escolha dia e horário</h3>
+            <p style="margin:0;font-size:17px;line-height:1.5;color:#DCE4DA">O site mostra só os horários em que o seu serviço cabe.</p>
+          </div>
+          <img src="assets/p/r2c2.png" alt="Crochet cacheado loiro" loading="lazy" style="width:100%;aspect-ratio:349/372;object-fit:cover">
+        </article>
+        <article style="scroll-snap-align:start;width:clamp(290px,46vw,700px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:28px;align-items:end;padding:clamp(24px,3vw,40px);background:#1C3A25">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span data-num="" style="font-family:'Instrument Serif',Georgia,serif;font-size:clamp(96px,11vw,180px);line-height:0.8;color:#A9D9AE">03</span>
+            <h3 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em">Garanta com o sinal</h3>
+            <p style="margin:0;font-size:17px;line-height:1.5;color:#DCE4DA">O horário fica reservado para você mediante o pagamento do sinal.</p>
+          </div>
+          <img src="assets/p/r6c1.png" alt="Nagô com tranças soltas" loading="lazy" style="width:100%;aspect-ratio:349/372;object-fit:cover">
+        </article>
+        <article style="scroll-snap-align:start;width:clamp(290px,46vw,700px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:28px;align-items:end;padding:clamp(24px,3vw,40px);background:#1C3A25">
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <span data-num="" style="font-family:'Instrument Serif',Georgia,serif;font-size:clamp(96px,11vw,180px);line-height:0.8;color:#A9D9AE">04</span>
+            <h3 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em">Venha para o salão</h3>
+            <p style="margin:0;font-size:17px;line-height:1.5;color:#DCE4DA">Raposo Tavares, Zona Oeste de SP. A localização vai junto com a confirmação.</p>
+          </div>
+          <img src="assets/p/r4c1.png" alt="Fulani com cachos" loading="lazy" style="width:100%;aspect-ratio:349/372;object-fit:cover">
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <section id="agendar" data-tone="light" data-screen-label="04 Agendar" style="background:#F5F3EE;color:#13241A;padding:clamp(96px,12vw,176px) clamp(20px,5vw,72px)">
+    <div style="max-width:1296px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(40px,5vw,72px)">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px 48px">
+        <h2 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(48px,6vw,96px);line-height:0.96;letter-spacing:-0.025em;overflow:hidden;padding-bottom:0.06em"><span data-mask="" style="display:block">Agende seu horário</span></h2>
+        <p data-rise="" style="margin:0;max-width:28em;font-size:17px;line-height:1.55;text-wrap:pretty">Escolha os serviços, o dia e um horário livre. Cada serviço já tem o tempo médio calculado, então só aparecem horários em que ele cabe.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:clamp(40px,5vw,88px);align-items:start">
+        <div style="display:flex;flex-direction:column;gap:56px;min-width:0">
+          <div data-rise="" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.015em">1. Serviços</h3><span style="font-size:14px;color:#4A5A4F">Pode escolher mais de um</span></div>
+            <div role="group" aria-label="Serviços" style="display:flex;flex-direction:column;border-top:1px solid rgba(19,36,26,0.16)">
+              <sc-for list="{{ services }}" as="v" hint-placeholder-count="12">
+                <button onClick="{{ v.toggle }}" aria-pressed="{{ v.on }}" style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px;min-height:76px;border:0;border-bottom:1px solid rgba(19,36,26,0.12);background:{{ v.bg }};color:{{ v.ink }};text-align:left;cursor:pointer;font-family:inherit;transition:background .24s, color .24s">
+                  <span aria-hidden="true" style="width:24px;height:24px;border-radius:999px;border:1.5px solid {{ v.ring }};background:{{ v.dot }};display:flex;align-items:center;justify-content:center;color:#15301D;font-size:13px;font-weight:700;transition:background .24s">{{ v.mark }}</span>
+                  <span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:17px;font-weight:600;line-height:1.25">{{ v.name }}</span><span style="font-size:14px;line-height:1.4;color:{{ v.sub }}">{{ v.desc }}</span></span>
+                  <span style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-variant-numeric:tabular-nums;white-space:nowrap"><span style="font-size:16px;font-weight:600">{{ v.dur }}</span><span style="font-size:14px;color:{{ v.sub }}">{{ v.price }}</span></span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div data-rise="" style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+              <h3 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.015em">2. Data</h3>
+              <div style="display:flex;align-items:center;gap:6px">
+                <button onClick="{{ prevM }}" disabled="{{ prevOff }}" aria-label="Mês anterior" style="width:44px;height:44px;border-radius:999px;border:1px solid rgba(19,36,26,0.16);background:#FFFFFF;color:#13241A;display:flex;align-items:center;justify-content:center;transition:opacity .2s, transform .14s;opacity:{{ prevOp }};cursor:{{ prevCur }}" style-active="transform:scale(0.94)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+                <span data-month="" aria-live="polite" style="min-width:150px;text-align:center;font-size:17px;font-weight:600">{{ monthLabel }}</span>
+                <button onClick="{{ nextM }}" disabled="{{ nextOff }}" aria-label="Próximo mês" style="width:44px;height:44px;border-radius:999px;border:1px solid rgba(19,36,26,0.16);background:#FFFFFF;color:#13241A;display:flex;align-items:center;justify-content:center;transition:opacity .2s, transform .14s;opacity:{{ nextOp }};cursor:{{ nextCur }}" style-active="transform:scale(0.94)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+              </div>
+            </div>
+            <div data-cal="" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:clamp(12px,2vw,20px);border-radius:28px;background:#FFFFFF;border:1px solid rgba(19,36,26,0.1)">
+              <span aria-hidden="true" style="text-align:center;font-size:13px;font-weight:600;color:#4A5A4F;padding-bottom:6px">D</span><span aria-hidden="true" style="text-align:center;font-size:13px;font-weight:600;color:#4A5A4F;padding-bottom:6px">S</span><span aria-hidden="true" style="text-align:center;font-size:13px;font-weight:600;color:#4A5A4F;padding-bottom:6px">T</span><span aria-hidden="true" style="text-align:center;font-size:13px;font-weight:600;color:#4A5A4F;padding-bottom:6px">Q</span><span aria-hidden="true" style="text-align:center;font-size:13px;font-weight:600;color:#4A5A4F;padding-bottom:6px">Q</span><span aria-hidden="true" style="text-align:center;font-size:13px;font-weight:600;color:#4A5A4F;padding-bottom:6px">S</span><span aria-hidden="true" style="text-align:center;font-size:13px;font-weight:600;color:#4A5A4F;padding-bottom:6px">S</span>
+              <sc-for list="{{ calCells }}" as="d" hint-placeholder-count="35">
+                <button onClick="{{ d.pick }}" disabled="{{ d.off }}" aria-pressed="{{ d.on }}" aria-label="{{ d.aria }}" style="height:clamp(44px,5vw,54px);border-radius:999px;border:0;background:{{ d.bg }};color:{{ d.ink }};visibility:{{ d.vis }};opacity:{{ d.op }};cursor:{{ d.cur }};text-decoration:{{ d.deco }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:600 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-variant-numeric:tabular-nums;transition:background .2s, color .2s" style-hover="box-shadow:inset 0 0 0 1px rgba(19,36,26,0.25)">
+                  <span>{{ d.n }}</span><span style="width:4px;height:4px;border-radius:999px;background:{{ d.dot }}"></span>
+                </button>
+              </sc-for>
+            </div>
+            <span style="font-size:14px;color:#4A5A4F">Agenda aberta para os próximos 60 dias · domingo fechado · ponto verde marca hoje</span>
+          </div>
+          <div data-rise="" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.015em">3. Horário</h3><span style="font-size:14px;color:#4A5A4F;font-variant-numeric:tabular-nums">{{ hoursNote }}</span></div>
+            <sc-if value="{{ showSlots }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px">
+                <sc-for list="{{ slots }}" as="t" hint-placeholder-count="8">
+                  <button data-slot="" onClick="{{ t.pick }}" disabled="{{ t.off }}" aria-pressed="{{ t.on }}" aria-label="{{ t.aria }}" style="min-height:48px;border-radius:999px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.ink }};font:600 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-variant-numeric:tabular-nums;text-decoration:{{ t.deco }};cursor:{{ t.cur }};transition:background .2s, color .2s, transform .14s" style-active="transform:scale(0.96)">{{ t.label }}</button>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ slotsEmpty }}" hint-placeholder-val="{{ true }}">
+              <p style="margin:0;padding:22px 24px;border-radius:24px;background:#ECE9E1;font-size:16px;line-height:1.5">{{ slotsMsg }}</p>
+            </sc-if>
+          </div>
+          <div data-rise="" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h3 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.015em">4. Seus dados</h3><a href="conta.html" style="font-size:15px;font-weight:600;color:#2F6A38" style-hover="color:#13241A">{{ dataHint }}</a></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:16px">
+              <label style="display:flex;flex-direction:column;gap:10px"><span style="font-size:15px;font-weight:600">Nome</span><input type="text" autocomplete="name" placeholder="Seu nome" value="{{ name }}" onChange="{{ onName }}" style="height:52px;padding:0 22px;border-radius:999px;border:1px solid rgba(19,36,26,0.22);background:#FFFFFF;color:#13241A;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif"></label>
+              <label style="display:flex;flex-direction:column;gap:10px"><span style="font-size:15px;font-weight:600">WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 90000-0000" value="{{ phone }}" onChange="{{ onPhone }}" style="height:52px;padding:0 22px;border-radius:999px;border:1px solid rgba(19,36,26,0.22);background:#FFFFFF;color:#13241A;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif"></label>
+            </div>
+            <label style="display:flex;flex-direction:column;gap:10px"><span style="font-size:15px;font-weight:600">Observações <span style="font-weight:400;color:#4A5A4F">(opcional)</span></span><textarea rows="3" placeholder="Cor do cabelo, referência, se já tem o material…" value="{{ note }}" onChange="{{ onNote }}" style="padding:16px 22px;border-radius:24px;border:1px solid rgba(19,36,26,0.22);background:#FFFFFF;color:#13241A;font:500 16px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;resize:vertical"></textarea></label>
+          </div>
+        </div>
+        <aside data-rise="" aria-live="polite" style="position:sticky;top:104px;background:#15301D;color:#F5F3EE;border-radius:36px;padding:clamp(24px,3vw,36px);display:flex;flex-direction:column;gap:24px">
+          <sc-if value="{{ notDone }}" hint-placeholder-val="{{ true }}">
+            <h3 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:44px;line-height:1;letter-spacing:-0.02em">Seu horário</h3>
+            <sc-if value="{{ hasSvc }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;border-top:1px solid rgba(245,243,238,0.16)">
+                <sc-for list="{{ picked }}" as="p" hint-placeholder-count="1">
+                  <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid rgba(245,243,238,0.16);font-size:16px"><span>{{ p.name }}</span><span style="color:#DCE4DA;font-variant-numeric:tabular-nums;white-space:nowrap">{{ p.dur }}</span></div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noSvc }}" hint-placeholder-val="{{ true }}">
+              <p style="margin:0;font-size:16px;line-height:1.5;color:#DCE4DA">Nenhum serviço escolhido ainda.</p>
+            </sc-if>
+            <dl data-sum="" style="margin:0;display:grid;grid-template-columns:auto 1fr;gap:14px 20px;font-size:16px;font-variant-numeric:tabular-nums">
+              <dt style="color:#DCE4DA">Duração média</dt><dd style="margin:0;text-align:right;font-weight:600">{{ totalDur }}</dd>
+              <dt style="color:#DCE4DA">Dia</dt><dd style="margin:0;text-align:right;font-weight:600">{{ dayLabel }}</dd>
+              <dt style="color:#DCE4DA">Horário</dt><dd style="margin:0;text-align:right;font-weight:600">{{ timeLabel }}</dd>
+              <dt style="color:#DCE4DA">Valor</dt><dd style="margin:0;text-align:right;font-weight:600">{{ totalPrice }}</dd>
+            </dl>
+            <button onClick="{{ confirm }}" disabled="{{ cantConfirm }}" style="height:56px;border-radius:999px;border:0;background:{{ cBg }};color:{{ cInk }};font:600 17px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:{{ cCur }};transition:background .24s, color .24s, transform .14s" style-active="transform:scale(0.98)">Confirmar agendamento</button>
+            <span style="font-size:14px;line-height:1.45;color:#DCE4DA">{{ hint }}</span>
+          </sc-if>
+          <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+            <div data-done="" style="width:64px;height:64px;border-radius:999px;background:#A9D9AE;color:#15301D;display:flex;align-items:center;justify-content:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"></path></svg></div>
+            <h3 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:44px;line-height:1;letter-spacing:-0.02em">Pedido recebido</h3>
+            <p style="margin:0;font-size:17px;line-height:1.55">{{ doneText }}</p>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:16px 0;border-top:1px solid rgba(245,243,238,0.16);border-bottom:1px solid rgba(245,243,238,0.16);font-size:16px"><span style="color:#DCE4DA">Código da reserva</span><span style="font-weight:600;letter-spacing:0.04em">{{ code }}</span></div>
+            <p style="margin:0;font-size:15px;line-height:1.5;color:#DCE4DA">A reserva é garantida após o pagamento do sinal. Os dados para o pagamento chegam no WhatsApp informado.</p>
+            <button onClick="{{ reset }}" style="height:56px;border-radius:999px;border:1px solid rgba(245,243,238,0.3);background:transparent;color:#F5F3EE;font:600 17px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer" style-hover="background:rgba(245,243,238,0.08)">Fazer outro agendamento</button>
+            <a href="conta.html" style="display:flex;align-items:center;justify-content:center;min-height:44px;color:#A9D9AE;font-size:16px;font-weight:600" style-hover="color:#F5F3EE">{{ accountCta }}</a>
+          </sc-if>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section id="salao" data-tone="light" data-screen-label="05 Salão" style="background:#ECE9E1;color:#13241A;padding:clamp(96px,12vw,176px) clamp(20px,5vw,72px)">
+    <div style="max-width:1296px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:clamp(40px,6vw,96px);align-items:center">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:clamp(12px,1.6vw,20px);align-items:end">
+        <div style="overflow:hidden;aspect-ratio:349/372;position:relative"><img data-par="" src="assets/p/r4c0.png" alt="Cliente com bubble ponytail no salão" loading="lazy" style="position:absolute;left:0;top:-8%;width:100%;height:116%;object-fit:cover"></div>
+        <div style="display:flex;flex-direction:column;gap:clamp(12px,1.6vw,20px)">
+          <div style="overflow:hidden;aspect-ratio:349/206;position:relative"><img data-par="" src="assets/p/salao.png" alt="Interior do salão Jey's Hair" loading="lazy" style="position:absolute;left:0;top:-8%;width:100%;height:116%;object-fit:cover"></div>
+          <div style="overflow:hidden;aspect-ratio:349/372;position:relative"><img data-par="" src="assets/p/r3c0.png" alt="Crochet cacheado cobre" loading="lazy" style="position:absolute;left:0;top:-8%;width:100%;height:116%;object-fit:cover"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:28px">
+        <h2 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(46px,5.4vw,88px);line-height:0.98;letter-spacing:-0.025em;overflow:hidden;padding-bottom:0.06em"><span data-mask="" style="display:block">Na Raposo Tavares, Zona Oeste de SP.</span></h2>
+        <p data-rise="" style="margin:0;max-width:30em;font-size:17px;line-height:1.55;text-wrap:pretty">Atendimento em salão próprio, com hora marcada. Peça a localização exata pelo WhatsApp e veja os feedbacks das clientes nos destaques do Instagram.</p>
+        <div data-rise="" style="display:flex;flex-direction:column;border-top:1px solid rgba(19,36,26,0.16)">
+          <a href="{{ waGeneral }}" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:64px;border-bottom:1px solid rgba(19,36,26,0.16);color:#13241A;text-decoration:none;font-size:17px;font-weight:600" style-hover="color:#2F6A38">
+            <span>WhatsApp · +55 11 99255-7666</span><span aria-hidden="true" style="color:#3F7A47">↗</span>
+          </a>
+          <a href="https://instagram.com/jeyshairr" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:64px;border-bottom:1px solid rgba(19,36,26,0.16);color:#13241A;text-decoration:none;font-size:17px;font-weight:600" style-hover="color:#2F6A38">
+            <span>Instagram · @jeyshairr</span><span aria-hidden="true" style="color:#3F7A47">↗</span>
+          </a>
+          <a href="https://linktr.ee/jeysshair" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:64px;border-bottom:1px solid rgba(19,36,26,0.16);color:#13241A;text-decoration:none;font-size:17px;font-weight:600" style-hover="color:#2F6A38">
+            <span>Todos os links · linktr.ee/jeysshair</span><span aria-hidden="true" style="color:#3F7A47">↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer data-footer="" data-tone="dark" style="background:#15301D;color:#F5F3EE;padding:clamp(80px,10vw,140px) clamp(20px,5vw,72px) clamp(120px,12vw,72px)">
+  <div style="max-width:1296px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(48px,6vw,80px)">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:clamp(24px,4vw,56px)">
+      <img data-spin="" src="assets/logo.png" alt="Logotipo Jey's Hair" style="width:clamp(120px,14vw,200px);height:clamp(120px,14vw,200px);border-radius:999px">
+      <p style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-size:clamp(48px,7vw,120px);line-height:0.95;letter-spacing:-0.025em;overflow:hidden;padding-bottom:0.06em"><span data-mask="" style="display:block">Você pode ter o cabelo que quiser.</span></p>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px 32px;padding-top:28px;border-top:1px solid rgba(245,243,238,0.16);font-size:15px;color:#DCE4DA">
+      <span>© 2026 Jey's Hair · Trancista · Raposo Tavares, São Paulo</span>
+      <div style="display:flex;flex-wrap:wrap;gap:24px">
+        <a href="{{ waGeneral }}" target="_blank" rel="noopener" style="color:#F5F3EE">WhatsApp</a>
+        <a href="https://instagram.com/jeyshairr" target="_blank" rel="noopener" style="color:#F5F3EE">Instagram</a>
+        <a href="https://linktr.ee/jeysshair" target="_blank" rel="noopener" style="color:#F5F3EE">Linktree</a>
+        <a href="admin.html" style="color:#DCE4DA">Área da Jey</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+  <div data-scrim="" onClick="{{ closeSel }}" style="position:fixed;inset:0;z-index:80;background:rgba(8,18,12,0.58)"></div>
+  <div data-sheet="" role="dialog" aria-modal="true" aria-label="{{ selName }}" style="position:fixed;z-index:90;left:12px;right:12px;bottom:12px;margin:0 auto;max-width:960px;max-height:calc(100svh - 24px);overflow:auto;background:#F5F3EE;color:#13241A;border-radius:36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))">
+    <img src="{{ selSrc }}" alt="{{ selName }}" style="width:100%;height:100%;min-height:320px;max-height:62svh;object-fit:cover">
+    <div style="position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:20px;padding:clamp(28px,4vw,48px)">
+      <span style="font-size:15px;color:#4A5A4F">{{ selCat }}</span>
+      <h3 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(40px,4.6vw,64px);line-height:1;letter-spacing:-0.02em">{{ selName }}</h3>
+      <p style="margin:0;font-size:17px;line-height:1.55">{{ selDesc }}</p>
+      <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px">
+        <button onClick="{{ pickSel }}" style="height:56px;border-radius:999px;border:0;background:#3F7A47;color:#FFFFFF;font:600 17px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:background .18s, transform .14s" style-hover="background:#356B3D" style-active="transform:scale(0.98)">Quero este estilo</button>
+        
+      </div>
+    </div>
+    <button onClick="{{ closeSel }}" aria-label="Fechar" style="position:absolute;top:14px;right:14px;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(248,246,241,0.7);color:#13241A;border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 18px rgba(19,36,26,0.16), inset 0 1px 0 rgba(255,255,255,0.75);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);cursor:pointer;font-size:22px;line-height:1">×</button>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const P = 'assets/p/';
+const WA = '5511992557666';
+const wa = t => `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
+const ITEMS = [
+  { id: 'r1c0', name: 'Box Braids', cat: 'Box & Goddess', desc: 'Tranças soltas divididas em quadrados, do comprimento médio ao extra longo.' },
+  { id: 'r1c1', name: 'Goddess violeta', cat: 'Box & Goddess', desc: 'Box braids com cachos soltos ao longo dos fios, em cor fantasia.' },
+  { id: 'r2c0', name: 'Goddess loiro', cat: 'Box & Goddess', desc: 'Volume e movimento, com cachos dourados entre as tranças.' },
+  { id: 'r3c2', name: 'Boho Braids', cat: 'Box & Goddess', desc: 'Tranças com mechas cacheadas soltas e acabamento leve.' },
+  { id: 'r2c1', name: 'Nagô em coque', cat: 'Nagô & Fulani', desc: 'Tranças rentes ao couro em desenho curvo, finalizadas em coque.' },
+  { id: 'r3c1', name: 'Nagô desenhada', cat: 'Nagô & Fulani', desc: 'Desenhos retos e curvos rentes ao couro cabeludo.' },
+  { id: 'r4c1', name: 'Fulani com cachos', cat: 'Nagô & Fulani', desc: 'Nagô na frente, tranças soltas atrás e cachos ao longo dos fios.' },
+  { id: 'r4c2', name: 'Nagô lateral', cat: 'Nagô & Fulani', desc: 'Desenho em curva que acompanha o formato da cabeça.' },
+  { id: 'r6c1', name: 'Nagô com soltas', cat: 'Nagô & Fulani', desc: 'Tranças raiz que terminam longas e soltas nas costas.' },
+  { id: 'r6c0', name: 'Nagô com puff', cat: 'Nagô & Fulani', desc: 'Nagô na frente e o cabelo natural preso em puff.' },
+  { id: 'r7c0', name: 'Nagô fina', cat: 'Nagô & Fulani', desc: 'Tranças raiz finas e paralelas, para o dia a dia.' },
+  { id: 'r7c2', name: 'Nagô grossa', cat: 'Nagô & Fulani', desc: 'Tranças raiz mais largas, de trança rápida e marcante.' },
+  { id: 'r1c2', name: 'Crochet cacheado', cat: 'Crochet', desc: 'Volume cacheado aplicado com a técnica de crochet.' },
+  { id: 'r2c2', name: 'Crochet loiro', cat: 'Crochet', desc: 'Cachos loiros com raiz escura e volume generoso.' },
+  { id: 'r3c0', name: 'Crochet cobre', cat: 'Crochet', desc: 'Cachos longos em tom cobre, definidos e leves.' },
+  { id: 'r0c1', name: 'Crochet ondulado', cat: 'Crochet', desc: 'Ondas longas com aparência natural e muito movimento.' },
+  { id: 'r4c0', name: 'Bubble ponytail', cat: 'Rabo de cavalo', desc: 'Rabo de cavalo longo, marcado em bolhas.' },
+  { id: 'r5c1', name: 'Rabo trançado bordô', cat: 'Rabo de cavalo', desc: 'Nagô puxada para o alto, com tranças em bordô.' },
+  { id: 'r5c2', name: 'Liso longo', cat: 'Liso & prótese', desc: 'Comprimento liso e longo, com prótese capilar.' },
+];
+const CATS = ['Todos', 'Box & Goddess', 'Nagô & Fulani', 'Crochet', 'Rabo de cavalo', 'Liso & prótese'];
+const SERVICES = [
+  { id: 'box-medio', name: 'Box Braids médio', desc: 'Do ombro à altura do sutiã.', min: 360, price: 300 },
+  { id: 'box-longo', name: 'Box Braids longo', desc: 'Até a cintura.', min: 420, price: 350 },
+  { id: 'box-xl', name: 'Box Braids extra longo', desc: 'Até o bumbum.', min: 480, price: 420 },
+  { id: 'goddess', name: 'Goddess / Boho Braids', desc: 'Box braids com cachos soltos ao longo dos fios.', min: 480, price: 450 },
+  { id: 'fulani', name: 'Fulani Braids', desc: 'Nagô na frente e tranças soltas atrás.', min: 360, price: 400 },
+  { id: 'nago', name: 'Nagô simples', desc: 'Até 6 tranças raiz retas.', min: 120, price: 120 },
+  { id: 'nago-des', name: 'Nagô desenhada', desc: 'Desenhos curvos ou personalizados.', min: 180, price: 180 },
+  { id: 'nago-rabo', name: 'Nagô com rabo de cavalo', desc: 'Tranças raiz puxadas para o alto.', min: 300, price: 250 },
+  { id: 'crochet', name: 'Crochet Braids', desc: 'Cachos aplicados sobre base de nagô.', min: 300, price: 380 },
+  { id: 'protese', name: 'Prótese capilar afro', desc: 'Aplicação com avaliação no dia.', min: 180, price: null },
+  { id: 'retoque', name: 'Retoque / manutenção', desc: 'Refaz a raiz e as tranças da frente.', min: 180, price: 150 },
+  { id: 'remocao', name: 'Remoção de tranças', desc: 'Retirada com cuidado e desembaraço.', min: 120, price: 100 },
+];
+const WD = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const MO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const fmtDur = m => { const h = Math.floor(m / 60), r = m % 60; return h ? (r ? h + 'h' + String(r).padStart(2, '0') : h + 'h') : r + 'min'; };
+const hm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const busy = (key, m) => { let x = 0; const s = key + ':' + m; for (let i = 0; i < s.length; i++) x = (x * 31 + s.charCodeAt(i)) >>> 0; return x % 4 === 0; };
+const SVC_FOR = i => i.cat === 'Box & Goddess' ? (/Goddess|Boho/.test(i.name) ? 'goddess' : 'box-longo') : i.cat === 'Nagô & Fulani' ? (/Fulani/.test(i.name) ? 'fulani' : 'nago-des') : i.cat === 'Crochet' ? 'crochet' : i.cat === 'Rabo de cavalo' ? 'nago-rabo' : 'protese';
+const GL = {
+  light: { bg: 'rgba(248,246,241,0.72)', solid: '#F5F3EE', ink: '#13241A', bd: 'rgba(255,255,255,0.65)', sh: '0 10px 30px rgba(19,36,26,0.14), inset 0 1px 0 rgba(255,255,255,0.75)', act: '#2F6A38', actBg: 'rgba(63,122,71,0.14)' },
+  dark: { bg: 'rgba(16,34,22,0.5)', solid: '#15301D', ink: '#F5F3EE', bd: 'rgba(255,255,255,0.16)', sh: '0 10px 30px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.14)', act: '#A9D9AE', actBg: 'rgba(255,255,255,0.12)' },
+};
+const TABS = [
+  { id: 'inicio', label: 'Início', d: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z' },
+  { id: 'catalogo', label: 'Catálogo', d: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' },
+  { id: 'agendar', label: 'Agendar', d: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5' },
+  { id: 'salao', label: 'Salão', d: 'M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z' },
+];
+const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+class Component extends DCLogic {
+  state = { w: typeof window !== 'undefined' ? window.innerWidth : 1440, tone: 'dark', toneB: 'dark', sec: 'inicio', filter: 'Todos', sel: null, svc: [], date: null, calM: 0, introDone: false, user: null, booked: [], time: null, name: '', phone: '', note: '', done: false, code: '' };
+
+  componentDidMount() {
+    this.rt = window.matchMedia && matchMedia('(prefers-reduced-transparency: reduce)').matches;
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    this.onScroll = () => this.track();
+    this.onKey = e => { if (e.key === 'Escape' && this.state.sel) this.setState({ sel: null }); };
+    addEventListener('resize', this.onResize);
+    addEventListener('scroll', this.onScroll, { passive: true });
+    addEventListener('keydown', this.onKey);
+    document.documentElement.style.overflow = 'hidden';
+    this.introFail = setTimeout(() => { if (!this.introTl) this.endIntro(); }, 9000);
+    this.loadStore();
+    this.onStore = e => { if (!e.key || e.key.indexOf('jeys_') === 0) this.loadStore(); };
+    addEventListener('storage', this.onStore);
+    addEventListener('jeys-seeded', this.onStore);
+    this.track();
+    let n = 0;
+    const wait = () => { if (window.gsap && window.ScrollTrigger) this.motion(); else if (n++ < 120) setTimeout(wait, 80); else this.endIntro(); };
+    wait();
+  }
+  componentWillUnmount() {
+    removeEventListener('resize', this.onResize);
+    removeEventListener('scroll', this.onScroll);
+    removeEventListener('keydown', this.onKey);
+    removeEventListener('storage', this.onStore);
+    clearTimeout(this.introFail);
+    this.mm && this.mm.revert();
+  }
+  componentDidUpdate(_, prev) {
+    const g = window.gsap; const s = this.state;
+    if (prev.w !== s.w) { window.ScrollTrigger && ScrollTrigger.refresh(); this.track(); }
+    if (!g) return;
+    const rm = reduced();
+    if (prev.filter !== s.filter) {
+      (this.shutters || []).forEach(t => t.kill()); this.shutters = null;
+      g.set('[data-shutter]', { clipPath: 'none' });
+      if (!rm) g.fromTo('[data-card]', { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, stagger: 0.04, ease: 'expo.out' });
+      ScrollTrigger.refresh();
+    }
+    if (!prev.sel && s.sel) {
+      document.body.style.overflow = 'hidden';
+      if (!rm) {
+        g.fromTo('[data-scrim]', { opacity: 0 }, { opacity: 1, duration: 0.3 });
+        g.fromTo('[data-sheet]', { y: 90, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'expo.out' });
+      }
+    }
+    if (prev.sel && !s.sel) document.body.style.overflow = '';
+    if (!rm && prev.calM !== s.calM) g.fromTo('[data-cal] button', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, stagger: 0.008, ease: 'expo.out' });
+    if (!rm && prev.svc !== s.svc) g.fromTo('[data-sum]', { opacity: 0.35 }, { opacity: 1, duration: 0.6, ease: 'expo.out' });
+    if (!rm && prev.date !== s.date && s.date) g.fromTo('[data-slot]', { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.02, ease: 'expo.out' });
+    if (!rm && !prev.done && s.done) g.fromTo('[data-done]', { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: 'expo.out' });
+  }
+
+  loadStore() {
+    const J = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+    const booked = J('jeys_bookings') || [];
+    const email = J('jeys_session'), users = J('jeys_users') || [];
+    const user = email ? users.find(u => u.email === email) || null : null;
+    this.setState(st => ({ booked, user, name: st.name || (user ? user.name : ''), phone: st.phone || (user ? user.phone : '') }));
+  }
+
+  intro() {
+    const g = gsap, el = document.querySelector('[data-intro]');
+    if (!el || this.state.introDone) return this.endIntro();
+    const tl = this.introTl = g.timeline({ onComplete: () => this.endIntro() });
+    if (reduced()) { tl.to(el, { opacity: 0, duration: 0.4, delay: 0.5 }); return; }
+    const logo = el.querySelector('[data-intro-logo]'), ring = el.querySelector('[data-ring]'), cnt = el.querySelector('[data-count]'), o = { v: 0 };
+    g.set(logo, { clipPath: 'circle(0% at 50% 50%)', scale: 1.2, rotate: -14 });
+    g.set(el.querySelector('[data-intro-cap]'), { yPercent: 110 });
+    tl.to(ring, { strokeDashoffset: 0, duration: 1.6, ease: 'power2.inOut' }, 0.1)
+      .to(o, { v: 100, duration: 2.2, ease: 'power2.inOut', onUpdate: () => { cnt.textContent = String(Math.round(o.v)).padStart(3, '0'); } }, 0)
+      .to(el.querySelector('[data-bar]'), { scaleX: 1, duration: 2.2, ease: 'power2.inOut' }, 0)
+      .to(logo, { clipPath: 'circle(50% at 50% 50%)', duration: 1.4, ease: 'expo.out' }, 0.6)
+      .to(logo, { scale: 1, rotate: 0, duration: 2, ease: 'expo.out' }, 0.6)
+      .to(el.querySelector('[data-intro-cap]'), { yPercent: 0, duration: 1.2, ease: 'expo.out' }, 1.2)
+      .to(ring, { scale: 1.12, opacity: 0, transformOrigin: '50% 50%', duration: 0.9, ease: 'power2.out' }, 2.35)
+      .to([el.querySelector('[data-intro-cap]'), el.querySelector('[data-intro-meta]')], { opacity: 0, duration: 0.4 }, 2.4)
+      .to(logo, { scale: 0.82, duration: 1, ease: 'expo.inOut' }, 2.4)
+      .to(el, { clipPath: 'inset(0% 0% 100% 0%)', duration: 1.15, ease: 'expo.inOut' }, 2.65)
+      .add(() => this.heroIn(), 3.0);
+  }
+
+  heroIn() {
+    if (this.heroDone) return;
+    this.heroDone = true;
+    const g = window.gsap, sel = '[data-hl],[data-strand],[data-hero-fade]';
+    if (!g) return;
+    if (!reduced()) {
+      g.fromTo('[data-hl]', { yPercent: 115 }, { yPercent: 0, duration: 1.4, stagger: 0.1, delay: 0.1, ease: 'expo.out' });
+      g.fromTo('[data-strand]', { yPercent: i => (i % 2 ? -40 : 40), opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.9, stagger: 0.12, ease: 'expo.out' });
+      g.fromTo('[data-hero-fade]', { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.09, delay: 0.5, ease: 'expo.out' });
+    }
+    setTimeout(() => g.set(sel, { clearProps: 'transform,opacity' }), reduced() ? 0 : 3200);
+  }
+
+  endIntro() {
+    if (this.state.introDone) return;
+    document.documentElement.style.overflow = '';
+    this.heroIn();
+    this.setState({ introDone: true }, () => {
+      window.ScrollTrigger && ScrollTrigger.refresh();
+      const id = location.hash.slice(1);
+      if (id && document.getElementById(id)) setTimeout(() => this.go(id), 80);
+    });
+  }
+
+  reveal() {
+    if (!this.revealOn || !window.gsap) return;
+    const g = gsap, H = innerHeight;
+    const pick = (sel, f) => [...document.querySelectorAll(sel)].filter(e => !e.__shown && e.getBoundingClientRect().top < H * f);
+    const m = pick('[data-mask]', 0.92);
+    if (m.length) { m.forEach(e => { e.__shown = 1; }); g.to(m, { yPercent: 0, duration: 1.3, stagger: 0.1, ease: 'expo.out' }); }
+    const r = pick('[data-rise]', 0.9);
+    if (r.length) { r.forEach(e => { e.__shown = 1; }); g.to(r, { y: 0, opacity: 1, duration: 1, stagger: 0.08, ease: 'expo.out', clearProps: 'transform' }); }
+  }
+
+  track() {
+    this.reveal();
+    const y1 = 44, y2 = innerHeight - 44, ym = innerHeight * 0.45;
+    let tone = this.state.tone, toneB = this.state.toneB, sec = this.state.sec;
+    document.querySelectorAll('[data-tone]').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top <= y1 && r.bottom > y1) tone = el.dataset.tone;
+      if (r.top <= y2 && r.bottom > y2) toneB = el.dataset.tone;
+      if (el.id && r.top <= ym && r.bottom > ym) sec = el.id;
+    });
+    if (tone !== this.state.tone || toneB !== this.state.toneB || sec !== this.state.sec) this.setState({ tone, toneB, sec });
+  }
+
+  go(id) {
+    const el = document.getElementById(id); if (!el) return;
+    const top = id === 'inicio' ? 0 : el.getBoundingClientRect().top + scrollY - (id === 'como' ? 0 : 88);
+    scrollTo({ top, behavior: reduced() ? 'auto' : 'smooth' });
+  }
+
+  motion() {
+    const g = gsap, ST = ScrollTrigger;
+    g.registerPlugin(ST);
+    this.intro();
+    this.mm = g.matchMedia();
+    this.mm.add({ ok: '(prefers-reduced-motion: no-preference)', desk: '(min-width: 1040px)' }, ctx => {
+      const { ok, desk } = ctx.conditions;
+      if (!ok) return;
+      /* hero reveal runs in heroIn() */
+      g.utils.toArray('[data-track]').forEach((t, i) => {
+        g.fromTo(t, { yPercent: i % 2 ? -26 : 0 }, { yPercent: i % 2 ? 0 : -26, ease: 'none', scrollTrigger: { trigger: '[data-hero]', start: 'top top', end: 'bottom top', scrub: 0.6 } });
+      });
+      const masks = g.utils.toArray('[data-mask]');
+      g.set(masks, { yPercent: 110 });
+      const rise = g.utils.toArray('[data-rise]');
+      g.set(rise, { y: 32, opacity: 0 });
+      /* revelação por posição real no scroll (robusta a mudanças de altura do catálogo) */
+      this.revealOn = true;
+      this.reveal();
+      const sh = g.utils.toArray('[data-shutter]');
+      g.set(sh, { clipPath: 'inset(100% 0% 0% 0%)' });
+      this.shutters = ST.batch(sh, { start: 'top 94%', once: true, onEnter: b => g.to(b, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, stagger: 0.08, ease: 'power4.inOut' }) });
+      g.utils.toArray('[data-par]').forEach(el => {
+        g.fromTo(el, { yPercent: -6 }, { yPercent: 6, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
+      });
+      g.fromTo('[data-spin]', { rotate: -90, scale: 0.8 }, { rotate: 0, scale: 1, ease: 'none', scrollTrigger: { trigger: '[data-footer]', start: 'top bottom', end: 'bottom bottom', scrub: true } });
+      if (desk) {
+        const sec = document.querySelector('[data-steps]'), tr = document.querySelector('[data-steps-track]');
+        sec.style.overflow = 'hidden';
+        const dist = () => Math.max(0, tr.scrollWidth - sec.clientWidth);
+        const tw = g.to(tr, { x: () => -dist(), ease: 'none', scrollTrigger: { trigger: sec, start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.8, invalidateOnRefresh: true, anticipatePin: 1 } });
+        g.utils.toArray('[data-num]').forEach(n => g.from(n, { xPercent: 70, opacity: 0, ease: 'none', scrollTrigger: { trigger: n, containerAnimation: tw, start: 'left 100%', end: 'left 60%', scrub: true } }));
+        return () => { sec.style.overflow = ''; };
+      }
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const isMobile = s.w < 1040;
+    const t = GL[s.tone], b = GL[s.toneB];
+    const picked = SERVICES.filter(v => s.svc.includes(v.id));
+    const dur = picked.reduce((a, v) => a + v.min, 0);
+    const priced = picked.filter(v => v.price != null);
+    const total = priced.reduce((a, v) => a + v.price, 0);
+    const base = new Date(); base.setHours(0, 0, 0, 0);
+    const maxD = new Date(base); maxD.setDate(maxD.getDate() + 60);
+    const selDay = s.date ? new Date(s.date + 'T00:00:00') : null;
+    const maxM = (maxD.getFullYear() - base.getFullYear()) * 12 + maxD.getMonth() - base.getMonth();
+    const mS = new Date(base.getFullYear(), base.getMonth() + s.calM, 1);
+    const nD = new Date(mS.getFullYear(), mS.getMonth() + 1, 0).getDate();
+    const cal = [];
+    for (let i = 0; i < mS.getDay(); i++) cal.push(null);
+    for (let d = 1; d <= nD; d++) cal.push(new Date(mS.getFullYear(), mS.getMonth(), d));
+    const MOL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const close = selDay && selDay.getDay() === 6 ? 1020 : 1140;
+    const slotList = [];
+    if (selDay && dur) for (let m = 480; m + dur <= close; m += 30) slotList.push(m);
+    let slotsMsg = '';
+    if (!dur) slotsMsg = 'Escolha um serviço para ver os horários em que ele cabe.';
+    else if (!s.date) slotsMsg = 'Escolha uma data para ver os horários livres.';
+    else if (!slotList.length) slotsMsg = 'Os serviços escolhidos somam ' + fmtDur(dur) + ' e não cabem em um único dia. Escolha menos serviços ou fale com a Jey pelo WhatsApp.';
+    const phoneOk = s.phone.replace(/\D/g, '').length >= 10;
+    const ready = !!(dur && s.date && s.time != null && s.name.trim() && phoneOk);
+    const hint = !dur ? 'Escolha ao menos um serviço.' : !s.date ? 'Escolha uma data.' : s.time == null ? 'Escolha um horário.' : !s.name.trim() ? 'Informe seu nome.' : !phoneOk ? 'Informe um WhatsApp com DDD.' : 'Tudo certo. A reserva é garantida após o pagamento do sinal.';
+    const dayB = s.booked.filter(x => x.date === s.date && x.status !== 'cancelado');
+    const taken = m => dayB.some(x => x.start < m + dur && m < x.start + x.dur);
+    const dayLong = selDay ? WD[selDay.getDay()] + ', ' + selDay.getDate() + ' ' + MO[selDay.getMonth()] : '—';
+    const list = ITEMS.filter(i => s.filter === 'Todos' || i.cat === s.filter);
+    const sel = s.sel;
+    const src = id => P + id + '.png';
+    return {
+      isMobile, isDesktop: !isMobile,
+      navBg: this.rt ? t.solid : t.bg, navInk: t.ink, navBd: t.bd, navSh: t.sh,
+      tabBg: this.rt ? b.solid : b.bg, tabInk: b.ink, tabBd: b.bd, tabSh: b.sh,
+      tabs: TABS.map(x => {
+        const on = s.sec === x.id || (x.id === 'inicio' && s.sec === 'como');
+        return { ...x, current: on ? 'page' : 'false', ink: on ? b.act : b.ink, bg: on ? b.actBg : 'transparent', go: () => this.go(x.id) };
+      }),
+      navLinks: [['Catálogo', 'catalogo'], ['Como funciona', 'como'], ['Agendar', 'agendar'], ['Salão', 'salao']].map(([label, id]) => ({ label, go: () => this.go(id) })),
+      goHome: () => this.go('inicio'),
+      goCatalog: () => this.go('catalogo'),
+      waGeneral: wa('Olá, Jey! Vim pelo site e quero agendar um horário.'),
+      goBook: () => this.go('agendar'),
+      strand0: ['r0c1', 'r2c2', 'r1c1', 'r3c0', 'r1c2', 'r5c2'].map(src),
+      strand1: ['r2c1', 'r4c1', 'r3c1', 'r6c1', 'r4c2', 'r7c0'].map(src),
+      strand2: ['r1c0', 'r4c0', 'r5c1', 'r2c0', 'r3c2', 'r6c0'].map(src),
+      segs: CATS.map(c => { const on = s.filter === c; return { label: c, on: on ? 'true' : 'false', bg: on ? '#13241A' : 'transparent', ink: on ? '#F5F3EE' : '#13241A', pick: () => this.setState({ filter: c }) }; }),
+      cards: list.map(i => ({ ...i, src: src(i.id), aria: `Ver ${i.name}`, open: () => this.setState({ sel: i }) })),
+      services: SERVICES.map(v => { const on = s.svc.includes(v.id); return { ...v, on: on ? 'true' : 'false', dur: '≈ ' + fmtDur(v.min), price: v.price != null ? 'a partir de R$ ' + v.price : 'sob avaliação', bg: on ? '#15301D' : 'transparent', ink: on ? '#F5F3EE' : '#13241A', sub: on ? '#DCE4DA' : '#4A5A4F', ring: on ? '#A9D9AE' : 'rgba(19,36,26,0.32)', dot: on ? '#A9D9AE' : 'transparent', mark: on ? '✓' : '', toggle: () => this.setState(st => ({ svc: st.svc.includes(v.id) ? st.svc.filter(x => x !== v.id) : [...st.svc, v.id], time: null })) }; }),
+      calCells: cal.map(d => {
+        if (!d) return { n: '', vis: 'hidden', off: true, on: 'false', aria: '', bg: 'transparent', ink: '#13241A', op: 0, cur: 'default', deco: 'none', dot: 'transparent', pick: () => {} };
+        const key = iso(d), sun = d.getDay() === 0, off = d <= base || d > maxD || sun, on = s.date === key;
+        return { n: d.getDate(), vis: 'visible', off, on: on ? 'true' : 'false', aria: WD[d.getDay()] + ', ' + d.getDate() + ' de ' + MOL[d.getMonth()] + (off ? ', indisponível' : ''), bg: on ? '#15301D' : off ? 'transparent' : '#F5F3EE', ink: on ? '#F5F3EE' : off ? '#7D877F' : '#13241A', op: 1, cur: off ? 'default' : 'pointer', deco: sun && d > base ? 'line-through' : 'none', dot: d.getTime() === base.getTime() ? '#3F7A47' : on ? '#A9D9AE' : 'transparent', pick: () => this.setState({ date: key, time: null }) };
+      }),
+      monthLabel: MOL[mS.getMonth()] + ' ' + mS.getFullYear(),
+      prevOff: s.calM <= 0, prevOp: s.calM <= 0 ? 0.35 : 1, prevCur: s.calM <= 0 ? 'default' : 'pointer',
+      nextOff: s.calM >= maxM, nextOp: s.calM >= maxM ? 0.35 : 1, nextCur: s.calM >= maxM ? 'default' : 'pointer',
+      prevM: () => this.setState(st => ({ calM: Math.max(0, st.calM - 1) })),
+      nextM: () => this.setState(st => ({ calM: Math.min(maxM, st.calM + 1) })),
+      showIntro: !s.introDone,
+      skipIntro: () => { if (this.introTl) this.introTl.progress(1); else this.endIntro(); },
+      accountLabel: s.user ? 'Minha conta' : 'Entrar',
+      dataHint: s.user ? 'Conectada como ' + s.user.name.split(' ')[0] : 'Já é cliente? Entrar',
+      accountCta: s.user ? 'Ver na minha conta' : 'Crie sua conta para acompanhar',
+      hoursNote: dur ? 'Serviço de ' + fmtDur(dur) + (s.time != null ? ' · termina às ' + hm(s.time + dur) : '') : 'Seg a sex 8h–19h · sáb 8h–17h',
+      showSlots: slotList.length > 0, slotsEmpty: slotList.length === 0, slotsMsg,
+      slots: slotList.map(m => { const off = busy(s.date, m) || taken(m), on = s.time === m; return { label: hm(m), aria: hm(m) + (off ? ' indisponível' : ''), off, on: on ? 'true' : 'false', bg: on ? '#15301D' : off ? 'transparent' : '#FFFFFF', ink: on ? '#F5F3EE' : off ? '#7D877F' : '#13241A', bd: on ? '#15301D' : off ? 'rgba(19,36,26,0.1)' : 'rgba(19,36,26,0.16)', deco: off ? 'line-through' : 'none', cur: off ? 'default' : 'pointer', pick: () => this.setState({ time: m }) }; }),
+      name: s.name, phone: s.phone, note: s.note,
+      onName: e => this.setState({ name: e.target.value }),
+      onPhone: e => this.setState({ phone: e.target.value }),
+      onNote: e => this.setState({ note: e.target.value }),
+      picked: picked.map(v => ({ name: v.name, dur: fmtDur(v.min) })),
+      hasSvc: picked.length > 0, noSvc: picked.length === 0,
+      totalDur: dur ? '≈ ' + fmtDur(dur) : '—',
+      dayLabel: dayLong,
+      timeLabel: s.time != null ? hm(s.time) + ' – ' + hm(s.time + dur) : '—',
+      totalPrice: !picked.length ? '—' : priced.length ? 'a partir de R$ ' + total + (priced.length < picked.length ? ' + avaliação' : '') : 'sob avaliação',
+      cantConfirm: !ready, cBg: ready ? '#F5F3EE' : 'rgba(245,243,238,0.14)', cInk: ready ? '#13241A' : '#A3B0A5', cCur: ready ? 'pointer' : 'default',
+      hint,
+      confirm: () => {
+        if (!ready) return;
+        const code = 'JH-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+        const b = { id: code, code, createdAt: Date.now(), name: s.name.trim(), phone: s.phone.trim(), email: s.user ? s.user.email : null, note: s.note.trim(), services: picked.map(v => ({ name: v.name, min: v.min, price: v.price })), date: s.date, start: s.time, dur, total, partial: priced.length < picked.length, status: 'pendente' };
+        const all = [...s.booked, b];
+        try { localStorage.setItem('jeys_bookings', JSON.stringify(all)); } catch (e) {}
+        this.setState({ done: true, code, booked: all });
+      },
+      done: s.done, notDone: !s.done, code: s.code,
+      doneText: (s.name.trim().split(' ')[0] || 'Pronto') + ', seu pedido para ' + dayLong + ' às ' + (s.time != null ? hm(s.time) : '') + ' foi recebido.',
+      reset: () => this.setState({ svc: [], date: null, time: null, note: '', done: false, code: '' }),
+      hasSel: !!sel,
+      selSrc: sel ? src(sel.id) : '', selName: sel ? sel.name : '', selCat: sel ? sel.cat : '', selDesc: sel ? sel.desc : '',
+      closeSel: () => this.setState({ sel: null }),
+      pickSel: () => { const id = SVC_FOR(sel); this.setState(st => ({ svc: st.svc.includes(id) ? st.svc : [...st.svc, id], time: null, sel: null }), () => setTimeout(() => this.go('agendar'), 60)); },
+    };
+  }
+}
+</script>
+</body>
+</html>

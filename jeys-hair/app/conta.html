@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Minha conta — Jey's Hair</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+<script src="./vendor/gsap.min.js"></script>
+<script src="jeys-seed.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#F5F3EE;color:#13241A;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#2F6A38;text-underline-offset:4px}
+a:hover{color:#13241A}
+:focus-visible{outline:2px solid #3F7A47;outline-offset:3px}
+img{display:block}
+</style>
+</helmet>
+
+<header style="position:fixed;z-index:50;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;max-width:1200px;margin:0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px;border-radius:999px;background:rgba(248,246,241,0.72);border:1px solid rgba(255,255,255,0.65);box-shadow:0 10px 30px rgba(19,36,26,0.14), inset 0 1px 0 rgba(255,255,255,0.75);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5)">
+  <a href="site.html" style="display:flex;align-items:center;gap:10px;color:#13241A;text-decoration:none;min-height:48px;padding-right:8px" style-hover="color:#13241A">
+    <img src="assets/logo.png" alt="" style="width:48px;height:48px;border-radius:999px">
+    <span style="font-size:16px;font-weight:600;letter-spacing:-0.01em">Jey's Hair</span>
+  </a>
+  <a href="site.html#agendar" style="white-space:nowrap;display:flex;align-items:center;height:48px;padding:0 22px;border-radius:999px;background:#3F7A47;color:#FFFFFF;text-decoration:none;font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif" style-hover="background:#356B3D;color:#FFFFFF">Agendar horário</a>
+</header>
+
+<sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ true }}">
+  <main data-screen-label="Login" style="min-height:100svh;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))">
+    <div style="position:relative;background:#15301D;color:#F5F3EE;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:clamp(28px,4vh,44px);padding:clamp(108px,16vh,140px) clamp(20px,6vw,88px) clamp(40px,7vh,80px)">
+      <div style="position:relative;width:clamp(128px,14vw,200px);height:clamp(128px,14vw,200px)">
+        <svg viewBox="0 0 100 100" aria-hidden="true" style="position:absolute;left:-10%;top:-10%;width:120%;height:120%;overflow:visible;transform:rotate(-90deg)"><circle data-lring="" cx="50" cy="50" r="49.5" fill="none" stroke="#A9D9AE" stroke-width="0.4" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"></circle></svg>
+        <img data-llogo="" src="assets/logo.png" alt="Jey's Hair" style="width:100%;height:100%;border-radius:999px">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <h1 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(44px,5vw,80px);line-height:0.96;letter-spacing:-0.025em;overflow:hidden;padding-bottom:0.06em"><span data-hl="" style="display:block">Sua agenda, em um só lugar.</span></h1>
+        <p data-lfade="" style="margin:0;max-width:26em;font-size:17px;line-height:1.5;color:#DCE4DA">Área da cliente Jey's Hair · Trancista na Raposo Tavares, Zona Oeste de São Paulo.</p>
+      </div>
+      <ul data-lfade="" style="margin:0;padding:24px 0 0;list-style:none;display:flex;flex-direction:column;gap:12px;border-top:1px solid rgba(245,243,238,0.16)">
+          <li style="display:flex;align-items:center;gap:14px;font-size:16px;color:#F5F3EE"><span style="flex:none;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#A9D9AE"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"></path></svg></span>Horários e status do sinal</li>
+          <li style="display:flex;align-items:center;gap:14px;font-size:16px;color:#F5F3EE"><span style="flex:none;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#A9D9AE"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4"></path></svg></span>Remarque ou cancele online</li>
+          <li style="display:flex;align-items:center;gap:14px;font-size:16px;color:#F5F3EE"><span style="flex:none;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#A9D9AE"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path></svg></span>Histórico dos seus estilos</li>
+      </ul>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;padding:clamp(108px,16vh,140px) clamp(20px,5vw,72px) clamp(48px,8vh,96px)">
+      <form data-form="" onSubmit="{{ submit }}" style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:24px">
+        <div role="tablist" aria-label="Acesso" style="display:flex;gap:4px;padding:4px;border-radius:999px;background:#E8E5DC">
+          <sc-for list="{{ modes }}" as="m" hint-placeholder-count="2">
+            <button type="button" role="tab" aria-selected="{{ m.on }}" onClick="{{ m.pick }}" style="flex:1;min-height:44px;border-radius:999px;border:0;background:{{ m.bg }};color:#13241A;font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;box-shadow:{{ m.sh }};transition:background .24s">{{ m.label }}</button>
+          </sc-for>
+        </div>
+        <h2 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:44px;line-height:1;letter-spacing:-0.02em">{{ title }}</h2>
+        <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:10px"><span style="font-size:15px;font-weight:600">Nome</span><input type="text" autocomplete="name" value="{{ name }}" onChange="{{ onName }}" placeholder="Seu nome completo" style="height:52px;padding:0 22px;border-radius:999px;border:1px solid rgba(19,36,26,0.22);background:#FFFFFF;color:#13241A;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif"></label>
+          <label style="display:flex;flex-direction:column;gap:10px"><span style="font-size:15px;font-weight:600">WhatsApp</span><input type="tel" inputmode="tel" autocomplete="tel" value="{{ phone }}" onChange="{{ onPhone }}" placeholder="(11) 90000-0000" style="height:52px;padding:0 22px;border-radius:999px;border:1px solid rgba(19,36,26,0.22);background:#FFFFFF;color:#13241A;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif"></label>
+        </sc-if>
+        <label style="display:flex;flex-direction:column;gap:10px"><span style="font-size:15px;font-weight:600">E-mail</span><input type="email" autocomplete="email" value="{{ email }}" required="{{ isSignup }}" onChange="{{ onEmail }}" placeholder="voce@email.com" style="height:52px;padding:0 22px;border-radius:999px;border:1px solid rgba(19,36,26,0.22);background:#FFFFFF;color:#13241A;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif"></label>
+        <label style="display:flex;flex-direction:column;gap:10px"><span style="font-size:15px;font-weight:600">Senha</span><input type="password" autocomplete="{{ pwdAuto }}" value="{{ pwd }}" onChange="{{ onPwd }}" placeholder="Mínimo de 6 caracteres" style="height:52px;padding:0 22px;border-radius:999px;border:1px solid rgba(19,36,26,0.22);background:#FFFFFF;color:#13241A;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif"></label>
+        <sc-if value="{{ hasErr }}" hint-placeholder-val="{{ false }}">
+          <p role="alert" style="margin:0;padding:14px 20px;border-radius:20px;background:#F2D9D6;color:#7A2A22;font-size:15px;line-height:1.4">{{ err }}</p>
+        </sc-if>
+        <button type="submit" style="height:56px;border-radius:999px;border:0;background:#15301D;color:#F5F3EE;font:600 17px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:transform .14s, background .18s" style-hover="background:#1E3D27" style-active="transform:scale(0.98)">{{ cta }}</button>
+        <p style="margin:0;font-size:14px;line-height:1.5;color:#4A5A4F">Agendamentos feitos com o mesmo WhatsApp aparecem automaticamente na sua conta.</p>
+        <p style="margin:0;padding:14px 20px;border-radius:20px;background:#ECE9E1;font-size:14px;line-height:1.5">Modo demonstração: toque em <strong>Entrar</strong>, mesmo com os campos vazios, para acessar a conta de teste (ana.paula@teste.com).</p>
+      </form>
+    </div>
+  </main>
+</sc-if>
+
+<sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+  <main data-screen-label="Minha conta" style="max-width:1200px;margin:0 auto;padding:clamp(120px,16vh,168px) clamp(20px,5vw,48px) 96px;display:flex;flex-wrap:wrap;gap:clamp(40px,5vw,80px);align-items:flex-start">
+    <div style="flex:2 1 520px;display:flex;flex-direction:column;gap:32px;min-width:0;max-width:100%">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <h1 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(48px,6vw,88px);line-height:0.96;letter-spacing:-0.025em;overflow:hidden;padding-bottom:0.06em"><span data-hl="" style="display:block">{{ hello }}</span></h1>
+        <p style="margin:0;font-size:17px;line-height:1.5">{{ summary }}</p>
+      </div>
+      <div role="tablist" aria-label="Agendamentos" style="display:flex;gap:4px;padding:4px;border-radius:999px;background:#E8E5DC;align-self:flex-start">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="2">
+          <button role="tab" aria-selected="{{ t.on }}" onClick="{{ t.pick }}" style="min-height:44px;padding:0 20px;border-radius:999px;border:0;background:{{ t.bg }};color:#13241A;box-shadow:{{ t.sh }};font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:background .24s">{{ t.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ list }}" as="b" hint-placeholder-count="2">
+          <article data-bk="" style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(16px,3vw,32px);padding:clamp(20px,3vw,28px);border-radius:32px;background:#FFFFFF;border:1px solid rgba(19,36,26,0.1)">
+            <div style="width:clamp(72px,9vw,96px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:14px 0;border-radius:999px;background:#15301D;color:#F5F3EE;align-self:start">
+              <span style="font-size:12px;font-weight:600;letter-spacing:0.06em">{{ b.wd }}</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:44px;line-height:1">{{ b.n }}</span>
+              <span style="font-size:12px;font-weight:500">{{ b.mo }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+              <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 16px">
+                <span style="font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">{{ b.time }}</span>
+                <span style="padding:6px 12px;border-radius:999px;background:{{ b.sBg }};color:{{ b.sInk }};font-size:13px;font-weight:600">{{ b.sLabel }}</span>
+              </div>
+              <span style="font-size:16px;line-height:1.45">{{ b.svcs }}</span>
+              <div style="display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:#4A5A4F;font-variant-numeric:tabular-nums"><span>{{ b.durL }}</span><span>{{ b.priceL }}</span><span>Código {{ b.code }}</span></div>
+              <sc-if value="{{ b.canCancel }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-wrap:wrap;gap:8px;padding-top:4px">
+                  <a href="site.html#agendar" style="display:flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:#E8E5DC;color:#13241A;text-decoration:none;font-size:15px;font-weight:600" style-hover="background:#DEDAD0;color:#13241A">Remarcar</a>
+                  <button onClick="{{ b.cancel }}" style="min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(122,42,34,0.3);background:transparent;color:#7A2A22;font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer" style-hover="background:#F2D9D6">{{ b.cancelLabel }}</button>
+                </div>
+              </sc-if>
+            </div>
+          </article>
+        </sc-for>
+        <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:20px;padding:clamp(28px,4vw,48px);border-radius:32px;background:#ECE9E1">
+            <p style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-size:36px;line-height:1.05">{{ emptyText }}</p>
+            <a href="site.html#agendar" style="display:flex;align-items:center;height:52px;padding:0 24px;border-radius:999px;background:#15301D;color:#F5F3EE;text-decoration:none;font-size:16px;font-weight:600" style-hover="background:#1E3D27;color:#F5F3EE">Agendar horário</a>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+    <aside style="flex:1 1 300px;position:sticky;top:104px;display:flex;flex-direction:column;gap:20px;padding:clamp(24px,3vw,32px);border-radius:32px;background:#15301D;color:#F5F3EE">
+      <h2 style="margin:0;font-size:20px;font-weight:600">Seus dados</h2>
+      <dl style="margin:0;display:flex;flex-direction:column;gap:14px;font-size:16px">
+        <div style="display:flex;flex-direction:column;gap:4px"><dt style="font-size:14px;color:#DCE4DA">Nome</dt><dd style="margin:0">{{ uName }}</dd></div>
+        <div style="display:flex;flex-direction:column;gap:4px"><dt style="font-size:14px;color:#DCE4DA">WhatsApp</dt><dd style="margin:0;font-variant-numeric:tabular-nums">{{ uPhone }}</dd></div>
+        <div style="display:flex;flex-direction:column;gap:4px"><dt style="font-size:14px;color:#DCE4DA">E-mail</dt><dd style="margin:0;overflow-wrap:anywhere">{{ uEmail }}</dd></div>
+      </dl>
+      <p style="margin:0;font-size:14px;line-height:1.5;color:#DCE4DA">Cancelamentos com menos de 48h de antecedência não devolvem o sinal.</p>
+      <button onClick="{{ logout }}" style="height:52px;border-radius:999px;border:1px solid rgba(245,243,238,0.3);background:transparent;color:#F5F3EE;font:600 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer" style-hover="background:rgba(245,243,238,0.08)">Sair da conta</button>
+    </aside>
+  </main>
+</sc-if>
+
+<a href="https://wa.me/5511992557666" target="_blank" rel="noopener" aria-label="Falar com a Jey no WhatsApp" style="position:fixed;z-index:50;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(63,122,71,0.84);color:#FFFFFF;border:1px solid rgba(255,255,255,0.3);box-shadow:0 12px 32px rgba(19,36,26,0.28), inset 0 1px 0 rgba(255,255,255,0.35);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6)" style-hover="color:#FFFFFF;transform:scale(1.05)">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.28-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.440 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 0 0-3.48-8.41Z"></path></svg>
+</a>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const J = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+const W = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const dig = s => String(s || '').replace(/\D/g, '');
+const WD = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+const MO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const hm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const fmtDur = m => { const h = Math.floor(m / 60), r = m % 60; return h ? (r ? h + 'h' + String(r).padStart(2, '0') : h + 'h') : r + 'min'; };
+const ST = { pendente: ['Aguardando sinal', '#F3E3C3', '#6B4A10'], confirmado: ['Confirmado', '#D5EBD7', '#1F5228'], concluido: ['Concluído', '#E8E5DC', '#13241A'], cancelado: ['Cancelado', '#F2D9D6', '#7A2A22'] };
+const SEG_ON = { bg: '#FFFFFF', sh: '0 2px 8px rgba(19,36,26,0.12)' }, SEG_OFF = { bg: 'transparent', sh: 'none' };
+
+class Component extends DCLogic {
+  state = { mode: 'entrar', email: 'ana.paula@teste.com', pwd: 'jeys123', name: '', phone: '', err: '', user: null, booked: [], tab: 'proximos', confirmId: null };
+  componentDidMount() {
+    this.load();
+    this.onStore = () => this.load();
+    addEventListener('storage', this.onStore);
+    addEventListener('jeys-seeded', this.onStore);
+    this.anim();
+  }
+  componentWillUnmount() { removeEventListener('storage', this.onStore); }
+  componentDidUpdate(_, p) {
+    if (p.user !== this.state.user || p.tab !== this.state.tab || p.mode !== this.state.mode) this.anim();
+  }
+  anim() {
+    const g = window.gsap;
+    if (!g) { setTimeout(() => window.gsap && this.anim(), 200); return; }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    requestAnimationFrame(() => {
+      g.fromTo('[data-hl]', { yPercent: 110 }, { yPercent: 0, duration: 1.3, ease: 'expo.out' });
+      g.fromTo('[data-lring]', { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.6, ease: 'power2.inOut' });
+      g.fromTo('[data-llogo]', { clipPath: 'circle(0% at 50% 50%)', scale: 1.15, rotate: -12 }, { clipPath: 'circle(50% at 50% 50%)', scale: 1, rotate: 0, duration: 1.6, ease: 'expo.out', delay: 0.2 });
+      g.fromTo('[data-lfade]', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.08, delay: 0.5, ease: 'expo.out' });
+      g.fromTo('[data-form] > *', { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.05, ease: 'expo.out' });
+      g.fromTo('[data-bk]', { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.07, ease: 'expo.out' });
+    });
+  }
+  load() {
+    const email = J('jeys_session'), users = J('jeys_users') || [];
+    this.setState({ user: email ? users.find(u => u.email === email) || null : null, booked: J('jeys_bookings') || [] });
+  }
+  submit(e) {
+    e.preventDefault();
+    const s = this.state, email = s.email.trim().toLowerCase(), users = J('jeys_users') || [];
+    if (s.mode === 'entrar') {
+      const u = users.find(x => x.email === email && x.pwd === s.pwd) || users.find(x => x.email === 'ana.paula@teste.com') || users[0];
+      if (u) { W('jeys_session', u.email); return this.setState({ user: u, err: '', pwd: '' }); }
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) return this.setState({ err: 'Informe um e-mail válido.' });
+    if (s.pwd.length < 6) return this.setState({ err: 'A senha precisa ter pelo menos 6 caracteres.' });
+    if (s.mode === 'criar') {
+      if (!s.name.trim()) return this.setState({ err: 'Informe seu nome.' });
+      if (dig(s.phone).length < 10) return this.setState({ err: 'Informe um WhatsApp com DDD.' });
+      if (users.some(u => u.email === email)) return this.setState({ err: 'Já existe uma conta com este e-mail. Use "Entrar".' });
+      const u = { email, pwd: s.pwd, name: s.name.trim(), phone: s.phone.trim() };
+      W('jeys_users', [...users, u]); W('jeys_session', email);
+      return this.setState({ user: u, err: '', pwd: '' });
+    }
+    const u = users.find(x => x.email === email && x.pwd === s.pwd);
+    if (!u) return this.setState({ err: 'E-mail ou senha incorretos.' });
+    W('jeys_session', email);
+    this.setState({ user: u, err: '', pwd: '' });
+  }
+  renderVals() {
+    const s = this.state, u = s.user;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const mine = u ? s.booked.filter(b => (b.email && b.email === u.email) || (dig(b.phone) && dig(b.phone) === dig(u.phone))) : [];
+    const isUp = b => new Date(b.date + 'T00:00:00') >= today && b.status !== 'cancelado' && b.status !== 'concluido';
+    const up = mine.filter(isUp).sort((a, b) => (a.date + hm(a.start)).localeCompare(b.date + hm(b.start)));
+    const past = mine.filter(b => !isUp(b)).sort((a, b) => (b.date + hm(b.start)).localeCompare(a.date + hm(a.start)));
+    const shown = s.tab === 'proximos' ? up : past;
+    const setStatus = (id, st) => { const all = (J('jeys_bookings') || []).map(b => b.id === id ? { ...b, status: st } : b); W('jeys_bookings', all); this.setState({ booked: all, confirmId: null }); };
+    return {
+      loggedOut: !u, loggedIn: !!u,
+      modes: [['entrar', 'Entrar'], ['criar', 'Criar conta']].map(([k, label]) => ({ label, on: s.mode === k ? 'true' : 'false', ...(s.mode === k ? SEG_ON : SEG_OFF), pick: () => this.setState({ mode: k, err: '' }) })),
+      isSignup: s.mode === 'criar',
+      title: s.mode === 'criar' ? 'Crie sua conta' : 'Bem-vinda de volta',
+      cta: s.mode === 'criar' ? 'Criar conta' : 'Entrar',
+      pwdAuto: s.mode === 'criar' ? 'new-password' : 'current-password',
+      email: s.email, pwd: s.pwd, name: s.name, phone: s.phone,
+      onEmail: e => this.setState({ email: e.target.value }), onPwd: e => this.setState({ pwd: e.target.value }),
+      onName: e => this.setState({ name: e.target.value }), onPhone: e => this.setState({ phone: e.target.value }),
+      submit: e => this.submit(e),
+      hasErr: !!s.err, err: s.err,
+      hello: u ? 'Olá, ' + u.name.split(' ')[0] + '.' : '',
+      summary: up.length ? (up.length === 1 ? 'Você tem 1 horário marcado.' : 'Você tem ' + up.length + ' horários marcados.') : 'Nenhum horário marcado no momento.',
+      tabs: [['proximos', 'Próximos'], ['historico', 'Histórico']].map(([k, label]) => ({ label, on: s.tab === k ? 'true' : 'false', ...(s.tab === k ? SEG_ON : SEG_OFF), pick: () => this.setState({ tab: k }) })),
+      list: shown.map(b => {
+        const d = new Date(b.date + 'T00:00:00'), st = ST[b.status] || ST.pendente, ask = s.confirmId === b.id;
+        return { code: b.code, wd: WD[d.getDay()], n: d.getDate(), mo: MO[d.getMonth()], time: hm(b.start) + ' – ' + hm(b.start + b.dur), sLabel: st[0], sBg: st[1], sInk: st[2], svcs: b.services.map(x => x.name).join(' + '), durL: '≈ ' + fmtDur(b.dur), priceL: b.total ? 'a partir de R$ ' + b.total + (b.partial ? ' + avaliação' : '') : 'sob avaliação', canCancel: isUp(b), cancelLabel: ask ? 'Confirmar cancelamento' : 'Cancelar', cancel: () => ask ? setStatus(b.id, 'cancelado') : this.setState({ confirmId: b.id }) };
+      }),
+      empty: shown.length === 0,
+      emptyText: s.tab === 'proximos' ? 'Nenhum horário marcado ainda.' : 'Seu histórico aparece aqui.',
+      uName: u ? u.name : '', uPhone: u ? u.phone : '', uEmail: u ? u.email : '',
+      logout: () => { try { localStorage.removeItem('jeys_session'); } catch (e) {} this.setState({ user: null, email: '', pwd: '' }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

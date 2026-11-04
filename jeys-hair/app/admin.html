@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Painel — Jey's Hair</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+<script src="./vendor/gsap.min.js"></script>
+<script src="jeys-seed.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#F5F3EE;color:#13241A;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#2F6A38;text-underline-offset:4px}
+a:hover{color:#13241A}
+:focus-visible{outline:2px solid #3F7A47;outline-offset:3px}
+img{display:block}
+</style>
+</helmet>
+
+<sc-if value="{{ locked }}" hint-placeholder-val="{{ true }}">
+  <main data-screen-label="Admin login" style="min-height:100svh;background:#15301D;color:#F5F3EE;display:flex;align-items:center;justify-content:center;padding:24px">
+    <form data-lock="" onSubmit="{{ unlock }}" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center">
+      <img src="assets/logo.png" alt="Jey's Hair" style="width:112px;height:112px;border-radius:999px">
+      <h1 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:52px;line-height:1;letter-spacing:-0.02em">Área da Jey</h1>
+      <label style="width:100%;display:flex;flex-direction:column;gap:10px;text-align:left"><span style="font-size:15px;font-weight:600">Senha</span><input type="password" autocomplete="current-password" value="{{ pwd }}" onChange="{{ onPwd }}" style="height:52px;padding:0 22px;border-radius:999px;border:1px solid rgba(245,243,238,0.24);background:rgba(255,255,255,0.08);color:#F5F3EE;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif"></label>
+      <sc-if value="{{ lockErr }}" hint-placeholder-val="{{ false }}"><p role="alert" style="margin:0;font-size:15px;color:#F2D9D6">Senha incorreta.</p></sc-if>
+      <button type="submit" style="width:100%;height:56px;border-radius:999px;border:0;background:#F5F3EE;color:#13241A;font:600 17px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer" style-active="transform:scale(0.98)">Entrar no painel</button>
+      <p style="margin:0;font-size:14px;color:#DCE4DA">Modo demonstração: toque em <strong style="color:#F5F3EE">Entrar no painel</strong>, não precisa de senha.</p>
+      <a href="site.html" style="font-size:15px;color:#A9D9AE" style-hover="color:#F5F3EE">Voltar ao site</a>
+    </form>
+  </main>
+</sc-if>
+
+<sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+  <header style="position:fixed;z-index:50;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;max-width:1296px;margin:0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px;border-radius:999px;background:rgba(248,246,241,0.72);border:1px solid rgba(255,255,255,0.65);box-shadow:0 10px 30px rgba(19,36,26,0.14), inset 0 1px 0 rgba(255,255,255,0.75);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="assets/logo.png" alt="" style="width:48px;height:48px;border-radius:999px">
+      <span style="font-size:16px;font-weight:600">Painel</span>
+    </div>
+    <div style="display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(19,36,26,0.07)">
+      <sc-for list="{{ views }}" as="v" hint-placeholder-count="2">
+        <button onClick="{{ v.pick }}" aria-pressed="{{ v.on }}" style="min-height:40px;padding:0 18px;border-radius:999px;border:0;background:{{ v.bg }};box-shadow:{{ v.sh }};color:#13241A;font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:background .24s">{{ v.label }}</button>
+      </sc-for>
+    </div>
+    <button onClick="{{ lock }}" aria-label="Sair do painel" style="min-height:44px;padding:0 16px;border-radius:999px;border:0;background:transparent;color:#13241A;font:500 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer" style-hover="background:rgba(19,36,26,0.08)">Sair</button>
+  </header>
+
+  <main data-screen-label="Admin painel" style="max-width:1296px;margin:0 auto;padding:clamp(108px,14vh,140px) clamp(16px,4vw,48px) 96px;display:flex;flex-direction:column;gap:clamp(28px,4vw,48px)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">
+      <sc-for list="{{ stats }}" as="k" hint-placeholder-count="3">
+        <div data-stat="" style="display:flex;flex-direction:column;gap:10px;padding:24px 26px;border-radius:28px;background:{{ k.bg }};color:{{ k.ink }}">
+          <span style="font-size:14px;font-weight:600;color:{{ k.sub }}">{{ k.label }}</span>
+          <span style="font-family:'Instrument Serif',Georgia,serif;font-size:52px;line-height:1;font-variant-numeric:tabular-nums">{{ k.value }}</span>
+          <span style="font-size:14px;color:{{ k.sub }}">{{ k.note }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ isDay }}" hint-placeholder-val="{{ true }}">
+      <section style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px">
+          <h1 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(40px,5vw,64px);line-height:1;letter-spacing:-0.02em">{{ dayTitle }}</h1>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button onClick="{{ prevDay }}" aria-label="Dia anterior" style="width:44px;height:44px;border-radius:999px;border:1px solid rgba(19,36,26,0.16);background:#FFFFFF;color:#13241A;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+            <button onClick="{{ goToday }}" style="min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(19,36,26,0.16);background:#FFFFFF;color:#13241A;font:600 15px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer">Hoje</button>
+            <button onClick="{{ nextDay }}" aria-label="Próximo dia" style="width:44px;height:44px;border-radius:999px;border:1px solid rgba(19,36,26,0.16);background:#FFFFFF;color:#13241A;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px">
+          <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+            <button onClick="{{ d.pick }}" aria-pressed="{{ d.on }}" style="flex:1 0 64px;min-height:72px;border-radius:999px;border:1px solid {{ d.bd }};background:{{ d.bg }};color:{{ d.ink }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit">
+              <span style="font-size:12px;font-weight:600;letter-spacing:0.04em">{{ d.wd }}</span>
+              <span style="font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">{{ d.n }}</span>
+              <span style="width:5px;height:5px;border-radius:999px;background:{{ d.dot }}"></span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="position:relative;display:grid;grid-template-columns:56px minmax(0,1fr);border-radius:28px;background:#FFFFFF;border:1px solid rgba(19,36,26,0.1);padding:20px 16px 20px 8px">
+          <div style="position:relative;height:{{ tlH }}">
+            <sc-for list="{{ hours }}" as="x" hint-placeholder-count="12">
+              <span style="position:absolute;right:10px;top:{{ x.top }};transform:translateY(-50%);font-size:12px;font-weight:500;color:#4A5A4F;font-variant-numeric:tabular-nums">{{ x.label }}</span>
+            </sc-for>
+          </div>
+          <div style="position:relative;height:{{ tlH }}">
+            <sc-for list="{{ hours }}" as="x" hint-placeholder-count="12">
+              <span style="position:absolute;left:0;right:0;top:{{ x.top }};height:1px;background:rgba(19,36,26,0.08)"></span>
+            </sc-for>
+            <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="2">
+              <button data-block="" onClick="{{ b.open }}" style="position:absolute;left:0;right:0;top:{{ b.top }};height:{{ b.h }};border-radius:20px;border:0;border-left:0;background:{{ b.bg }};color:{{ b.ink }};padding:12px 16px;display:flex;flex-direction:column;gap:4px;text-align:left;overflow:hidden;cursor:pointer;font-family:inherit;transition:transform .2s, box-shadow .2s" style-hover="box-shadow:0 10px 24px rgba(19,36,26,0.16)">
+                <span style="display:flex;justify-content:space-between;gap:12px;width:100%;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums"><span>{{ b.time }}</span><span>{{ b.sLabel }}</span></span>
+                <span style="font-size:17px;font-weight:600">{{ b.name }}</span>
+                <span style="font-size:14px;line-height:1.35">{{ b.svcs }}</span>
+              </button>
+            </sc-for>
+            <sc-if value="{{ dayEmpty }}" hint-placeholder-val="{{ false }}">
+              <p style="position:absolute;left:0;right:0;top:40%;margin:0;text-align:center;font-family:'Instrument Serif',Georgia,serif;font-size:32px;color:#4A5A4F">{{ dayEmptyText }}</p>
+            </sc-if>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+      <section style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px">
+          <h1 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:clamp(40px,5vw,64px);line-height:1;letter-spacing:-0.02em">Agendamentos</h1>
+          <input type="search" placeholder="Buscar cliente ou código" value="{{ q }}" onChange="{{ onQ }}" style="width:min(100%,320px);height:48px;padding:0 22px;border-radius:999px;border:1px solid rgba(19,36,26,0.2);background:#FFFFFF;color:#13241A;font:500 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif">
+        </div>
+        <div style="display:flex;gap:4px;padding:4px;border-radius:999px;background:#E8E5DC;overflow-x:auto;scrollbar-width:none;align-self:flex-start;max-width:100%">
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+            <button onClick="{{ f.pick }}" aria-pressed="{{ f.on }}" style="flex:none;min-height:44px;padding:0 16px;border-radius:999px;border:0;background:{{ f.bg }};box-shadow:{{ f.sh }};color:#13241A;font:600 14px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;white-space:nowrap;cursor:pointer">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;border-top:1px solid rgba(19,36,26,0.14)">
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+            <button data-row="" onClick="{{ r.open }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:6px 24px;align-items:center;padding:18px 12px;border:0;border-bottom:1px solid rgba(19,36,26,0.12);background:transparent;color:#13241A;text-align:left;cursor:pointer;font-family:inherit;transition:background .18s" style-hover="background:#ECE9E1">
+              <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.when }}</span><span style="font-size:14px;color:#4A5A4F;font-variant-numeric:tabular-nums">{{ r.time }}</span></span>
+              <span style="display:flex;flex-direction:column;gap:3px"><span style="font-size:16px;font-weight:600">{{ r.name }}</span><span style="font-size:14px;color:#4A5A4F;font-variant-numeric:tabular-nums">{{ r.phone }}</span></span>
+              <span style="font-size:15px;line-height:1.4">{{ r.svcs }}</span>
+              <span style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.price }}</span><span style="padding:6px 12px;border-radius:999px;background:{{ r.sBg }};color:{{ r.sInk }};font-size:13px;font-weight:600;white-space:nowrap">{{ r.sLabel }}</span></span>
+            </button>
+          </sc-for>
+          <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;padding:48px 12px;text-align:center;font-family:'Instrument Serif',Georgia,serif;font-size:32px;color:#4A5A4F">Nenhum agendamento encontrado.</p>
+          </sc-if>
+        </div>
+        <sc-if value="{{ hasDemo }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ clearDemo }}" style="align-self:flex-start;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(19,36,26,0.2);background:transparent;color:#13241A;font:500 14px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer" style-hover="background:#ECE9E1">Remover agendamentos de demonstração</button>
+        </sc-if>
+      </section>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+    <div data-scrim="" onClick="{{ closeSel }}" style="position:fixed;inset:0;z-index:80;background:rgba(8,18,12,0.5)"></div>
+    <aside data-sheet="" role="dialog" aria-modal="true" aria-label="Detalhes do agendamento" style="position:fixed;z-index:90;top:12px;right:12px;bottom:12px;width:min(calc(100% - 24px),460px);overflow:auto;background:#F5F3EE;border-radius:36px;padding:clamp(24px,3vw,36px);display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+        <span style="padding:6px 12px;border-radius:999px;background:{{ sel.sBg }};color:{{ sel.sInk }};font-size:13px;font-weight:600">{{ sel.sLabel }}</span>
+        <button onClick="{{ closeSel }}" aria-label="Fechar" style="width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,0.65);background:rgba(248,246,241,0.7);box-shadow:0 6px 18px rgba(19,36,26,0.14), inset 0 1px 0 rgba(255,255,255,0.75);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#13241A;font-size:22px;line-height:1;cursor:pointer">×</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <h2 style="margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:48px;line-height:1;letter-spacing:-0.02em">{{ sel.name }}</h2>
+        <span style="font-size:17px;font-variant-numeric:tabular-nums">{{ sel.when }} · {{ sel.time }}</span>
+      </div>
+      <a href="{{ sel.wa }}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 20px;border-radius:999px;background:#FFFFFF;border:1px solid rgba(19,36,26,0.12);color:#13241A;text-decoration:none;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums" style-hover="color:#13241A;background:#ECE9E1">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="#3F7A47" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.28-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 0 0-3.48-8.41Z"></path></svg>
+        {{ sel.phone }}
+      </a>
+      <div style="display:flex;flex-direction:column;border-top:1px solid rgba(19,36,26,0.14)">
+        <sc-for list="{{ sel.items }}" as="it" hint-placeholder-count="1">
+          <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid rgba(19,36,26,0.12);font-size:16px"><span>{{ it.name }}</span><span style="color:#4A5A4F;font-variant-numeric:tabular-nums;white-space:nowrap">{{ it.meta }}</span></div>
+        </sc-for>
+        <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 0;font-size:16px;font-weight:600"><span>Total</span><span style="font-variant-numeric:tabular-nums">{{ sel.price }}</span></div>
+      </div>
+      <dl style="margin:0;display:grid;grid-template-columns:auto 1fr;gap:10px 20px;font-size:15px">
+        <dt style="color:#4A5A4F">Código</dt><dd style="margin:0;text-align:right;font-weight:600">{{ sel.code }}</dd>
+        <dt style="color:#4A5A4F">E-mail</dt><dd style="margin:0;text-align:right;overflow-wrap:anywhere">{{ sel.email }}</dd>
+        <dt style="color:#4A5A4F">Observações</dt><dd style="margin:0;text-align:right">{{ sel.note }}</dd>
+      </dl>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto">
+        <sc-for list="{{ sel.actions }}" as="a" hint-placeholder-count="2">
+          <button onClick="{{ a.run }}" style="height:52px;border-radius:999px;border:1px solid {{ a.bd }};background:{{ a.bg }};color:{{ a.ink }};font:600 16px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;cursor:pointer;transition:transform .14s" style-active="transform:scale(0.98)">{{ a.label }}</button>
+        </sc-for>
+      </div>
+    </aside>
+  </sc-if>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const J = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+const W = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const WD = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+const WDL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const MO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const hm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const fmtDur = m => { const h = Math.floor(m / 60), r = m % 60; return h ? (r ? h + 'h' + String(r).padStart(2, '0') : h + 'h') : r + 'min'; };
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const D0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const add = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const ST = {
+  pendente: { label: 'Aguardando sinal', bg: '#F3E3C3', ink: '#6B4A10', block: '#F3E3C3' },
+  confirmado: { label: 'Confirmado', bg: '#D5EBD7', ink: '#1F5228', block: '#D5EBD7' },
+  concluido: { label: 'Concluído', bg: '#E8E5DC', ink: '#13241A', block: '#E8E5DC' },
+  cancelado: { label: 'Cancelado', bg: '#F2D9D6', ink: '#7A2A22', block: '#F2D9D6' },
+};
+const PX = 1.3, OPEN = 480, CLOSE = 1140;
+const SEG_ON = { bg: '#FFFFFF', sh: '0 2px 8px rgba(19,36,26,0.12)' }, SEG_OFF = { bg: 'transparent', sh: 'none' };
+const price = b => b.total ? 'R$ ' + b.total + (b.partial ? ' + aval.' : '') : 'sob avaliação';
+
+function seed() {
+  const base = D0();
+  const S = { box: ['Box Braids longo', 420, 350], nago: ['Nagô desenhada', 180, 180], ful: ['Fulani Braids', 360, 400], cro: ['Crochet Braids', 300, 380], ret: ['Retoque / manutenção', 180, 150], rem: ['Remoção de tranças', 120, 100], god: ['Goddess / Boho Braids', 480, 450], nr: ['Nagô com rabo de cavalo', 300, 250] };
+  const rows = [[0, 480, 'Camila Souza', '(11) 98765-4321', ['box'], 'confirmado'], [0, 960, 'Bianca Lima', '(11) 97412-5580', ['nago'], 'pendente'], [1, 540, 'Larissa Santos', '(11) 96633-1209', ['rem', 'ret'], 'confirmado'], [1, 900, 'Juliana Alves', '(11) 95521-8874', ['nr'], 'pendente'], [2, 480, 'Fernanda Rocha', '(11) 94410-3367', ['god'], 'pendente'], [3, 600, 'Aline Costa', '(11) 99118-2045', ['cro'], 'confirmado'], [4, 480, 'Priscila Nunes', '(11) 98002-7731', ['ful'], 'pendente'], [5, 780, 'Tainá Oliveira', '(11) 97350-6612', ['nago'], 'cancelado'], [-1, 540, 'Renata Dias', '(11) 96284-0093', ['box'], 'concluido']];
+  return rows.map(([dd, start, name, phone, sv, status], i) => {
+    let d = add(base, dd); if (d.getDay() === 0) d = add(d, 1);
+    const services = sv.map(k => ({ name: S[k][0], min: S[k][1], price: S[k][2] }));
+    const code = 'JH-D' + (100 + i);
+    return { id: code, code, demo: true, createdAt: Date.now(), name, phone, email: null, note: '', services, date: iso(d), start, dur: services.reduce((a, x) => a + x.min, 0), total: services.reduce((a, x) => a + x.price, 0), partial: false, status };
+  });
+}
+
+class Component extends DCLogic {
+  state = { authed: false, pwd: '', err: false, list: [], view: 'dia', day: iso(D0()), filter: 'ativos', q: '', sel: null };
+  componentDidMount() {
+    let authed = false; try { authed = sessionStorage.getItem('jeys_admin') === '1'; } catch (e) {}
+    this.setState({ authed, list: J('jeys_bookings') || [] });
+    this.onStore = () => this.setState({ list: J('jeys_bookings') || [] });
+    addEventListener('storage', this.onStore);
+    addEventListener('jeys-seeded', this.onStore);
+    this.onKey = e => { if (e.key === 'Escape') this.setState({ sel: null }); };
+    addEventListener('keydown', this.onKey);
+    this.anim();
+  }
+  componentWillUnmount() { removeEventListener('storage', this.onStore); removeEventListener('keydown', this.onKey); }
+  componentDidUpdate(_, p) {
+    const s = this.state;
+    if (p.authed !== s.authed || p.view !== s.view || p.day !== s.day || p.filter !== s.filter) this.anim();
+    if (!p.sel && s.sel && window.gsap && !this.rm()) {
+      gsap.fromTo('[data-scrim]', { opacity: 0 }, { opacity: 1, duration: 0.3 });
+      gsap.fromTo('[data-sheet]', { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: 'expo.out' });
+    }
+  }
+  rm() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  anim() {
+    const g = window.gsap;
+    if (!g) { setTimeout(() => window.gsap && this.anim(), 200); return; }
+    if (this.rm()) return;
+    requestAnimationFrame(() => {
+      g.fromTo('[data-lock] > *', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.06, ease: 'expo.out' });
+      g.fromTo('[data-stat]', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.06, ease: 'expo.out' });
+      g.fromTo('[data-block]', { scaleY: 0.6, opacity: 0, transformOrigin: '50% 0%' }, { scaleY: 1, opacity: 1, duration: 0.8, stagger: 0.06, ease: 'expo.out' });
+      g.fromTo('[data-row]', { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.03, ease: 'expo.out' });
+    });
+  }
+  save(list) { W('jeys_bookings', list); this.setState({ list }); }
+  setStatus(id, status) { this.save(this.state.list.map(b => b.id === id ? { ...b, status } : b)); }
+  renderVals() {
+    const s = this.state, base = D0(), todayK = iso(base);
+    const live = s.list.filter(b => b.status !== 'cancelado');
+    const todayB = live.filter(b => b.date === todayK);
+    const weekEnd = iso(add(base, 6));
+    const weekRev = live.filter(b => b.date >= todayK && b.date <= weekEnd).reduce((a, b) => a + (b.total || 0), 0);
+    const pend = s.list.filter(b => b.status === 'pendente' && b.date >= todayK);
+    const dayD = new Date(s.day + 'T00:00:00');
+    const dayB = s.list.filter(b => b.date === s.day && b.status !== 'cancelado').sort((a, b) => a.start - b.start);
+    const hours = []; for (let m = OPEN; m <= CLOSE; m += 60) hours.push({ label: hm(m), top: ((m - OPEN) * PX) + 'px' });
+    const ws = add(dayD, -((dayD.getDay() + 6) % 7));
+    const fmap = { ativos: b => b.date >= todayK && (b.status === 'pendente' || b.status === 'confirmado'), pendente: b => b.status === 'pendente', confirmado: b => b.status === 'confirmado', concluido: b => b.status === 'concluido', cancelado: b => b.status === 'cancelado', todos: () => true };
+    const q = s.q.trim().toLowerCase();
+    const rows = s.list.filter(fmap[s.filter]).filter(b => !q || b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q) || String(b.phone).includes(q)).sort((a, b) => (a.date + hm(a.start)).localeCompare(b.date + hm(b.start)));
+    const when = b => { const d = new Date(b.date + 'T00:00:00'); return WD[d.getDay()].charAt(0) + WD[d.getDay()].slice(1).toLowerCase() + ', ' + d.getDate() + ' ' + MO[d.getMonth()]; };
+    const sb = s.list.find(b => b.id === s.sel);
+    const act = (label, st, kind) => ({ label, run: () => this.setStatus(sb.id, st), bg: kind === 'p' ? '#15301D' : 'transparent', ink: kind === 'p' ? '#F5F3EE' : kind === 'd' ? '#7A2A22' : '#13241A', bd: kind === 'p' ? '#15301D' : kind === 'd' ? 'rgba(122,42,34,0.3)' : 'rgba(19,36,26,0.2)' });
+    let actions = [];
+    if (sb) actions = sb.status === 'pendente' ? [act('Marcar sinal como pago', 'confirmado', 'p'), act('Cancelar agendamento', 'cancelado', 'd')]
+      : sb.status === 'confirmado' ? [act('Marcar como concluído', 'concluido', 'p'), act('Voltar para aguardando sinal', 'pendente'), act('Cancelar agendamento', 'cancelado', 'd')]
+      : [act('Reabrir agendamento', 'pendente')];
+    const tab = (k, cur) => (k === cur ? SEG_ON : SEG_OFF);
+    return {
+      locked: !s.authed, open: s.authed,
+      pwd: s.pwd, onPwd: e => this.setState({ pwd: e.target.value, err: false }), lockErr: s.err,
+      unlock: e => { e.preventDefault(); if (true) { try { sessionStorage.setItem('jeys_admin', '1'); } catch (x) {} this.setState({ authed: true, pwd: '' }); } else this.setState({ err: true }); },
+      lock: () => { try { sessionStorage.removeItem('jeys_admin'); } catch (x) {} this.setState({ authed: false, sel: null }); },
+      views: [['dia', 'Agenda'], ['lista', 'Lista']].map(([k, label]) => ({ label, on: s.view === k ? 'true' : 'false', ...tab(k, s.view), pick: () => this.setState({ view: k }) })),
+      stats: [
+        { label: 'Hoje', value: String(todayB.length), note: todayB.length ? fmtDur(todayB.reduce((a, b) => a + b.dur, 0)) + ' de atendimento' : 'Sem atendimentos', bg: '#15301D', ink: '#F5F3EE', sub: '#DCE4DA' },
+        { label: 'Aguardando sinal', value: String(pend.length), note: pend.length ? 'Cobrar antes do atendimento' : 'Tudo em dia', bg: '#FFFFFF', ink: '#13241A', sub: '#4A5A4F' },
+        { label: 'Previsto em 7 dias', value: 'R$ ' + weekRev.toLocaleString('pt-BR'), note: 'Sem contar cancelados', bg: '#FFFFFF', ink: '#13241A', sub: '#4A5A4F' },
+      ],
+      isDay: s.view === 'dia', isList: s.view === 'lista',
+      dayTitle: (s.day === todayK ? 'Hoje, ' : WDL[dayD.getDay()] + ', ') + dayD.getDate() + ' ' + MO[dayD.getMonth()],
+      prevDay: () => this.setState({ day: iso(add(dayD, -1)) }), nextDay: () => this.setState({ day: iso(add(dayD, 1)) }), goToday: () => this.setState({ day: todayK }),
+      week: Array.from({ length: 7 }, (_, i) => { const d = add(ws, i), k = iso(d), on = k === s.day, has = live.some(b => b.date === k); return { wd: WD[d.getDay()], n: d.getDate(), on: on ? 'true' : 'false', bg: on ? '#15301D' : '#FFFFFF', ink: on ? '#F5F3EE' : '#13241A', bd: on ? '#15301D' : 'rgba(19,36,26,0.14)', dot: has ? (on ? '#A9D9AE' : '#3F7A47') : 'transparent', pick: () => this.setState({ day: k }) }; }),
+      tlH: ((CLOSE - OPEN) * PX) + 'px', hours,
+      blocks: dayB.map(b => { const st = ST[b.status]; return { top: ((b.start - OPEN) * PX + 2) + 'px', h: (b.dur * PX - 4) + 'px', bg: st.block, ink: st.ink === '#13241A' ? '#13241A' : '#13241A', sLabel: st.label, time: hm(b.start) + ' – ' + hm(b.start + b.dur), name: b.name, svcs: b.services.map(x => x.name).join(' + '), open: () => this.setState({ sel: b.id }) }; }),
+      dayEmpty: dayB.length === 0, dayEmptyText: dayD.getDay() === 0 ? 'Domingo, salão fechado.' : 'Dia livre.',
+      filters: [['ativos', 'Próximos'], ['pendente', 'Aguardando sinal'], ['confirmado', 'Confirmados'], ['concluido', 'Concluídos'], ['cancelado', 'Cancelados'], ['todos', 'Todos']].map(([k, label]) => ({ label, on: s.filter === k ? 'true' : 'false', ...tab(k, s.filter), pick: () => this.setState({ filter: k }) })),
+      q: s.q, onQ: e => this.setState({ q: e.target.value }),
+      rows: rows.map(b => { const st = ST[b.status]; return { when: when(b), time: hm(b.start) + ' – ' + hm(b.start + b.dur), name: b.name, phone: b.phone, svcs: b.services.map(x => x.name).join(' + '), price: price(b), sLabel: st.label, sBg: st.bg, sInk: st.ink, open: () => this.setState({ sel: b.id }) }; }),
+      listEmpty: rows.length === 0,
+      hasDemo: s.list.some(b => b.demo),
+      clearDemo: () => this.save(s.list.filter(b => !b.demo)),
+      hasSel: !!sb, closeSel: () => this.setState({ sel: null }),
+      sel: sb ? { name: sb.name, when: when(sb), time: hm(sb.start) + ' – ' + hm(sb.start + sb.dur), phone: sb.phone, wa: 'https://wa.me/55' + String(sb.phone).replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, ''), code: sb.code, email: sb.email || '—', note: sb.note || '—', price: price(sb), sLabel: ST[sb.status].label, sBg: ST[sb.status].bg, sInk: ST[sb.status].ink, items: sb.services.map(x => ({ name: x.name, meta: fmtDur(x.min) + (x.price != null ? ' · R$ ' + x.price : '') })), actions } : { items: [], actions: [] },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jey's Hair — Apresentação do novo site</title>
+<meta name="description" content="Apresentação do novo site da Jey's Hair: catálogo, agendamento online, área da cliente e painel da Jey.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="Jey's Hair — seu novo site">
+<meta property="og:description" content="Catálogo, agendamento online 24h, área da cliente e painel com controle do sinal.">
+<meta property="og:image" content="video/poster.jpg">
+<meta name="theme-color" content="#15301D">
+<link rel="icon" href="app/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#13241A;--paper:#F5F3EE;--forest:#15301D;--forest2:#1C3A25;--green:#3F7A47;--mint:#A9D9AE;--muted:#DCE4DA}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--forest);color:var(--paper);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100svh;background:radial-gradient(900px 700px at 15% 10%,rgba(63,122,71,.55),transparent 70%),radial-gradient(800px 700px at 90% 90%,rgba(169,217,174,.18),transparent 70%),var(--forest)}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:clamp(20px,5vw,72px) clamp(16px,5vw,72px) 64px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(32px,6vw,96px);align-items:center;min-height:100svh}
+.brand{display:flex;align-items:center;gap:14px;font-weight:600;font-size:17px}
+.brand img{width:52px;height:52px;border-radius:999px;box-shadow:0 0 0 1px rgba(169,217,174,.5),0 0 0 7px rgba(169,217,174,.12)}
+.k{margin-top:48px;font-size:13px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--mint)}
+h1{margin:18px 0 0;font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:clamp(52px,7vw,112px);line-height:.94;letter-spacing:-.025em}
+h1 i{color:var(--mint)}
+.lead{margin:26px 0 0;max-width:520px;font-size:clamp(17px,1.35vw,20px);line-height:1.55;color:var(--muted);text-wrap:pretty}
+.feats{margin:34px 0 0;padding:0;list-style:none;display:grid;gap:12px;max-width:520px}
+.feats li{display:flex;gap:14px;align-items:flex-start;font-size:16px;line-height:1.45;color:var(--paper)}
+.feats b{display:block;font-weight:600}
+.feats span{color:var(--muted);font-size:15px}
+.dot{flex:none;width:28px;height:28px;border-radius:999px;background:var(--mint);color:var(--forest);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;margin-top:1px}
+.ctas{margin-top:38px;display:flex;flex-wrap:wrap;gap:12px}
+.btn{height:56px;padding:0 28px;border-radius:999px;display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:17px;text-decoration:none;transition:transform .14s,background .3s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--paper);color:var(--ink)}
+.btn.primary:hover{background:#fff}
+.btn.glass{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.16);color:var(--paper);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6)}
+.btn.glass:hover{background:rgba(255,255,255,.18)}
+.note{margin-top:22px;font-size:14px;color:var(--muted);opacity:.85;max-width:520px;line-height:1.5}
+.player{position:relative;width:min(380px,82vw);aspect-ratio:9/16;border-radius:44px;overflow:hidden;background:#0d1a12;box-shadow:0 50px 120px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.12),0 0 0 9px rgba(11,19,14,.9)}
+.player video{width:100%;height:100%;display:block;object-fit:cover;background:#0d1a12}
+.play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,18,12,.25);border:0;cursor:pointer;transition:opacity .3s}
+.play span{width:88px;height:88px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(63,122,71,.82);border:1px solid rgba(255,255,255,.3);box-shadow:0 12px 32px rgba(19,36,26,.28),inset 0 1px 0 rgba(255,255,255,.35);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6)}
+.play.hide{opacity:0;pointer-events:none}
+.dl{margin-top:16px;text-align:center;font-size:14px;color:var(--muted)}
+.dl a{color:var(--mint);text-underline-offset:4px}
+footer{grid-column:1/-1;border-top:1px solid rgba(245,243,238,.16);padding-top:22px;font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+@media (max-width:860px){.wrap{grid-template-columns:1fr;justify-items:start}.side{justify-self:center;order:-1;margin-top:64px}.k{margin-top:28px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section>
+    <div class="brand"><img src="app/assets/logo.png" alt="Logo Jey's Hair">Jey's Hair</div>
+    <div class="k">Apresentação · seu novo site</div>
+    <h1>O cabelo que você quiser, <i>agora online.</i></h1>
+    <p class="lead">Jey, preparamos um site que trabalha por você: suas clientes escolhem o estilo, marcam o horário e garantem com o sinal, e você acompanha tudo em um painel só seu.</p>
+    <ul class="feats">
+      <li><div class="dot">✓</div><div><b>Catálogo com seus trabalhos reais</b><span>A cliente escolhe o estilo e já leva para o agendamento.</span></div></li>
+      <li><div class="dot">✓</div><div><b>Agendamento online 24h</b><span>Só aparecem os horários em que o serviço cabe. Sem conflito na agenda.</span></div></li>
+      <li><div class="dot">✓</div><div><b>Sinal garantido</b><span>O horário fica reservado após o sinal: menos faltas e mais faturamento.</span></div></li>
+      <li><div class="dot">✓</div><div><b>Área da cliente e Painel da Jey</b><span>Ela remarca e acompanha sozinha; você vê a agenda do dia, quem falta pagar e o previsto da semana.</span></div></li>
+    </ul>
+    <div class="ctas">
+      <a class="btn primary" href="app/site.html">Ver o site →</a>
+      <a class="btn glass" href="app/conta.html">Área da cliente</a>
+      <a class="btn glass" href="app/admin.html">Painel da Jey</a>
+    </div>
+    <p class="note">Esta é uma versão de demonstração com dados de exemplo. Na área da cliente e no painel, basta tocar em “Entrar” para ver como funciona.</p>
+  </section>
+  <aside class="side">
+    <div class="player">
+      <video id="v" src="video/jeys-hair-apresentacao.mp4" poster="video/poster.jpg" playsinline preload="metadata" controls></video>
+      <button class="play" id="p" aria-label="Assistir ao vídeo"><span><svg width="34" height="34" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></span></button>
+    </div>
+    <div class="dl">Vídeo de apresentação · <a href="video/jeys-hair-apresentacao.mp4" download>baixar (9:16)</a></div>
+  </aside>
+  <footer><span>Jey's Hair · Trancista · Raposo Tavares, Zona Oeste de São Paulo</span><span>Proposta de site · 2026</span></footer>
+</main>
+<script>
+const v=document.getElementById('v'),p=document.getElementById('p');
+p.addEventListener('click',()=>{v.play();});
+v.addEventListener('play',()=>p.classList.add('hide'));
+v.addEventListener('pause',()=>{if(!v.ended)return;p.classList.remove('hide')});
+v.addEventListener('ended',()=>p.classList.remove('hide'));
+</script>
+</body>
+</html>
