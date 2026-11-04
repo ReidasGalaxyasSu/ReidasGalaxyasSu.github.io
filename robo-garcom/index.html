@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Robô Garçom 3D</title>
+<meta name="description" content="Simulação 3D interativa de um robô garçom com braço mecânico e pinça em C servindo um prato na mesa.">
+<style>
+  /* ============================================================
+     ESTILO DA INTERFACE (minimalista, sobreposta ao canvas)
+     ============================================================ */
+  :root{
+    --bg: #e9e6e1;
+    --panel: rgba(255,255,255,0.82);
+    --panel-border: rgba(20,24,30,0.08);
+    --ink: #1c2026;
+    --muted: #6b717a;
+    --accent: #12b5b0;
+    --accent-ink: #ffffff;
+    --chip: rgba(20,24,30,0.06);
+  }
+  *{ box-sizing: border-box; }
+  html, body{
+    margin: 0; height: 100%; overflow: hidden;
+    background: var(--bg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  #cena{ position: fixed; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  #cena:active{ cursor: grabbing; }
+
+  .card{
+    position: fixed; background: var(--panel);
+    backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border: 1px solid var(--panel-border); border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(20,24,30,0.10);
+  }
+
+  /* Título */
+  #titulo{ top: 16px; left: 16px; padding: 12px 16px; max-width: 320px; }
+  #titulo h1{ margin: 0; font-size: 15px; font-weight: 650; letter-spacing: .2px; }
+  #titulo p{ margin: 3px 0 0; font-size: 12px; color: var(--muted); }
+
+  /* Legenda da etapa atual */
+  #legenda{
+    left: 50%; transform: translateX(-50%); top: 16px;
+    padding: 10px 16px; min-width: 260px; max-width: min(560px, calc(100vw - 32px));
+    text-align: center;
+  }
+  #legenda .etapa{ font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; }
+  #legenda .texto{ font-size: 14px; margin-top: 2px; font-weight: 550; }
+  #barra{ height: 3px; background: var(--chip); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  #barra i{ display: block; height: 100%; width: 0%; background: var(--accent); border-radius: 3px; }
+
+  /* Painel de controles */
+  #controles{ right: 16px; bottom: 16px; padding: 14px; width: 280px; display: grid; gap: 12px; }
+  .linha{ display: flex; gap: 6px; align-items: center; }
+  .rotulo{ font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 6px; }
+  button{
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--ink);
+    border: 0; border-radius: 10px; padding: 9px 10px; background: var(--chip);
+    cursor: pointer; flex: 1; transition: background .15s, transform .1s, color .15s;
+    min-height: 38px;
+  }
+  button:hover{ background: rgba(20,24,30,0.11); }
+  button:active{ transform: scale(.97); }
+  button.primario{ background: var(--accent); color: var(--accent-ink); }
+  button.primario:hover{ background: #0fa29d; }
+  button.ativo{ background: var(--ink); color: #fff; }
+  button:focus-visible, input:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+  .seg button{ padding: 8px 0; }
+  input[type=range]{ width: 100%; accent-color: var(--accent); }
+  .vel{ display: flex; justify-content: space-between; align-items: baseline; }
+  .vel b{ font-size: 13px; }
+  .dica{ font-size: 11px; color: var(--muted); line-height: 1.35; }
+
+  /* Celular: painel ocupa a largura inferior, título compacto */
+  @media (max-width: 640px){
+    #titulo{ display: none; }
+    #legenda{ top: 10px; min-width: 0; width: calc(100vw - 24px); padding: 8px 12px; }
+    #legenda .texto{ font-size: 13px; }
+    #controles{
+      left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: auto;
+      padding: 10px; gap: 8px; grid-template-columns: 1fr 1fr;
+    }
+    #controles .largo{ grid-column: 1 / -1; }
+    .rotulo{ margin-bottom: 4px; }
+    .dica{ display: none; }
+    button{ min-height: 36px; font-size: 12px; padding: 7px 6px; }
+  }
+
+  #erro{ position: fixed; inset: 0; display: none; place-items: center; text-align: center; padding: 24px; font-size: 15px; }
+</style>
+</head>
+<body>
+<canvas id="cena" aria-label="Cena 3D do robô garçom"></canvas>
+
+<div id="titulo" class="card">
+  <h1>Robô Garçom · Braço com pinça em C</h1>
+  <p>Arraste para girar · role/pinça para zoom · botão direito ou dois dedos para mover</p>
+</div>
+
+<div id="legenda" class="card" role="status" aria-live="polite">
+  <div class="etapa" id="legEtapa">Pronto</div>
+  <div class="texto" id="legTexto">Escolha a bandeja e toque em Iniciar</div>
+  <div id="barra"><i id="barraFill"></i></div>
+</div>
+
+<div id="controles" class="card">
+  <div class="largo">
+    <div class="linha">
+      <button id="btnPlay" class="primario" aria-label="Iniciar ou pausar">▶ Iniciar</button>
+      <button id="btnReset" aria-label="Reiniciar">↺ Reiniciar</button>
+    </div>
+  </div>
+  <div>
+    <div class="rotulo">Bandeja</div>
+    <div class="linha seg" id="segBandeja">
+      <button data-b="0" class="ativo" aria-label="Bandeja 1">1</button>
+      <button data-b="1" aria-label="Bandeja 2">2</button>
+      <button data-b="2" aria-label="Bandeja 3">3</button>
+    </div>
+  </div>
+  <div>
+    <div class="rotulo">Câmera</div>
+    <div class="linha seg" id="segCamera">
+      <button data-c="livre" class="ativo">Livre</button>
+      <button data-c="pinca">Pinça</button>
+    </div>
+  </div>
+  <div class="largo">
+    <div class="vel"><span class="rotulo">Velocidade</span><b id="velTxt">1.00×</b></div>
+    <input id="velocidade" type="range" min="0.25" max="2" step="0.05" value="1" aria-label="Velocidade da animação">
+  </div>
+  <div class="dica largo">Bandeja 1 = inferior. A pinça entra por baixo do prato, as garras travam a borda e a base retrátil apoia o fundo.</div>
+</div>
+
+<div id="erro">Não foi possível carregar o Three.js (é preciso internet na primeira abertura).</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+if (typeof THREE === 'undefined'){ document.getElementById('erro').style.display = 'grid'; return; }
+
+/* ================================================================
+   1. CONSTANTES DE PROJETO (unidades em metros, Y para cima,
+      frente do robô apontando para +Z)
+   ================================================================ */
+const TRAY_Y   = [0.42, 0.62, 0.82];   // superfície das bandejas com prato (1 = inferior)
+const TOP_TRAY = 1.02;                 // bandeja superior (onde o braço está preso)
+const TRAY_Z   = 0.03;                 // centro das bandejas em Z
+const PLATE_Z  = 0.04;                 // centro dos pratos nas bandejas
+const PED_H    = 0.06;                 // altura do pedestal laranja (prato apoiado no topo)
+const TABLE_C  = new THREE.Vector3(1.02, 0, 0.30);  // centro da mesa
+const TABLE_TOP = 0.75;                // altura do tampo + toalha
+const STAND_H  = 0.075;                // altura do suporte de prato sobre a mesa
+const PLACE_C  = new THREE.Vector3(0.80, TABLE_TOP + STAND_H, 0.25); // onde o prato é pousado
+
+// Braço
+const ARM_BASE = new THREE.Vector3(0.17, TOP_TRAY, 0.17); // base cilíndrica sobre a bandeja superior
+const BASE_H = 0.08, TURRET_H = 0.06;
+const SHOULDER = ARM_BASE.clone().add(new THREE.Vector3(0, BASE_H + TURRET_H, 0)); // y = 1.16
+const L1 = 0.48;   // segmento 1 (ombro → cotovelo)
+const L2 = 0.38;   // segmento 2 (cotovelo → punho)
+
+// Pinça (coordenadas locais: frente = +Z, lateral = X, cima = Y)
+const G_DROP   = 0.055;  // distância vertical do punho até o centro da placa da pinça
+const G_HALF_T = 0.0125; // meia espessura da placa em C
+const G_PLATE  = 0.25;   // distância do punho até o centro do prato
+const PLATE_GAP = 0.005; // folga entre o topo do C e o fundo do prato
+const C_CENTER = 0.22, C_RO = 0.15, C_RI = 0.105, C_END = 0.34; // geometria do C
+const SLIDE_MIN = 0.0, SLIDE_MAX = 0.14;  // curso da base retrátil
+const CLAW_OPEN = 1.3;                    // ângulo de abertura das garras (rad)
+
+const STEP_DUR = 2;      // cada etapa dura 2 s (em velocidade 1×)
+const N_STEPS  = 6;
+const TOTAL    = STEP_DUR * N_STEPS;
+
+/* ================================================================
+   2. RENDERIZADOR, CENA E LUZES (iluminação de estúdio)
+   ================================================================ */
+const canvas = document.getElementById('cena');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.physicallyCorrectLights = false;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe9e6e1);
+scene.fog = new THREE.Fog(0xe9e6e1, 6, 14);
+
+const camera = new THREE.PerspectiveCamera(40, 1, 0.02, 60);
+
+// Luz ambiente (hemisférica dá um gradiente suave céu/chão)
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d2c6, 0.55));
+scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+
+// Luz principal (key) com sombras suaves
+const key = new THREE.DirectionalLight(0xfff6ea, 0.95);
+key.position.set(2.2, 4.2, 3.0);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -2.2; key.shadow.camera.right = 2.6;
+key.shadow.camera.top = 2.6;   key.shadow.camera.bottom = -1.6;
+key.shadow.camera.near = 0.5;  key.shadow.camera.far = 10;
+key.shadow.bias = -0.0004;
+key.shadow.normalBias = 0.02;
+key.shadow.radius = 4;
+key.target.position.set(0.4, 0.6, 0.1);
+scene.add(key, key.target);
+
+// Preenchimento (fill) frio do lado oposto e contraluz (rim)
+const fill = new THREE.DirectionalLight(0xdfeaff, 0.38);
+fill.position.set(-3, 2.2, 2.0);
+scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.35);
+rim.position.set(-1.0, 3.0, -3.5);
+scene.add(rim);
+
+/* ================================================================
+   3. MATERIAIS
+   ================================================================ */
+const M = {
+  white:    new THREE.MeshStandardMaterial({ color: 0xeceef0, roughness: 0.35, metalness: 0.0 }),
+  black:    new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.45, metalness: 0.1 }),
+  tray:     new THREE.MeshStandardMaterial({ color: 0x2a2d32, roughness: 0.55, metalness: 0.05 }),
+  joint:    new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.35, metalness: 0.35 }),
+  link:     new THREE.MeshStandardMaterial({ color: 0x4b5058, roughness: 0.38, metalness: 0.55 }),
+  graphite: new THREE.MeshStandardMaterial({ color: 0x5a5f66, roughness: 0.32, metalness: 0.7 }),
+  steel:    new THREE.MeshStandardMaterial({ color: 0x9aa1a9, roughness: 0.25, metalness: 0.85 }),
+  darkMetal:new THREE.MeshStandardMaterial({ color: 0x2c3036, roughness: 0.4, metalness: 0.6 }),
+  led:      new THREE.MeshStandardMaterial({ color: 0x19d3cc, emissive: 0x12c9c2, emissiveIntensity: 1.4, roughness: 0.3 }),
+  orange:   new THREE.MeshStandardMaterial({ color: 0xd9782e, roughness: 0.45, metalness: 0.05 }),
+  plate:    new THREE.MeshStandardMaterial({ color: 0xfbfbf8, roughness: 0.22, metalness: 0.0, side: THREE.DoubleSide }),
+  red:      new THREE.MeshStandardMaterial({ color: 0xd42323, roughness: 0.35 }),
+  yellow:   new THREE.MeshStandardMaterial({ color: 0xf2c218, roughness: 0.45 }),
+  gray:     new THREE.MeshStandardMaterial({ color: 0xc9ccd0, roughness: 0.4, metalness: 0.2 }),
+  wood:     new THREE.MeshStandardMaterial({ color: 0xd8b98e, roughness: 0.6 }),
+  woodDark: new THREE.MeshStandardMaterial({ color: 0xc7a273, roughness: 0.65 }),
+  cloth:    new THREE.MeshStandardMaterial({ color: 0xf6f2ea, roughness: 0.95, side: THREE.DoubleSide }),
+  food1:    new THREE.MeshStandardMaterial({ color: 0xc8813c, roughness: 0.7 }),
+  food2:    new THREE.MeshStandardMaterial({ color: 0x5fa043, roughness: 0.8 }),
+  food3:    new THREE.MeshStandardMaterial({ color: 0xe0482f, roughness: 0.5 }),
+};
+// As cores acima estão em sRGB; convertemos para linear (saída sRGB) → cores fiéis
+function linearize(m){ m.color.convertSRGBToLinear(); if (m.emissive) m.emissive.convertSRGBToLinear(); return m; }
+Object.values(M).forEach(linearize);
+
+/* ================================================================
+   4. FUNÇÕES AUXILIARES DE GEOMETRIA
+   ================================================================ */
+
+// Retângulo de cantos arredondados (para Shape)
+function roundRectShape(w, d, r){
+  const s = new THREE.Shape(), x = -w/2, y = -d/2;
+  r = Math.min(r, w/2, d/2);
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + d - r); s.quadraticCurveTo(x + w, y + d, x + w - r, y + d);
+  s.lineTo(x + r, y + d); s.quadraticCurveTo(x, y + d, x, y + d - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+
+// "Caixa arredondada": cantos redondos na planta + arestas chanfradas/boleadas em cima e embaixo.
+// Ocupa y ∈ [0, h], centrada em X/Z.
+function roundedBox(w, h, d, r, bev){
+  bev = Math.min(bev, h/2 - 0.0005);
+  const shape = roundRectShape(w - 2*bev, d - 2*bev, Math.max(0.001, r - bev));
+  const g = new THREE.ExtrudeGeometry(shape, {
+    depth: Math.max(0.0005, h - 2*bev), bevelEnabled: true, bevelThickness: bev, bevelSize: bev,
+    bevelSegments: 4, curveSegments: 10
+  });
+  g.rotateX(-Math.PI/2);
+  g.translate(0, bev, 0);
+  g.computeVertexNormals();
+  return g;
+}
+
+function mesh(geo, mat, parent, x=0, y=0, z=0){
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  m.castShadow = true; m.receiveShadow = true;
+  if (parent) parent.add(m);
+  return m;
+}
+// Cilindro com eixo em X (para juntas)
+function cylX(r, len, mat, parent, x=0, y=0, z=0, seg=28){
+  const g = new THREE.CylinderGeometry(r, r, len, seg); g.rotateZ(Math.PI/2);
+  return mesh(g, mat, parent, x, y, z);
+}
+// Cilindro com eixo em Z (para segmentos do braço)
+function cylZ(r, len, mat, parent, x=0, y=0, z=0, seg=24){
+  const g = new THREE.CylinderGeometry(r, r, len, seg); g.rotateX(Math.PI/2);
+  return mesh(g, mat, parent, x, y, z);
+}
+
+/* ================================================================
+   5. AMBIENTE: restaurante minimalista
+   ================================================================ */
+(function buildRoom(){
+  // Piso claro com textura procedural de placas grandes
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#ebe6de'; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 4000; i++){ // leve granulado
+    g.fillStyle = `rgba(120,100,80,${Math.random()*0.035})`;
+    g.fillRect(Math.random()*512, Math.random()*512, 2, 2);
+  }
+  g.strokeStyle = 'rgba(150,135,115,0.35)'; g.lineWidth = 2;
+  g.strokeRect(1, 1, 510, 510);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(12, 12);
+  tex.encoding = THREE.sRGBEncoding;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24),
+    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }));
+  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Paredes suaves ao fundo
+  const wallMat = linearize(new THREE.MeshStandardMaterial({ color: 0xf1ede6, roughness: 0.95 }));
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(24, 6), wallMat);
+  back.position.set(0, 3, -3.2); back.receiveShadow = true; scene.add(back);
+  const side = new THREE.Mesh(new THREE.PlaneGeometry(24, 6), wallMat);
+  side.position.set(-3.6, 3, 0); side.rotation.y = Math.PI/2; side.receiveShadow = true; scene.add(side);
+  // Rodapé e um painel de madeira ripada
+  mesh(new THREE.BoxGeometry(24, 0.08, 0.02), M.woodDark, scene, 0, 0.04, -3.19);
+  const ripas = new THREE.Group(); scene.add(ripas);
+  for (let i = 0; i < 22; i++) mesh(new THREE.BoxGeometry(0.05, 2.4, 0.04), M.wood, ripas, -0.2 + i*0.09, 1.2, -3.17);
+  // Luminária pendente sobre a mesa
+  const cabo = mesh(new THREE.CylinderGeometry(0.004, 0.004, 1.3, 6), M.black, scene, TABLE_C.x, 2.55, TABLE_C.z);
+  cabo.castShadow = false;
+  const cupula = mesh(new THREE.CylinderGeometry(0.07, 0.2, 0.18, 32, 1, true), M.black, scene, TABLE_C.x, 1.86, TABLE_C.z);
+  cupula.material = cupula.material.clone(); cupula.material.side = THREE.DoubleSide; cupula.castShadow = false;
+  const bulbo = mesh(new THREE.SphereGeometry(0.05, 16, 12),
+    new THREE.MeshStandardMaterial({ color: 0xfff3d6, emissive: 0xffe2a8, emissiveIntensity: 1.2 }), scene, TABLE_C.x, 1.8, TABLE_C.z);
+  bulbo.castShadow = false;
+  // Planta decorativa no canto
+  const vaso = mesh(new THREE.CylinderGeometry(0.16, 0.12, 0.38, 24), M.white, scene, 2.4, 0.19, -2.6);
+  for (let i = 0; i < 9; i++){
+    const f = mesh(new THREE.SphereGeometry(0.2, 12, 10), M.food2, scene,
+      2.4 + Math.cos(i*0.7)*0.12, 0.5 + (i%3)*0.14, -2.6 + Math.sin(i*1.3)*0.12);
+    f.scale.set(0.6, 0.9, 0.6);
+  }
+  vaso.castShadow = true;
+})();
+
+/* ---------- Mesa redonda de madeira clara com toalha ---------- */
+const table = new THREE.Group();
+table.position.set(TABLE_C.x, 0, TABLE_C.z);
+scene.add(table);
+(function buildTable(){
+  const R = 0.42;
+  mesh(new THREE.CylinderGeometry(R, R, 0.035, 64), M.wood, table, 0, TABLE_TOP - 0.0225, 0);
+  // Toalha: disco + saia caída
+  mesh(new THREE.CylinderGeometry(R + 0.012, R + 0.012, 0.005, 64), M.cloth, table, 0, TABLE_TOP - 0.0025, 0);
+  const saia = mesh(new THREE.CylinderGeometry(R + 0.014, R + 0.03, 0.16, 64, 1, true), M.cloth, table, 0, TABLE_TOP - 0.08, 0);
+  saia.castShadow = true;
+  // Pés de madeira (4, levemente inclinados)
+  for (let i = 0; i < 4; i++){
+    const a = i * Math.PI/2 + Math.PI/4;
+    const p = mesh(new THREE.CylinderGeometry(0.022, 0.016, TABLE_TOP - 0.04, 16), M.wood, table,
+      Math.cos(a)*0.28, (TABLE_TOP - 0.04)/2, Math.sin(a)*0.28);
+    p.rotation.z = Math.cos(a) * 0.06; p.rotation.x = -Math.sin(a) * 0.06;
+  }
+  // Suporte de prato sobre a mesa (mesmo princípio do suporte das bandejas:
+  // pedestal central estreito para a pinça em C passar ao redor)
+  const st = new THREE.Group();
+  st.position.set(PLACE_C.x - TABLE_C.x, TABLE_TOP, PLACE_C.z - TABLE_C.z);
+  table.add(st);
+  mesh(new THREE.CylinderGeometry(0.075, 0.08, 0.01, 40), M.orange, st, 0, 0.005, 0);
+  mesh(new THREE.CylinderGeometry(0.042, 0.045, STAND_H - 0.01, 32), M.orange, st, 0, 0.01 + (STAND_H - 0.01)/2, 0);
+  // Copo e vaso de flor para compor
+  const copo = mesh(new THREE.CylinderGeometry(0.035, 0.028, 0.11, 24, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0xdff3f5, roughness: 0.05, transparent: true, opacity: 0.45, side: THREE.DoubleSide }),
+    table, 0.08, TABLE_TOP + 0.055, 0.2);
+  copo.castShadow = false;
+  mesh(new THREE.CylinderGeometry(0.035, 0.03, 0.12, 20), M.white, table, 0.18, TABLE_TOP + 0.06, -0.12);
+  mesh(new THREE.SphereGeometry(0.045, 14, 10), M.food3, table, 0.18, TABLE_TOP + 0.15, -0.12);
+  // Cadeiras simples
+  function chair(x, z, rot){
+    const c = new THREE.Group(); c.position.set(x, 0, z); c.rotation.y = rot; table.add(c);
+    mesh(roundedBox(0.42, 0.04, 0.42, 0.05, 0.012), M.wood, c, 0, 0.44, 0);
+    mesh(roundedBox(0.42, 0.34, 0.03, 0.03, 0.01), M.wood, c, 0, 0.5, -0.2);
+    for (const [px, pz] of [[-0.18,-0.18],[0.18,-0.18],[-0.18,0.18],[0.18,0.18]])
+      mesh(new THREE.CylinderGeometry(0.015, 0.013, 0.44, 10), M.woodDark, c, px, 0.22, pz);
+  }
+  chair(0.62, 0.05, -Math.PI/2);
+  chair(0.0, -0.66, 0);
+})();
+
+/* ================================================================
+   6. ROBÔ (corpo)
+   ================================================================ */
+const robot = new THREE.Group();
+scene.add(robot);
+
+(function buildBody(){
+  // --- Base móvel ---
+  mesh(roundedBox(0.56, 0.17, 0.56, 0.11, 0.025), M.black, robot, 0, 0.03, 0);       // parte inferior preta
+  mesh(roundedBox(0.575, 0.014, 0.575, 0.115, 0.004), M.led, robot, 0, 0.19, 0);    // faixa LED ciano
+  mesh(roundedBox(0.56, 0.035, 0.56, 0.11, 0.004), M.black, robot, 0, 0.2, 0);       // faixa preta superior
+  mesh(roundedBox(0.56, 0.13, 0.56, 0.11, 0.045), M.white, robot, 0, 0.23, 0);       // topo branco
+  // Rodas laterais (aro cinza com miolo escuro), uma de cada lado
+  for (const s of [-1, 1]){
+    cylX(0.075, 0.03, M.gray, robot, s*0.28, 0.11, 0.06, 36);
+    cylX(0.042, 0.034, M.black, robot, s*0.282, 0.11, 0.06, 28);
+  }
+  // Rodízios inferiores
+  for (const [x, z] of [[-0.18, 0.2], [0.18, 0.2], [-0.18, -0.2], [0.18, -0.2]])
+    mesh(new THREE.SphereGeometry(0.03, 12, 10), M.black, robot, x, 0.03, z);
+  // Botão de emergência (base amarela + cogumelo vermelho)
+  mesh(new THREE.CylinderGeometry(0.032, 0.034, 0.018, 28), M.yellow, robot, -0.2, 0.369, 0.2);
+  mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.016, 20), M.red, robot, -0.2, 0.385, 0.2);
+  mesh(new THREE.CylinderGeometry(0.025, 0.024, 0.014, 24), M.red, robot, -0.2, 0.399, 0.2);
+
+  // --- Coluna traseira branca que se curva até a cabeça ---
+  mesh(roundedBox(0.34, 1.10, 0.14, 0.05, 0.02), M.white, robot, 0, 0.34, -0.26);
+  const arco = new THREE.CylinderGeometry(0.12, 0.12, 0.34, 32, 1, false, Math.PI/2, Math.PI/2);
+  arco.rotateZ(Math.PI/2);
+  mesh(arco, M.white, robot, 0, 1.44, -0.21);
+  // Friso vertical sutil na coluna
+  mesh(new THREE.BoxGeometry(0.004, 1.0, 0.14), M.gray, robot, 0.12, 0.88, -0.26).castShadow = false;
+  mesh(new THREE.BoxGeometry(0.004, 1.0, 0.14), M.gray, robot, -0.12, 0.88, -0.26).castShadow = false;
+
+  // --- Bandejas (4) com borda LED ---
+  const allTrays = TRAY_Y.concat([TOP_TRAY]);
+  allTrays.forEach((y, i) => {
+    mesh(roundedBox(0.48, 0.03, 0.44, 0.07, 0.01), M.tray, robot, 0, y - 0.03, TRAY_Z);
+    // LED na borda frontal e na lateral esquerda
+    mesh(new THREE.BoxGeometry(0.38, 0.007, 0.006), M.led, robot, 0, y - 0.017, TRAY_Z + 0.222).castShadow = false;
+    mesh(new THREE.BoxGeometry(0.006, 0.007, 0.32), M.led, robot, -0.242, y - 0.017, TRAY_Z).castShadow = false;
+    // Suporte de fixação à coluna
+    mesh(new THREE.BoxGeometry(0.30, 0.04, 0.03), M.black, robot, 0, y - 0.04, -0.18);
+    if (i < 3){
+      // Suporte laranja circular + pedestal central (a pinça passa ao redor dele)
+      mesh(new THREE.CylinderGeometry(0.155, 0.155, 0.01, 48), M.orange, robot, 0, y + 0.005, PLATE_Z);
+      mesh(new THREE.CylinderGeometry(0.043, 0.046, PED_H - 0.01, 32), M.orange, robot, 0, y + 0.01 + (PED_H - 0.01)/2, PLATE_Z);
+      // Haste laranja vertical (liga o anel à bandeja de cima)
+      mesh(new THREE.BoxGeometry(0.025, 0.17, 0.02), M.orange, robot, -0.17, y + 0.085, -0.15);
+    }
+  });
+
+  // --- Cabeça ---
+  mesh(roundedBox(0.46, 0.30, 0.38, 0.09, 0.07), M.white, robot, 0, 1.26, -0.02);
+  // Sensor/câmera sob a cabeça
+  mesh(roundedBox(0.12, 0.03, 0.05, 0.01, 0.004), M.black, robot, -0.02, 1.235, 0.13);
+})();
+
+/* ---------- Tela do rosto (canvas dinâmico) ---------- */
+const faceCanvas = document.createElement('canvas');
+faceCanvas.width = 512; faceCanvas.height = 224;
+const fctx = faceCanvas.getContext('2d');
+const faceTex = new THREE.CanvasTexture(faceCanvas);
+faceTex.encoding = THREE.sRGBEncoding;
+const screenMat = new THREE.MeshStandardMaterial({
+  color: 0x000000, emissive: 0xffffff, emissiveMap: faceTex, emissiveIntensity: 1.0, roughness: 0.15, metalness: 0.2
+});
+mesh(new THREE.BoxGeometry(0.39, 0.17, 0.012), M.black, robot, 0, 1.41, 0.172);   // moldura da tela
+const screen = mesh(new THREE.PlaneGeometry(0.36, 0.15), screenMat, robot, 0, 1.41, 0.1785);
+screen.castShadow = false;
+
+let faceState = '', faceBlink = 0;
+function drawFace(mode, blink){
+  const key = mode + ':' + blink.toFixed(2);
+  if (key === faceState) return;
+  faceState = key;
+  const W = faceCanvas.width, H = faceCanvas.height;
+  fctx.fillStyle = '#050607'; fctx.fillRect(0, 0, W, H);
+  fctx.fillStyle = '#18d6cf'; fctx.strokeStyle = '#18d6cf';
+  fctx.shadowColor = '#18d6cf'; fctx.shadowBlur = 18;
+  const eyeW = 92, eyeH = 62, ey = 70, ex1 = 92, ex2 = W - 92 - eyeW;
+  if (mode === 'feliz'){
+    // Olhos em arco "^ ^" e sorriso
+    fctx.lineWidth = 20; fctx.lineCap = 'round';
+    for (const ex of [ex1, ex2]){
+      fctx.beginPath(); fctx.arc(ex + eyeW/2, ey + 62, 40, Math.PI*1.12, Math.PI*1.88); fctx.stroke();
+    }
+    fctx.lineWidth = 14;
+    fctx.beginPath(); fctx.arc(W/2, 120, 58, Math.PI*0.2, Math.PI*0.8); fctx.stroke();
+  } else {
+    const h = Math.max(6, eyeH * (1 - blink) * (mode === 'foco' ? 0.6 : 1));
+    const yy = ey + (eyeH - h)/2 + (mode === 'foco' ? 8 : 0);
+    fctx.fillRect(ex1, yy, eyeW, h);
+    fctx.fillRect(ex2, yy, eyeW, h);
+    fctx.fillRect(W/2 - 56, 172, 112, 12);   // boca em linha
+  }
+  faceTex.needsUpdate = true;
+}
+drawFace('neutro', 0);
+
+/* ================================================================
+   7. BRAÇO MECÂNICO (hierarquia de juntas)
+      base(yaw) → ombro(pitch) → cotovelo(pitch) → punho(pitch, mantém nível)
+      → rotor do punho (yaw) → pinça
+   ================================================================ */
+const arm = {};
+arm.base = new THREE.Group(); arm.base.position.copy(ARM_BASE); robot.add(arm.base);
+mesh(new THREE.CylinderGeometry(0.065, 0.072, BASE_H, 36), M.joint, arm.base, 0, BASE_H/2, 0);
+mesh(new THREE.CylinderGeometry(0.068, 0.068, 0.008, 36), M.darkMetal, arm.base, 0, BASE_H - 0.002, 0);
+
+arm.yaw = new THREE.Group(); arm.yaw.position.y = BASE_H; arm.base.add(arm.yaw);
+mesh(new THREE.CylinderGeometry(0.052, 0.058, TURRET_H, 32), M.joint, arm.yaw, 0, TURRET_H/2 - 0.01, 0);
+
+arm.shoulder = new THREE.Group(); arm.shoulder.position.y = TURRET_H; arm.yaw.add(arm.shoulder);
+cylX(0.05, 0.11, M.joint, arm.shoulder);                     // junta 1 (ombro)
+cylX(0.03, 0.115, M.steel, arm.shoulder);                    // eixo aparente
+cylZ(0.032, L1 - 0.07, M.link, arm.shoulder, 0, 0, L1/2);    // segmento 1
+mesh(roundedBox(0.05, 0.02, L1 - 0.14, 0.01, 0.004), M.darkMetal, arm.shoulder, 0, 0.026, L1/2); // capa superior
+
+arm.elbow = new THREE.Group(); arm.elbow.position.z = L1; arm.shoulder.add(arm.elbow);
+cylX(0.045, 0.1, M.joint, arm.elbow);                        // junta 2 (cotovelo)
+cylX(0.027, 0.105, M.steel, arm.elbow);
+cylZ(0.028, L2 - 0.06, M.link, arm.elbow, 0, 0, L2/2);       // segmento 2
+mesh(roundedBox(0.045, 0.018, L2 - 0.12, 0.01, 0.004), M.darkMetal, arm.elbow, 0, 0.023, L2/2);
+
+arm.wrist = new THREE.Group(); arm.wrist.position.z = L2; arm.elbow.add(arm.wrist);
+cylX(0.038, 0.085, M.joint, arm.wrist);                      // junta 3 (punho)
+cylX(0.022, 0.09, M.steel, arm.wrist);
+
+arm.rot = new THREE.Group(); arm.wrist.add(arm.rot);          // rotor do punho (eixo vertical)
+mesh(new THREE.CylinderGeometry(0.026, 0.03, 0.04, 24), M.joint, arm.rot, 0, -0.03, 0);
+
+/* ---------- PINÇA EM "C" (peça principal) ---------- */
+const grip = new THREE.Group(); grip.position.y = -G_DROP; arm.rot.add(grip);
+(function buildGripper(){
+  // Placa em C (U arredondado) extrudada com bisel
+  const s = new THREE.Shape();
+  s.moveTo(C_RO, C_END);
+  s.lineTo(C_RO, C_CENTER);
+  s.absarc(0, C_CENTER, C_RO, 0, Math.PI, true);     // contorno externo (fundo do C, junto ao punho)
+  s.lineTo(-C_RO, C_END);
+  s.lineTo(-C_RI, C_END);
+  s.lineTo(-C_RI, C_CENTER);
+  s.absarc(0, C_CENTER, C_RI, Math.PI, 0, false);    // contorno interno
+  s.lineTo(C_RI, C_END);
+  s.lineTo(C_RO, C_END);
+  const T = 0.017, B = 0.004;
+  const cg = new THREE.ExtrudeGeometry(s, { depth: T, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelSegments: 3, curveSegments: 40 });
+  cg.rotateX(Math.PI/2);       // forma (x, y) → (x, z) ; extrusão → −Y
+  cg.translate(0, T/2, 0);     // centraliza a espessura em y=0 (−0.0125..+0.0125)
+  cg.computeVertexNormals();
+  mesh(cg, M.graphite, grip);
+
+  // Frisos/ranhuras decorativas nas pontas (pontas da garra em degrau)
+  for (const sx of [-1, 1]){
+    mesh(new THREE.BoxGeometry(0.05, 0.03, 0.035), M.graphite, grip, sx*(C_RO + C_RI)/2, -0.004, C_END - 0.012);
+  }
+
+  // Suporte de fixação (mount) entre o punho e o fundo do C + flange
+  mesh(roundedBox(0.075, 0.03, 0.09, 0.012, 0.005), M.darkMetal, grip, 0, -0.015, 0.035);
+  mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.012, 28), M.joint, grip, 0, 0.018, 0);
+  // Parafusos da flange
+  for (let i = 0; i < 4; i++){
+    const a = i * Math.PI/2 + Math.PI/4;
+    mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.004, 8), M.steel, grip, Math.cos(a)*0.025, 0.026, Math.sin(a)*0.025).castShadow = false;
+  }
+
+  // Trilhos-guia da base retrátil (fixos no C)
+  for (const sx of [-1, 1]) mesh(new THREE.BoxGeometry(0.008, 0.008, 0.2), M.steel, grip, sx*0.098, 0.012, 0.13).castShadow = false;
+  // Corpo do atuador linear sobre o mount
+  mesh(roundedBox(0.04, 0.022, 0.07, 0.008, 0.004), M.joint, grip, 0, 0.012, 0.05);
+})();
+
+// Base retrátil: lâmina com rasgo frontal (passa ao redor do pedestal) e trilhos
+const slider = new THREE.Group(); grip.add(slider);
+(function buildSlider(){
+  const W = 0.092, Lr = 0.16, SW = 0.052, SL = 0.05;
+  const s = new THREE.Shape();
+  s.moveTo(-W, 0); s.lineTo(W, 0); s.lineTo(W, Lr); s.lineTo(SW, Lr); s.lineTo(SW, SL);
+  s.absarc(0, SL, SW, 0, Math.PI, true);
+  s.lineTo(-SW, Lr); s.lineTo(-W, Lr); s.lineTo(-W, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 0.004, bevelEnabled: true, bevelThickness: 0.001, bevelSize: 0.002, bevelSegments: 1, curveSegments: 20 });
+  g.rotateX(Math.PI/2);
+  g.translate(0, 0.0155, 0);   // topo ≈ 0.0165 (encosta no fundo do prato)
+  mesh(g, M.steel, slider);
+  // Nervuras e haste do pistão
+  for (const sx of [-1, 1]) mesh(new THREE.BoxGeometry(0.006, 0.004, 0.13), M.darkMetal, slider, sx*0.072, 0.0185, 0.08).castShadow = false;
+  cylZ(0.006, 0.06, M.steel, slider, 0, 0.014, -0.02, 12);
+  mesh(new THREE.BoxGeometry(0.03, 0.01, 0.012), M.darkMetal, slider, 0, 0.016, 0.006);
+})();
+
+// Garras nas pontas do C (articulam lateralmente; fechadas = verticais, prendendo a borda)
+const claws = [];
+for (const sx of [-1, 1]){
+  const pivot = new THREE.Group();
+  pivot.position.set(sx*(C_RO + C_RI)/2, G_HALF_T, C_END - 0.012);
+  grip.add(pivot);
+  cylZ(0.009, 0.036, M.steel, pivot, 0, 0, 0, 14);                          // pino da articulação
+  mesh(roundedBox(0.016, 0.05, 0.03, 0.005, 0.003), M.joint, pivot, 0, 0, 0); // dedo
+  mesh(roundedBox(0.03, 0.012, 0.03, 0.005, 0.003), M.joint, pivot, -sx*0.014, 0.04, 0); // lábio voltado para o prato
+  mesh(new THREE.BoxGeometry(0.003, 0.03, 0.02), M.led, pivot, sx*0.0085, 0.022, 0).castShadow = false; // indicador LED
+  pivot.userData.side = sx;
+  claws.push(pivot);
+}
+
+/* ================================================================
+   8. PRATOS (perfil torneado + comida)
+   ================================================================ */
+function makePlate(){
+  const g = new THREE.Group();
+  const pts = [
+    [0, 0], [0.06, 0], [0.07, 0.004], [0.11, 0.016], [0.122, 0.022], [0.124, 0.026],
+    [0.12, 0.027], [0.108, 0.021], [0.07, 0.011], [0.06, 0.009], [0, 0.009]
+  ].map(p => new THREE.Vector2(p[0], p[1]));
+  mesh(new THREE.LatheGeometry(pts, 64), M.plate, g);
+  // Comida: porção principal + guarnições
+  const f = mesh(new THREE.SphereGeometry(0.045, 20, 14), M.food1, g, -0.01, 0.014, 0.0); f.scale.set(1.2, 0.45, 0.9);
+  for (let i = 0; i < 5; i++){
+    const a = i * 1.25;
+    mesh(new THREE.SphereGeometry(0.012, 10, 8), i % 2 ? M.food3 : M.food2, g, 0.04 + Math.cos(a)*0.02, 0.018, Math.sin(a)*0.03);
+  }
+  return g;
+}
+const plates = TRAY_Y.map(y => {
+  const p = makePlate();
+  p.position.set(0, y + PED_H, PLATE_Z);
+  robot.add(p);
+  return p;
+});
+
+/* ================================================================
+   9. CINEMÁTICA INVERSA SIMPLIFICADA
+      Entrada: posição do punho (mundo) + direção da pinça (ψ, em torno de Y)
+      Saída: ângulos de junta. O punho compensa (a1+a2) → pinça sempre nivelada.
+   ================================================================ */
+function ik(W, psi){
+  const dx = W.x - SHOULDER.x, dz = W.z - SHOULDER.z;
+  const th0 = Math.atan2(dx, dz);
+  const r = Math.hypot(dx, dz), h = W.y - SHOULDER.y;
+  let d = Math.hypot(r, h);
+  d = THREE.MathUtils.clamp(d, Math.abs(L1 - L2) + 1e-4, L1 + L2 - 1e-4);
+  const c2 = THREE.MathUtils.clamp((d*d - L1*L1 - L2*L2) / (2*L1*L2), -1, 1);
+  const q2 = -Math.acos(c2);                       // "cotovelo para cima/fora"
+  const a1 = Math.atan2(h, r) - Math.atan2(L2*Math.sin(q2), L1 + L2*Math.cos(q2));
+  return { th0, a1, a2: q2, psiRel: psi - th0 };
+}
+
+// Aplica ângulos às juntas
+function applyJoints(j){
+  arm.yaw.rotation.y = j.th0;
+  arm.shoulder.rotation.x = -j.a1;
+  arm.elbow.rotation.x = -j.a2;
+  arm.wrist.rotation.x = j.a1 + j.a2;  // compensação → nível
+  arm.rot.rotation.y = j.psiRel;
+}
+
+const lerp = THREE.MathUtils.lerp;
+function lerpAngle(a, b, t){
+  const d = ((b - a + Math.PI) % (Math.PI*2) + Math.PI*2) % (Math.PI*2) - Math.PI;
+  return a + d*t;
+}
+function lerpJoints(A, B, t){
+  return { th0: lerpAngle(A.th0, B.th0, t), a1: lerp(A.a1, B.a1, t), a2: lerp(A.a2, B.a2, t), psiRel: lerpAngle(A.psiRel, B.psiRel, t) };
+}
+// Pose cartesiana: {p: Vector3 (punho), psi}
+function cart(x, y, z, psi){ return { p: new THREE.Vector3(x, y, z), psi }; }
+function lerpCart(A, B, t){ return { p: A.p.clone().lerp(B.p, t), psi: lerp(A.psi, B.psi, t) }; }
+
+// Easing suave
+const easeInOutCubic = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+const seg = (p, a, b) => easeInOutCubic(THREE.MathUtils.clamp((p - a) / (b - a), 0, 1));
+
+// Posição do punho para que o centro do prato fique em C e o topo do C logo abaixo do fundo do prato
+function wristFor(plateBottomCenter, psi){
+  return new THREE.Vector3(
+    plateBottomCenter.x - Math.sin(psi)*G_PLATE,
+    plateBottomCenter.y + G_DROP - G_HALF_T - PLATE_GAP,
+    plateBottomCenter.z - Math.cos(psi)*G_PLATE);
+}
+
+/* ---------- Poses-chave ---------- */
+const PI = Math.PI;
+// Repouso: braço dobrado sobre a bandeja superior (definido por juntas)
+const REST_J = { th0: -PI/2, a1: 0.04, a2: -2.972, psiRel: PI - (-PI/2) };
+const READY  = cart(0.32, 1.00, 0.50, 3*PI/2);      // braço expandido à frente, pinça apontando −X
+const READY_J = (() => { const j = ik(READY.p, READY.psi); return j; })();
+
+let K = {};  // poses dependentes da bandeja escolhida
+function buildKeyPoses(tray){
+  const pb = new THREE.Vector3(0, TRAY_Y[tray] + PED_H, PLATE_Z);   // fundo do prato na bandeja
+  const pick = wristFor(pb, PI);                                     // pinça apontando −Z (para dentro)
+  const touch = wristFor(PLACE_C, PI/2);                             // pinça apontando +X (para a mesa)
+  K = {
+    PRE:      cart(0.28, pick.y, 0.50, 3*PI/2),
+    APPROACH: cart(pick.x, pick.y, pick.z + 0.24, PI),
+    PICK:     cart(pick.x, pick.y, pick.z, PI),
+    LIFT:     cart(pick.x, pick.y + 0.03, pick.z, PI),
+    OUT:      cart(pick.x, pick.y + 0.03, pick.z + 0.24, PI),
+    ABOVE:    cart(touch.x, touch.y + 0.06, touch.z, PI/2),
+    TOUCH:    cart(touch.x, touch.y, touch.z, PI/2),
+    LOW:      cart(touch.x, touch.y - 0.03, touch.z, PI/2),
+    BACK:     cart(touch.x - 0.24, touch.y - 0.03, touch.z, PI/2),
+    READY2:   cart(READY.p.x, READY.p.y, READY.p.z, -PI/2),
+  };
+}
+
+/* ================================================================
+   10. SEQUÊNCIA DE ANIMAÇÃO (6 etapas × 2 s)
+       Tudo é função determinística do tempo → pausar/acelerar é trivial.
+   ================================================================ */
+const STEPS = [
+  'Braço desdobra e expande',
+  'Desce até a bandeja {n} e a pinça abre',
+  'Base retrátil entra sob o prato, garras fecham e levantam',
+  'Braço gira para a mesa com o prato nivelado',
+  'Desce, pousa o prato e a pinça solta',
+  'Braço recolhe — entrega concluída!'
+];
+
+// Retorna {joints | cart, slide 0..1, claw 0..1 (1 = aberta), carried, placed, mood}
+function poseAt(T){
+  const step = Math.min(N_STEPS - 1, Math.floor(T / STEP_DUR));
+  const p = THREE.MathUtils.clamp((T - step*STEP_DUR) / STEP_DUR, 0, 1);
+  const o = { slide: 0, claw: 0, carried: false, placed: false, mood: 'neutro', step, p };
+  switch (step){
+    case 0: // 1. Desdobrar (interpolação por juntas)
+      o.joints = lerpJoints(REST_J, READY_J, easeInOutCubic(p));
+      break;
+    case 1: // 2. Descer até a bandeja, abrir garras, base retrátil avança um pouco
+      o.cart = lerpCart(READY, K.PRE, easeInOutCubic(p));
+      o.claw = seg(p, 0.3, 0.8);
+      o.slide = 0.5 * seg(p, 0.4, 1);
+      o.mood = 'foco';
+      break;
+    case 2: { // 3. Girar a pinça para dentro, entrar sob o prato, fechar e levantar
+      if (p < 0.3)      o.cart = lerpCart(K.PRE, K.APPROACH, seg(p, 0, 0.3));
+      else if (p < 0.6) o.cart = lerpCart(K.APPROACH, K.PICK, seg(p, 0.3, 0.6));
+      else              o.cart = lerpCart(K.PICK, K.LIFT, seg(p, 0.8, 1));
+      o.slide = 0.5 + 0.5 * seg(p, 0.4, 0.68);
+      o.claw = 1 - seg(p, 0.6, 0.8);
+      o.carried = p >= 0.8;
+      o.mood = 'foco';
+      break; }
+    case 3: { // 4. Retirar da bandeja (base retrai com o prato) e girar até a mesa
+      o.carried = true;
+      if (p < 0.25){
+        o.cart = lerpCart(K.LIFT, K.OUT, seg(p, 0, 0.25));
+      } else {
+        const q = seg(p, 0.25, 1);
+        o.cart = lerpCart(K.OUT, K.ABOVE, q);
+        // sobe só depois de sair do vão entre bandejas
+        o.cart.p.y = lerp(K.OUT.p.y, K.ABOVE.p.y, seg(q, 0.45, 1));
+      }
+      o.slide = 1 - 0.6 * seg(p, 0, 0.25);
+      break; }
+    case 4: // 5. Descer, pousar, abrir e soltar
+      if (p < 0.5)      o.cart = lerpCart(K.ABOVE, K.TOUCH, seg(p, 0, 0.5));
+      else              o.cart = lerpCart(K.TOUCH, K.LOW, seg(p, 0.5, 0.7));
+      o.carried = p < 0.5;
+      o.placed = p >= 0.5;
+      o.claw = seg(p, 0.7, 0.9);
+      o.slide = 0.4 * (1 - seg(p, 0.75, 1));
+      if (p > 0.6) o.mood = 'feliz';
+      break;
+    case 5: // 6. Recuar, subir e recolher
+      o.placed = true; o.mood = 'feliz';
+      o.claw = 1 - seg(p, 0.25, 0.55);
+      if (p < 0.25) o.cart = lerpCart(K.LOW, K.BACK, seg(p, 0, 0.25));
+      else if (p < 0.6){
+        const q = seg(p, 0.25, 0.6);
+        o.cart = lerpCart(K.BACK, K.READY2, q);
+        o.cart.p.y = lerp(K.BACK.p.y, K.READY2.p.y, Math.min(1, q * 1.6)); // sobe primeiro
+      } else {
+        const a = ik(K.READY2.p, K.READY2.psi);
+        o.joints = lerpJoints(a, REST_J, seg(p, 0.6, 1));
+      }
+      break;
+  }
+  return o;
+}
+
+/* ================================================================
+   11. ESTADO, APLICAÇÃO DE POSE E INTERFACE
+   ================================================================ */
+const state = { T: 0, playing: false, speed: 1, tray: 0, done: false, started: false };
+buildKeyPoses(state.tray);
+
+const _v = new THREE.Vector3();
+function applyPose(){
+  const o = poseAt(state.T);
+  const j = o.joints || ik(o.cart.p, o.cart.psi);
+  applyJoints(j);
+  slider.position.z = lerp(SLIDE_MIN, SLIDE_MAX, o.slide);
+  for (const c of claws) c.rotation.z = -c.userData.side * CLAW_OPEN * o.claw;
+  robot.updateMatrixWorld(true);
+
+  // Prato escolhido: na bandeja → carregado pela pinça → pousado na mesa
+  const plate = plates[state.tray];
+  if (o.carried){
+    grip.localToWorld(_v.set(0, G_HALF_T + PLATE_GAP, G_PLATE));
+    plate.position.copy(_v);           // robot está na origem do mundo
+    plate.rotation.y = arm.yaw.rotation.y + arm.rot.rotation.y;
+  } else if (o.placed){
+    plate.position.copy(PLACE_C); plate.rotation.y = PI/2;
+  } else {
+    plate.position.set(0, TRAY_Y[state.tray] + PED_H, PLATE_Z); plate.rotation.y = 0;
+  }
+  plates.forEach((pl, i) => { if (i !== state.tray){ pl.position.set(0, TRAY_Y[i] + PED_H, PLATE_Z); pl.rotation.y = 0; } });
+  return o;
+}
+
+// --- Interface ---
+const $ = id => document.getElementById(id);
+const btnPlay = $('btnPlay'), btnReset = $('btnReset');
+function updatePlayBtn(){
+  btnPlay.textContent = state.playing ? '❚❚ Pausar' : (state.started && !state.done ? '▶ Continuar' : '▶ Iniciar');
+  btnPlay.classList.toggle('primario', !state.playing);
+}
+function reset(){
+  state.T = 0; state.playing = false; state.done = false; state.started = false;
+  buildKeyPoses(state.tray);
+  updatePlayBtn();
+}
+btnPlay.addEventListener('click', () => {
+  if (state.done) reset();
+  state.playing = !state.playing; state.started = true;
+  updatePlayBtn();
+});
+btnReset.addEventListener('click', reset);
+document.querySelectorAll('#segBandeja button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#segBandeja button').forEach(x => x.classList.toggle('ativo', x === b));
+  state.tray = +b.dataset.b;
+  reset();
+}));
+$('velocidade').addEventListener('input', e => {
+  state.speed = +e.target.value; $('velTxt').textContent = state.speed.toFixed(2) + '×';
+});
+let camMode = 'livre';
+document.querySelectorAll('#segCamera button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#segCamera button').forEach(x => x.classList.toggle('ativo', x === b));
+  camMode = b.dataset.c;
+}));
+// Atalhos de teclado: espaço = iniciar/pausar, R = reiniciar, C = câmera
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space'){ e.preventDefault(); btnPlay.click(); }
+  else if (e.key === 'r' || e.key === 'R') btnReset.click();
+  else if (e.key === 'c' || e.key === 'C') document.querySelector(`#segCamera button[data-c="${camMode === 'livre' ? 'pinca' : 'livre'}"]`).click();
+});
+
+function updateCaption(o){
+  let etapa, texto;
+  if (!state.started){ etapa = 'Pronto'; texto = `Bandeja ${state.tray + 1} selecionada · toque em Iniciar`; }
+  else if (state.done){ etapa = 'Concluído ✓'; texto = 'Prato entregue na mesa — Reiniciar para repetir'; }
+  else {
+    etapa = `Etapa ${o.step + 1}/6${state.playing ? '' : ' · pausado'}`;
+    texto = STEPS[o.step].replace('{n}', state.tray + 1);
+  }
+  if ($('legEtapa').textContent !== etapa) $('legEtapa').textContent = etapa;
+  if ($('legTexto').textContent !== texto) $('legTexto').textContent = texto;
+  $('barraFill').style.width = (state.T / TOTAL * 100).toFixed(1) + '%';
+}
+
+/* ================================================================
+   12. CÂMERA ORBITAL FEITA À MÃO (mouse + toque)
+       - arrastar: girar · roda/pinça: zoom · botão direito / 2 dedos: mover
+   ================================================================ */
+const orbit = {
+  livre: { target: new THREE.Vector3(0.62, 0.78, 0.2), theta: 0.55, phi: 1.22, radius: 2.9 },
+  pinca: { target: new THREE.Vector3(), theta: 0.85, phi: 1.3, radius: 0.8 },
+};
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+let camInit = false;
+function fitFree(){
+  // Afasta um pouco a câmera em telas estreitas (retrato)
+  const a = window.innerWidth / window.innerHeight;
+  orbit.livre.radius = a < 0.8 ? 3.9 : 2.9;
+}
+const pointers = new Map();
+let lastPinch = 0, lastMid = null, panMode = false;
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('pointerdown', e => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  panMode = e.button === 2 || e.shiftKey;
+  if (pointers.size === 2){
+    const [a, b] = [...pointers.values()];
+    lastPinch = Math.hypot(a.x - b.x, a.y - b.y);
+    lastMid = { x: (a.x + b.x)/2, y: (a.y + b.y)/2 };
+  }
+});
+function pan(dx, dy){
+  const o = orbit[camMode];
+  const s = o.radius * 0.0012;
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
+  const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+  o.target.addScaledVector(right, -dx * s).addScaledVector(up, dy * s);
+}
+canvas.addEventListener('pointermove', e => {
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId);
+  const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const o = orbit[camMode];
+  if (pointers.size === 1){
+    if (panMode && camMode === 'livre') pan(dx, dy);
+    else {
+      o.theta -= dx * 0.006;
+      o.phi = THREE.MathUtils.clamp(o.phi - dy * 0.006, 0.15, 1.52);
+    }
+  } else if (pointers.size === 2){
+    const [a, b] = [...pointers.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    const mid = { x: (a.x + b.x)/2, y: (a.y + b.y)/2 };
+    if (lastPinch) zoom(lastPinch / dist);
+    if (lastMid && camMode === 'livre') pan(mid.x - lastMid.x, mid.y - lastMid.y);
+    lastPinch = dist; lastMid = mid;
+  }
+});
+function endPointer(e){ pointers.delete(e.pointerId); lastPinch = 0; lastMid = null; }
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+function zoom(f){
+  const o = orbit[camMode];
+  const lim = camMode === 'livre' ? [0.8, 7] : [0.3, 2.0];
+  o.radius = THREE.MathUtils.clamp(o.radius * f, lim[0], lim[1]);
+}
+canvas.addEventListener('wheel', e => { e.preventDefault(); zoom(Math.exp(e.deltaY * 0.001)); }, { passive: false });
+
+function updateCamera(dt){
+  const o = orbit[camMode];
+  if (camMode === 'pinca'){
+    // alvo = centro do C (segue a pinça)
+    grip.localToWorld(o.target.set(0, 0.01, C_CENTER));
+  }
+  const sp = Math.sin(o.phi);
+  const desired = new THREE.Vector3(
+    o.target.x + o.radius * sp * Math.sin(o.theta),
+    o.target.y + o.radius * Math.cos(o.phi),
+    o.target.z + o.radius * sp * Math.cos(o.theta));
+  desired.y = Math.max(desired.y, 0.05);
+  const k = camInit ? 1 - Math.exp(-dt * 8) : 1;  // amortecimento suave
+  camPos.lerp(desired, k); camLook.lerp(o.target, k);
+  if (!camInit){ camPos.copy(desired); camLook.copy(o.target); camInit = true; }
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+}
+
+/* ================================================================
+   13. REDIMENSIONAMENTO E LAÇO PRINCIPAL
+   ================================================================ */
+function resize(){
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.fov = w / h < 0.8 ? 52 : 40;
+  camera.updateProjectionMatrix();
+  fitFree();
+}
+window.addEventListener('resize', resize);
+resize();
+
+const clock = new THREE.Clock();
+let blinkTimer = 2.5, blinkT = -1, elapsed = 0;
+function frame(){
+  const dt = Math.min(clock.getDelta(), 0.05);
+  elapsed += dt;
+  if (state.playing){
+    state.T += dt * state.speed;
+    if (state.T >= TOTAL){ state.T = TOTAL; state.playing = false; state.done = true; updatePlayBtn(); }
+  }
+  const o = applyPose();
+
+  // Rosto: piscar periódico + expressão por etapa
+  blinkTimer -= dt;
+  if (blinkTimer <= 0){ blinkT = 0; blinkTimer = 2.5 + Math.random()*2.5; }
+  let blink = 0;
+  if (blinkT >= 0){ blinkT += dt; blink = Math.sin(Math.min(1, blinkT / 0.16) * Math.PI); if (blinkT > 0.16) blinkT = -1; }
+  const mood = state.done ? 'feliz' : (state.started ? o.mood : 'neutro');
+  drawFace(mood, mood === 'feliz' ? 0 : Math.round(blink * 4) / 4);
+
+  // LEDs pulsam levemente enquanto o robô trabalha
+  M.led.emissiveIntensity = state.playing ? 1.2 + 0.5 * Math.sin(elapsed * 5) : 1.3;
+
+  updateCaption(o);
+  updateCamera(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+// Sombras: todos projetam/recebem (exceto o que foi desativado explicitamente)
+requestAnimationFrame(frame);
+
+// Gancho para depuração/testes automatizados
+window.__robo = { state, applyPose, poseAt, setCam: m => { camMode = m; } };
+})();
+</script>
+</body>
+</html>
