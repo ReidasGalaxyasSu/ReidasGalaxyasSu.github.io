@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Robô Garçom · U Curvo</title>
+<meta name="description" content="Simulação 3D do robô garçom retirando o prato da bandeja superior com suporte em U e entregando na mesa (storyboard de 12 s).">
+<style>
+  /* ============================================================
+     INTERFACE (minimalista, sobreposta ao canvas)
+     ============================================================ */
+  :root{
+    --bg:#e7e7e8; --panel:rgba(255,255,255,0.84); --border:rgba(20,24,30,0.08);
+    --ink:#1c2026; --muted:#6b717a; --accent:#12b5b0; --orange:#e2792b; --chip:rgba(20,24,30,0.06);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; -webkit-tap-highlight-color:transparent; }
+  #cena{ position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; }
+  #cena:active{ cursor:grabbing; }
+  .card{ position:fixed; background:var(--panel); border:1px solid var(--border); border-radius:16px;
+    backdrop-filter:blur(14px) saturate(1.4); -webkit-backdrop-filter:blur(14px) saturate(1.4);
+    box-shadow:0 10px 30px rgba(20,24,30,0.10); }
+
+  #titulo{ top:16px; left:16px; padding:12px 16px; max-width:330px; }
+  #titulo .tag{ font-size:10px; letter-spacing:1.4px; text-transform:uppercase; font-weight:800; color:var(--orange); }
+  #titulo h1{ margin:2px 0 0; font-size:15px; font-weight:700; }
+  #titulo p{ margin:3px 0 0; font-size:12px; color:var(--muted); }
+
+  #legenda{ left:50%; transform:translateX(-50%); top:16px; padding:10px 16px; text-align:center;
+    min-width:300px; max-width:min(560px,calc(100vw - 32px)); }
+  #legenda .etapa{ font-size:12px; font-weight:800; letter-spacing:.4px; }
+  #legenda .etapa b{ color:var(--accent); }
+  #legenda .texto{ font-size:14px; margin-top:2px; color:#2b3038; }
+
+  /* Linha do tempo com as 9 cenas do storyboard (clicáveis) */
+  #timeline{ display:flex; gap:3px; margin-top:9px; }
+  #timeline button{ flex-grow:1; min-height:0; height:22px; padding:0; border-radius:5px; font-size:10px; font-weight:700;
+    background:var(--chip); color:var(--muted); position:relative; overflow:hidden; }
+  #timeline button i{ position:absolute; left:0; top:0; bottom:0; width:0; background:rgba(18,181,176,0.25); }
+  #timeline button span{ position:relative; }
+  #timeline button.atual{ color:#fff; background:var(--ink); }
+  #timeline button.atual i{ background:rgba(18,181,176,0.55); }
+
+  #controles{ right:16px; bottom:16px; width:270px; padding:14px; display:grid; gap:12px; }
+  .linha{ display:flex; gap:6px; }
+  .rotulo{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-bottom:6px; }
+  button{ font:inherit; font-size:13px; font-weight:600; color:var(--ink); border:0; border-radius:10px; padding:9px 10px;
+    background:var(--chip); cursor:pointer; flex:1; min-height:38px; transition:background .15s, transform .1s; }
+  button:hover{ background:rgba(20,24,30,0.11); }
+  button:active{ transform:scale(.97); }
+  button.primario{ background:var(--accent); color:#fff; }
+  button.ativo{ background:var(--ink); color:#fff; }
+  button:focus-visible,input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  input[type=range]{ width:100%; accent-color:var(--accent); }
+  .vel{ display:flex; justify-content:space-between; align-items:baseline; }
+  .vel b{ font-size:13px; }
+  .nota{ font-size:11px; color:var(--muted); line-height:1.4; }
+  .nota b{ color:var(--ink); }
+  .nota a{ color:var(--accent); }
+
+  @media (max-width:640px){
+    #titulo{ display:none; }
+    #legenda{ top:10px; width:calc(100vw - 24px); min-width:0; padding:8px 10px; }
+    #legenda .texto{ font-size:12.5px; }
+    #controles{ left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); width:auto; padding:10px; gap:8px;
+      grid-template-columns:1fr 1fr; }
+    #controles .largo{ grid-column:1/-1; }
+    .nota{ display:none; }
+    button{ min-height:36px; font-size:12px; padding:7px 6px; }
+  }
+  #erro{ position:fixed; inset:0; display:none; place-items:center; text-align:center; padding:24px; }
+</style>
+</head>
+<body>
+<canvas id="cena" aria-label="Cena 3D do robô garçom"></canvas>
+
+<div id="titulo" class="card">
+  <div class="tag">Storyboard 02</div>
+  <h1>Suporte em U curvo</h1>
+  <p>Retirada da bandeja superior e entrega na mesa · 12 s</p>
+</div>
+
+<div id="legenda" class="card" role="status" aria-live="polite">
+  <div class="etapa" id="legEtapa"></div>
+  <div class="texto" id="legTexto"></div>
+  <div id="timeline" aria-label="Cenas do storyboard"></div>
+</div>
+
+<div id="controles" class="card">
+  <div class="largo linha">
+    <button id="btnPlay" class="primario">▶ Iniciar</button>
+    <button id="btnReset">↺ Reiniciar</button>
+  </div>
+  <div class="largo">
+    <div class="rotulo">Câmera</div>
+    <div class="linha" id="segCamera">
+      <button data-c="livre" class="ativo">Livre</button>
+      <button data-c="pinca">Close no suporte</button>
+    </div>
+  </div>
+  <div class="largo">
+    <div class="vel"><span class="rotulo">Velocidade</span><b id="velTxt">1.00×</b></div>
+    <input id="velocidade" type="range" min="0.25" max="2" step="0.05" value="1" aria-label="Velocidade">
+  </div>
+  <div class="nota largo"><b>Continuidade:</b> 1 prato transferido · 3 pratos inferiores imóveis · prato sempre nivelado.<br>
+    Arraste para girar · roda/pinça para zoom · botão direito ou 2 dedos para mover · Espaço, R, C.<br>
+    <a href="storyboard-01-u-reto.html">← Ver Storyboard 01 · U reto</a></div>
+</div>
+<div id="erro">Não foi possível carregar o Three.js (é preciso internet na primeira abertura).</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+if (typeof THREE === 'undefined'){ document.getElementById('erro').style.display = 'grid'; return; }
+
+/* ================================================================
+   0. VARIANTE
+      'reto'  → Storyboard 01: suporte em U reto, mesa de 4 pés
+      'curvo' → Storyboard 02: suporte em U curvo, mesa de pé central
+   ================================================================ */
+const VARIANT = 'curvo';
+const CURVO = VARIANT === 'curvo';
+
+/* ================================================================
+   1. CONSTANTES (metros; Y para cima; frente do robô = +Z)
+   ================================================================ */
+const PI = Math.PI;
+const LOWER_TRAYS = [0.42, 0.62, 0.82];    // bandejas com pratos imóveis
+const TOP_TRAY = 1.02;                     // bandeja superior (prato a ser entregue + base do braço)
+const TRAY_Z = 0.03;
+const RING_H = 0.03;                       // altura do anel laranja (prato apoiado sobre ele)
+const TOP_PLATE = new THREE.Vector3(-0.06, TOP_TRAY + RING_H, 0.07);   // fundo do prato na bandeja superior
+const HEAD_Y = 1.46;                       // base da cabeça (há espaço para o braço abaixo dela)
+
+const TABLE_C = new THREE.Vector3(1.08, 0, 0.18);
+const TABLE_TOP = 0.75;
+const PLACE = new THREE.Vector3(0.86, TABLE_TOP, 0.18);                // fundo do prato na mesa
+
+// Braço (estilo colaborativo: segmentos em alumínio, juntas escuras)
+const ARM_BASE = new THREE.Vector3(0.19, TOP_TRAY, -0.13);
+const BASE_H = 0.08, TURRET_H = 0.06;
+const SHOULDER = ARM_BASE.clone().add(new THREE.Vector3(0, BASE_H + TURRET_H, 0));
+const L1 = 0.24, L2 = 0.49;
+
+// Suporte em U (coordenadas locais: frente = +Z, lateral = X, cima = Y; origem = centro da moldura sob o punho)
+const DROP = 0.10;            // punho → centro da moldura
+const U_C = 0.15;             // distância do punho ao centro do prato
+const U_RI = 0.132, U_RO = 0.162, U_H = 0.03; // raio interno/externo e altura da moldura
+const U_TIP = U_C + 0.012;    // ponta dos braços do U
+const RIM_Y = 0.027;          // altura da borda do prato acima do fundo → moldura centrada na borda
+const PLATE_R = 0.124;
+const PUSH_MAX = 0.15;        // curso do empurrador
+
+/* ================================================================
+   2. RENDERIZADOR, CENA, LUZES DE ESTÚDIO
+   ================================================================ */
+const canvas = document.getElementById('cena');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe7e7e8);
+scene.fog = new THREE.Fog(0xe7e7e8, 6, 14);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.02, 60);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd6d6d6, 0.55));
+scene.add(new THREE.AmbientLight(0xffffff, 0.18));
+const key = new THREE.DirectionalLight(0xfff6ea, 0.95);
+key.position.set(2.2, 4.4, 3.0);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -2.2, right: 2.6, top: 2.8, bottom: -1.6, near: 0.5, far: 10 });
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.radius = 4;
+key.target.position.set(0.4, 0.7, 0.1);
+scene.add(key, key.target);
+const fill = new THREE.DirectionalLight(0xdfeaff, 0.38); fill.position.set(-3, 2.2, 2.0); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.35); rim.position.set(-1.0, 3.0, -3.5); scene.add(rim);
+
+/* ================================================================
+   3. MATERIAIS (cores sRGB convertidas para linear)
+   ================================================================ */
+const M = {
+  white:   new THREE.MeshStandardMaterial({ color: 0xeceef0, roughness: 0.35 }),
+  black:   new THREE.MeshStandardMaterial({ color: 0x1b1d21, roughness: 0.45, metalness: 0.1 }),
+  tray:    new THREE.MeshStandardMaterial({ color: 0x2a2d32, roughness: 0.55, metalness: 0.05 }),
+  joint:   new THREE.MeshStandardMaterial({ color: 0x1d2024, roughness: 0.35, metalness: 0.4 }),
+  alu:     new THREE.MeshStandardMaterial({ color: 0xb9bec4, roughness: 0.28, metalness: 0.85 }),
+  aluDark: new THREE.MeshStandardMaterial({ color: 0x7d838b, roughness: 0.3, metalness: 0.8 }),
+  liner:   new THREE.MeshStandardMaterial({ color: 0x33373d, roughness: 0.6, metalness: 0.2 }),
+  steel:   new THREE.MeshStandardMaterial({ color: 0x9aa1a9, roughness: 0.25, metalness: 0.85 }),
+  rubber:  new THREE.MeshStandardMaterial({ color: 0x5c6168, roughness: 0.8 }),
+  led:     new THREE.MeshStandardMaterial({ color: 0x19d3cc, emissive: 0x12c9c2, emissiveIntensity: 1.4, roughness: 0.3 }),
+  orange:  new THREE.MeshStandardMaterial({ color: 0xe2792b, roughness: 0.42 }),
+  plate:   new THREE.MeshStandardMaterial({ color: 0xf7f7f4, roughness: 0.2, side: THREE.DoubleSide }),
+  red:     new THREE.MeshStandardMaterial({ color: 0xd42323, roughness: 0.35 }),
+  yellow:  new THREE.MeshStandardMaterial({ color: 0xf2c218, roughness: 0.45 }),
+  gray:    new THREE.MeshStandardMaterial({ color: 0xc9ccd0, roughness: 0.4, metalness: 0.2 }),
+  wood:    new THREE.MeshStandardMaterial({ color: 0xd2a774, roughness: 0.55 }),
+  woodLeg: new THREE.MeshStandardMaterial({ color: 0xb98a55, roughness: 0.6 }),
+  metalLeg:new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.4, metalness: 0.6 }),
+};
+function linearize(m){ m.color.convertSRGBToLinear(); if (m.emissive) m.emissive.convertSRGBToLinear(); return m; }
+Object.values(M).forEach(linearize);
+
+/* ================================================================
+   4. AUXILIARES DE GEOMETRIA
+   ================================================================ */
+function roundRectShape(w, d, r){
+  const s = new THREE.Shape(), x = -w/2, y = -d/2;
+  r = Math.min(r, w/2, d/2);
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + d - r); s.quadraticCurveTo(x + w, y + d, x + w - r, y + d);
+  s.lineTo(x + r, y + d); s.quadraticCurveTo(x, y + d, x, y + d - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+  return s;
+}
+// Caixa arredondada ocupando y ∈ [0,h]
+function roundedBox(w, h, d, r, bev){
+  bev = Math.min(bev, h/2 - 0.0005);
+  const g = new THREE.ExtrudeGeometry(roundRectShape(w - 2*bev, d - 2*bev, Math.max(0.001, r - bev)),
+    { depth: Math.max(0.0005, h - 2*bev), bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 4, curveSegments: 10 });
+  g.rotateX(-PI/2); g.translate(0, bev, 0); g.computeVertexNormals();
+  return g;
+}
+// Extrusão horizontal de uma forma 2D (x lateral, y → +Z), espessura centrada em y
+function flatExtrude(shape, h, bev, segs=3){
+  const g = new THREE.ExtrudeGeometry(shape, { depth: Math.max(0.0005, h - 2*bev), bevelEnabled: bev > 0,
+    bevelThickness: bev, bevelSize: bev, bevelSegments: segs, curveSegments: 48 });
+  g.rotateX(PI/2);                 // y da forma → +Z ; extrusão → −Y
+  g.translate(0, (h - 2*bev)/2, 0);
+  g.computeVertexNormals();
+  return g;
+}
+function mesh(geo, mat, parent, x=0, y=0, z=0, shadow=true){
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  m.castShadow = shadow; m.receiveShadow = true;
+  if (parent) parent.add(m);
+  return m;
+}
+function cylX(r, len, mat, parent, x=0, y=0, z=0){ const g = new THREE.CylinderGeometry(r, r, len, 28); g.rotateZ(PI/2); return mesh(g, mat, parent, x, y, z); }
+function cylZ(r, len, mat, parent, x=0, y=0, z=0){ const g = new THREE.CylinderGeometry(r, r, len, 24); g.rotateX(PI/2); return mesh(g, mat, parent, x, y, z); }
+// Anel (opcionalmente aberto) extrudado verticalmente, apoiado em y=0
+function ringGeo(rIn, rOut, h, gapAngle=0){
+  const s = new THREE.Shape();
+  if (gapAngle <= 0){
+    s.absarc(0, 0, rOut, 0, 2*PI, false);
+    const hole = new THREE.Path(); hole.absarc(0, 0, rIn, 0, 2*PI, true); s.holes.push(hole);
+  } else {
+    const a0 = PI/2 + gapAngle/2, a1 = PI/2 - gapAngle/2 + 2*PI;
+    s.absarc(0, 0, rOut, a0, a1, false);
+    s.absarc(0, 0, rIn, a1, a0, true);
+  }
+  const g = new THREE.ExtrudeGeometry(s, { depth: h - 0.004, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002, bevelSegments: 2, curveSegments: 48 });
+  g.rotateX(-PI/2); g.translate(0, 0.002, 0); g.computeVertexNormals();
+  return g;
+}
+
+/* ================================================================
+   5. AMBIENTE (estúdio neutro, como no storyboard)
+   ================================================================ */
+(function room(){
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#d9d9da'; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 5000; i++){ g.fillStyle = `rgba(60,60,60,${Math.random()*0.04})`; g.fillRect(Math.random()*512, Math.random()*512, 2, 2); }
+  g.strokeStyle = 'rgba(120,120,120,0.25)'; g.lineWidth = 2; g.strokeRect(1, 1, 510, 510);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(12, 12); tex.encoding = THREE.sRGBEncoding;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
+  floor.rotation.x = -PI/2; floor.receiveShadow = true; scene.add(floor);
+  const wallMat = linearize(new THREE.MeshStandardMaterial({ color: 0xe9e9ea, roughness: 0.95 }));
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(24, 7), wallMat); back.position.set(0, 3.5, -3.2); back.receiveShadow = true; scene.add(back);
+  const side = new THREE.Mesh(new THREE.PlaneGeometry(24, 7), wallMat); side.position.set(-3.6, 3.5, 0); side.rotation.y = PI/2; scene.add(side);
+  mesh(new THREE.BoxGeometry(24, 0.08, 0.02), M.metalLeg, scene, 0, 0.04, -3.19);
+})();
+
+/* ---------- Mesa de madeira clara (4 pés no U reto, pé central no U curvo) ---------- */
+const table = new THREE.Group(); table.position.copy(TABLE_C); scene.add(table);
+(function buildTable(){
+  const W = 0.62, D = 0.62, T = 0.04;
+  // Tampo com veios procedurais
+  const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#d6ab78'; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 140; i++){
+    g.strokeStyle = `rgba(${120 + Math.random()*40},${80 + Math.random()*30},40,${0.08 + Math.random()*0.12})`;
+    g.lineWidth = 1 + Math.random()*2.5;
+    const y0 = Math.random()*512;
+    g.beginPath(); g.moveTo(0, y0);
+    for (let x = 0; x <= 512; x += 32) g.lineTo(x, y0 + Math.sin(x*0.01 + i)*6);
+    g.stroke();
+  }
+  const wt = new THREE.CanvasTexture(c); wt.encoding = THREE.sRGBEncoding; wt.anisotropy = 8;
+  const topMat = new THREE.MeshStandardMaterial({ map: wt, roughness: 0.5 });
+  mesh(roundedBox(W, T, D, 0.02, 0.006), topMat, table, 0, TABLE_TOP - T, 0);
+  if (!CURVO){
+    // Storyboard 01: quatro pés de madeira + saia
+    for (const [x, z] of [[-1,-1],[1,-1],[-1,1],[1,1]])
+      mesh(new THREE.BoxGeometry(0.04, TABLE_TOP - T, 0.04), M.woodLeg, table, x*(W/2 - 0.04), (TABLE_TOP - T)/2, z*(D/2 - 0.04));
+    for (const s of [-1, 1]){
+      mesh(new THREE.BoxGeometry(W - 0.1, 0.07, 0.02), M.woodLeg, table, 0, TABLE_TOP - T - 0.035, s*(D/2 - 0.04));
+      mesh(new THREE.BoxGeometry(0.02, 0.07, D - 0.1), M.woodLeg, table, s*(W/2 - 0.04), TABLE_TOP - T - 0.035, 0);
+    }
+  } else {
+    // Storyboard 02: pé central metálico com base quadrada
+    mesh(new THREE.CylinderGeometry(0.035, 0.035, TABLE_TOP - T, 24), M.metalLeg, table, 0, (TABLE_TOP - T)/2, 0);
+    mesh(roundedBox(0.42, 0.02, 0.42, 0.02, 0.006), M.metalLeg, table, 0, 0, 0);
+    mesh(new THREE.BoxGeometry(0.3, 0.02, 0.3), M.metalLeg, table, 0, TABLE_TOP - T - 0.01, 0);
+  }
+})();
+
+/* ================================================================
+   6. ROBÔ (corpo)
+   ================================================================ */
+const robot = new THREE.Group(); scene.add(robot);
+(function body(){
+  mesh(roundedBox(0.56, 0.17, 0.56, 0.11, 0.025), M.black, robot, 0, 0.03, 0);
+  mesh(roundedBox(0.575, 0.014, 0.575, 0.115, 0.004), M.led, robot, 0, 0.19, 0);
+  mesh(roundedBox(0.56, 0.035, 0.56, 0.11, 0.004), M.black, robot, 0, 0.2, 0);
+  mesh(roundedBox(0.56, 0.13, 0.56, 0.11, 0.045), M.white, robot, 0, 0.23, 0);
+  for (const s of [-1, 1]){ cylX(0.075, 0.03, M.gray, robot, s*0.28, 0.11, 0.06); cylX(0.042, 0.034, M.black, robot, s*0.282, 0.11, 0.06); }
+  for (const [x, z] of [[-0.18,0.2],[0.18,0.2],[-0.18,-0.2],[0.18,-0.2]]) mesh(new THREE.SphereGeometry(0.03, 12, 10), M.black, robot, x, 0.03, z);
+  // botão de emergência
+  mesh(new THREE.CylinderGeometry(0.032, 0.034, 0.018, 28), M.yellow, robot, -0.2, 0.369, 0.2);
+  mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.016, 20), M.red, robot, -0.2, 0.385, 0.2);
+  mesh(new THREE.CylinderGeometry(0.025, 0.024, 0.014, 24), M.red, robot, -0.2, 0.399, 0.2);
+  // coluna traseira + curva até a cabeça
+  const colTop = HEAD_Y + 0.18;
+  mesh(roundedBox(0.34, colTop - 0.34, 0.14, 0.05, 0.02), M.white, robot, 0, 0.34, -0.26);
+  const arco = new THREE.CylinderGeometry(0.12, 0.12, 0.34, 32, 1, false, PI/2, PI/2); arco.rotateZ(PI/2);
+  mesh(arco, M.white, robot, 0, colTop, -0.21);
+  // bandejas
+  LOWER_TRAYS.concat([TOP_TRAY]).forEach((y, i) => {
+    mesh(roundedBox(0.48, 0.03, 0.44, 0.07, 0.01), M.tray, robot, 0, y - 0.03, TRAY_Z);
+    mesh(new THREE.BoxGeometry(0.38, 0.007, 0.006), M.led, robot, 0, y - 0.017, TRAY_Z + 0.222, false);
+    mesh(new THREE.BoxGeometry(0.006, 0.007, 0.32), M.led, robot, -0.242, y - 0.017, TRAY_Z, false);
+    mesh(new THREE.BoxGeometry(0.30, 0.04, 0.03), M.black, robot, 0, y - 0.04, -0.18);
+    if (i < 3) mesh(ringGeo(0.07, 0.1, RING_H), M.orange, robot, 0, y, 0.04);
+  });
+  // anel da bandeja superior (aberto no U reto, fechado no U curvo — como nos storyboards)
+  mesh(ringGeo(0.07, 0.1, RING_H, CURVO ? 0 : 1.1), M.orange, robot, TOP_PLATE.x, TOP_TRAY, TOP_PLATE.z);
+  // cabeça
+  mesh(roundedBox(0.46, 0.30, 0.38, 0.09, 0.07), M.white, robot, 0, HEAD_Y, -0.02);
+  mesh(roundedBox(0.12, 0.03, 0.05, 0.01, 0.004), M.black, robot, -0.06, HEAD_Y - 0.025, 0.12);
+  mesh(new THREE.BoxGeometry(0.39, 0.17, 0.012), M.black, robot, 0, HEAD_Y + 0.15, 0.172);
+})();
+
+/* ---------- Rosto digital (canvas) ---------- */
+const faceCanvas = document.createElement('canvas'); faceCanvas.width = 512; faceCanvas.height = 224;
+const fctx = faceCanvas.getContext('2d');
+const faceTex = new THREE.CanvasTexture(faceCanvas); faceTex.encoding = THREE.sRGBEncoding;
+mesh(new THREE.PlaneGeometry(0.36, 0.15),
+  new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: faceTex, roughness: 0.15 }),
+  robot, 0, HEAD_Y + 0.15, 0.1785, false);
+let faceKey = '';
+function drawFace(mode, blink){
+  const k = mode + blink; if (k === faceKey) return; faceKey = k;
+  const W = 512, H = 224;
+  fctx.fillStyle = '#050607'; fctx.fillRect(0, 0, W, H);
+  fctx.fillStyle = fctx.strokeStyle = fctx.shadowColor = '#18d6cf'; fctx.shadowBlur = 18;
+  const eyeW = 92, eyeH = 62, ey = 70, ex1 = 92, ex2 = W - 92 - eyeW;
+  if (mode === 'feliz'){
+    fctx.lineWidth = 20; fctx.lineCap = 'round';
+    for (const ex of [ex1, ex2]){ fctx.beginPath(); fctx.arc(ex + eyeW/2, ey + 62, 40, PI*1.12, PI*1.88); fctx.stroke(); }
+    fctx.lineWidth = 14; fctx.beginPath(); fctx.arc(W/2, 120, 58, PI*0.2, PI*0.8); fctx.stroke();
+  } else {
+    const h = Math.max(6, eyeH * (1 - blink) * (mode === 'foco' ? 0.6 : 1));
+    const yy = ey + (eyeH - h)/2 + (mode === 'foco' ? 8 : 0);
+    fctx.fillRect(ex1, yy, eyeW, h); fctx.fillRect(ex2, yy, eyeW, h);
+    fctx.fillRect(W/2 - 56, 172, 112, 12);
+  }
+  faceTex.needsUpdate = true;
+}
+
+/* ================================================================
+   7. BRAÇO (base → ombro → cotovelo → punho nivelado → rotor vertical)
+   ================================================================ */
+const arm = {};
+arm.base = new THREE.Group(); arm.base.position.copy(ARM_BASE); robot.add(arm.base);
+mesh(new THREE.CylinderGeometry(0.06, 0.068, BASE_H, 36), M.joint, arm.base, 0, BASE_H/2, 0);
+arm.yaw = new THREE.Group(); arm.yaw.position.y = BASE_H; arm.base.add(arm.yaw);
+mesh(new THREE.CylinderGeometry(0.05, 0.055, TURRET_H, 32), M.alu, arm.yaw, 0, TURRET_H/2 - 0.01, 0);
+mesh(new THREE.CylinderGeometry(0.056, 0.056, 0.012, 32), M.joint, arm.yaw, 0, 0.004, 0);
+arm.shoulder = new THREE.Group(); arm.shoulder.position.y = TURRET_H; arm.yaw.add(arm.shoulder);
+cylX(0.048, 0.1, M.joint, arm.shoulder); cylX(0.05, 0.02, M.alu, arm.shoulder, 0.052, 0, 0);
+cylZ(0.034, L1 - 0.06, M.alu, arm.shoulder, 0, 0, L1/2);
+arm.elbow = new THREE.Group(); arm.elbow.position.z = L1; arm.shoulder.add(arm.elbow);
+cylX(0.044, 0.095, M.joint, arm.elbow); cylX(0.046, 0.018, M.alu, arm.elbow, 0.05, 0, 0);
+cylZ(0.03, L2 - 0.06, M.alu, arm.elbow, 0, 0, L2/2);
+cylZ(0.033, 0.03, M.joint, arm.elbow, 0, 0, L2 * 0.62);
+arm.wrist = new THREE.Group(); arm.wrist.position.z = L2; arm.elbow.add(arm.wrist);
+cylX(0.036, 0.08, M.joint, arm.wrist);
+arm.rot = new THREE.Group(); arm.wrist.add(arm.rot);
+// Haste vertical do punho até a moldura (como no storyboard)
+mesh(new THREE.CylinderGeometry(0.03, 0.03, DROP - 0.045, 24), M.alu, arm.rot, 0, -0.03 - (DROP - 0.045)/2, 0);
+mesh(new THREE.CylinderGeometry(0.033, 0.033, 0.025, 24), M.joint, arm.rot, 0, -0.035, 0);
+
+/* ================================================================
+   8. SUPORTE EM U (peça principal)
+   ================================================================ */
+const grip = new THREE.Group(); grip.position.y = -DROP; arm.rot.add(grip);
+
+// Forma do U no plano (x lateral, y = frente). Centro do prato em (0, U_C).
+function uShape(ri, ro){
+  const s = new THREE.Shape();
+  if (CURVO){
+    // Fundo semicircular + braços levemente convergentes nas pontas
+    s.moveTo(ro, U_TIP);
+    s.lineTo(ro, U_C);
+    s.absarc(0, U_C, ro, 0, PI, true);
+    s.lineTo(-ro, U_TIP);
+    s.quadraticCurveTo(-ro, U_TIP + 0.02, -(ro + ri)/2, U_TIP + 0.022);
+    s.quadraticCurveTo(-ri, U_TIP + 0.02, -ri, U_TIP);
+    s.lineTo(-ri, U_C);
+    s.absarc(0, U_C, ri, PI, 0, false);
+    s.lineTo(ri, U_TIP);
+    s.quadraticCurveTo(ri, U_TIP + 0.02, (ro + ri)/2, U_TIP + 0.022);
+    s.quadraticCurveTo(ro, U_TIP + 0.02, ro, U_TIP);
+  } else {
+    // U reto: fundo e braços retos, cantos levemente chanfrados
+    const ch = 0.018, back = U_C - ro, ib = U_C - ri;
+    s.moveTo(ro, U_TIP);
+    s.lineTo(ro, back + ch); s.lineTo(ro - ch, back);
+    s.lineTo(-ro + ch, back); s.lineTo(-ro, back + ch);
+    s.lineTo(-ro, U_TIP); s.lineTo(-ri, U_TIP);
+    s.lineTo(-ri, ib); s.lineTo(ri, ib); s.lineTo(ri, U_TIP);
+    s.lineTo(ro, U_TIP);
+  }
+  return s;
+}
+(function buildU(){
+  // Moldura em alumínio (no U curvo com bisel maior, perfil "tubular")
+  mesh(flatExtrude(uShape(U_RI, U_RO), U_H, CURVO ? 0.009 : 0.004, CURVO ? 5 : 2), M.alu, grip);
+  // Revestimento interno escuro (faixa de contato com a borda do prato)
+  mesh(flatExtrude(uShape(U_RI - 0.003, U_RI + 0.004), U_H * 0.62, 0.001, 1), M.liner, grip);
+  // Fixação no punho: placa sobre o fundo do U
+  mesh(roundedBox(0.09, 0.012, 0.06, 0.01, 0.003), M.joint, grip, 0, U_H/2, U_C - U_RO + 0.03);
+  // Trilho com rasgo do empurrador (no topo do fundo do U)
+  mesh(new THREE.BoxGeometry(0.06, 0.006, 0.026), M.joint, grip, 0, U_H/2 + 0.012, U_C - (U_RI + U_RO)/2);
+})();
+
+// Empurrador laranja (desliza para frente mantendo o prato no lugar enquanto o U recua)
+const pusher = new THREE.Group(); grip.add(pusher);
+const pushPad = mesh(roundedBox(0.05, 0.03, 0.014, 0.004, 0.002), M.orange, pusher, 0, -0.016, 0);
+const pushRod = mesh(new THREE.BoxGeometry(0.018, 0.012, 1), M.orange, pusher, 0, 0.004, -0.5);
+const pushCap = mesh(roundedBox(0.03, 0.022, 0.035, 0.005, 0.003), M.orange, grip, 0, U_H/2 + 0.004, U_C - (U_RI + U_RO)/2);
+function setPusher(ext){
+  pusher.position.z = U_C - PLATE_R - 0.007 + ext;   // face frontal encosta na borda do prato quando ext = recuo
+  const len = ext + (U_RO - PLATE_R) + 0.01;
+  pushRod.scale.z = len; pushRod.position.z = -len/2;
+}
+
+// Apoios que entram por baixo da borda (deslizam radialmente)
+const pads = [];
+for (const a of [PI/2, -PI/2, PI*0.82, -PI*0.82]){
+  const g = new THREE.Group(); g.rotation.y = a; g.position.z = U_C; grip.add(g);
+  const pad = mesh(roundedBox(0.03, 0.006, 0.034, 0.006, 0.002), M.rubber, g, 0, -RIM_Y + 0.006, 0);
+  pads.push(pad);
+}
+function setPads(t){ const r = THREE.MathUtils.lerp(U_RO - 0.012, PLATE_R - 0.012, t); pads.forEach(p => p.position.z = r); }
+
+// Duas travas nas pontas (giram sobre o eixo frontal; fechadas = gancho sobre a borda)
+const latches = [];
+for (const sx of [-1, 1]){
+  const pv = new THREE.Group(); pv.position.set(sx*U_RO, U_H/2, U_TIP - 0.018); grip.add(pv);
+  cylZ(0.008, 0.034, M.steel, pv);
+  mesh(roundedBox(U_RO - PLATE_R + 0.03, 0.014, 0.028, 0.005, 0.003), M.joint, pv, -sx*(U_RO - PLATE_R + 0.03)/2 + sx*0.004, 0.0, 0);
+  mesh(roundedBox(0.012, 0.022, 0.028, 0.003, 0.002), M.joint, pv, -sx*(U_RO - PLATE_R + 0.018), -0.02, 0);
+  mesh(new THREE.BoxGeometry(0.02, 0.004, 0.02), M.rubber, pv, -sx*(U_RO - PLATE_R + 0.018), -0.023, 0, false);
+  mesh(new THREE.BoxGeometry(0.004, 0.006, 0.016), M.led, pv, sx*0.006, 0.01, 0, false);
+  pv.userData.sx = sx; latches.push(pv);
+}
+function setLatches(closed){ latches.forEach(l => l.rotation.z = -l.userData.sx * 2.0 * (1 - closed)); }
+
+/* ================================================================
+   9. PRATOS (1 transferido + 3 imóveis)
+   ================================================================ */
+function makePlate(){
+  const pts = [[0,0],[0.06,0],[0.07,0.004],[0.11,0.016],[0.122,0.022],[0.124,0.026],[0.12,0.027],[0.108,0.021],[0.07,0.011],[0.06,0.009],[0,0.009]]
+    .map(p => new THREE.Vector2(p[0], p[1]));
+  const g = new THREE.Group();
+  mesh(new THREE.LatheGeometry(pts, 64), M.plate, g);
+  return g;
+}
+LOWER_TRAYS.forEach(y => { const p = makePlate(); p.position.set(0, y + RING_H, 0.04); robot.add(p); });
+const plate = makePlate(); scene.add(plate);
+
+/* ================================================================
+   10. CINEMÁTICA INVERSA SIMPLIFICADA (2 elos planares + guinada + punho nivelado)
+   ================================================================ */
+function ik(W, psi){
+  const dx = W.x - SHOULDER.x, dz = W.z - SHOULDER.z;
+  const th0 = Math.atan2(dx, dz);
+  const r = Math.hypot(dx, dz), h = W.y - SHOULDER.y;
+  // limita a distância ao alcance do braço
+  const d = THREE.MathUtils.clamp(Math.hypot(r, h), Math.abs(L1 - L2) + 1e-4, L1 + L2 - 1e-4);
+  const c2 = THREE.MathUtils.clamp((d*d - L1*L1 - L2*L2) / (2*L1*L2), -1, 1);
+  const q2 = -Math.acos(c2);  // cotovelo para cima
+  const a1 = Math.atan2(h, r) - Math.atan2(L2*Math.sin(q2), L1 + L2*Math.cos(q2));
+  return { th0, a1, a2: q2, psiRel: psi - th0 };
+}
+function applyJoints(j){
+  arm.yaw.rotation.y = j.th0;
+  arm.shoulder.rotation.x = -j.a1;
+  arm.elbow.rotation.x = -j.a2;
+  arm.wrist.rotation.x = j.a1 + j.a2;   // compensa → suporte sempre horizontal
+  arm.rot.rotation.y = j.psiRel;
+}
+const lerp = THREE.MathUtils.lerp;
+const easeInOutCubic = t => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+const seg = (p, a, b) => easeInOutCubic(THREE.MathUtils.clamp((p - a) / (b - a), 0, 1));
+const cart = (x, y, z, psi) => ({ p: new THREE.Vector3(x, y, z), psi });
+const lerpCart = (A, B, t) => ({ p: A.p.clone().lerp(B.p, t), psi: lerp(A.psi, B.psi, t) });
+const fwd = psi => new THREE.Vector3(Math.sin(psi), 0, Math.cos(psi));
+// punho para que o prato (fundo em pb) fique centrado no U com a moldura na altura da borda
+function wristFor(pb, psi){ return pb.clone().addScaledVector(fwd(psi), -U_C).add(new THREE.Vector3(0, RIM_Y + DROP, 0)); }
+
+/* ---------- Poses-chave ---------- */
+const pick  = wristFor(TOP_PLATE, PI);        // suporte aponta −Z (entra pela frente)
+const touch = wristFor(PLACE, PI/2);          // suporte aponta +X (para a mesa)
+const K = {
+  REST:   cart(0.30, 1.30, 0.24, 0),
+  PRE:    cart(pick.x, pick.y, pick.z + 0.24, PI),
+  PICK:   cart(pick.x, pick.y, pick.z, PI),
+  LIFT:   cart(pick.x, pick.y + 0.07, pick.z, PI),
+  ABOVE:  cart(touch.x, touch.y + 0.08, touch.z, PI/2),
+  TOUCH:  cart(touch.x, touch.y, touch.z, PI/2),
+  SET:    cart(touch.x, touch.y - 0.004, touch.z, PI/2),
+};
+const RETREAT = 0.27;
+K.BACK = cart(K.SET.p.x - RETREAT, K.SET.p.y, K.SET.p.z, PI/2);
+
+/* ================================================================
+   11. STORYBOARD: 9 cenas em 12 s
+   ================================================================ */
+const PHASES = [
+  { n: '01', t0: 0,  t1: 1,  nome: 'Preparar',        txt: 'Prato na bandeja superior; braço se aproxima.' },
+  { n: '02', t0: 1,  t1: 2,  nome: 'Encaixar',        txt: 'U envolve a borda; apoios entram por baixo.' },
+  { n: '03', t0: 2,  t1: 3,  nome: 'Travar',          txt: 'Duas travas fecham; empurrador recolhido.' },
+  { n: '04', t0: 3,  t1: 4,  nome: 'Elevar',          txt: 'Levantar o prato nivelado, livre da bandeja.' },
+  { n: '05', t0: 4,  t1: 6,  nome: 'Transportar',     txt: 'Braço gira até a mesa; prato na horizontal.' },
+  { n: '06', t0: 6,  t1: 8,  nome: 'Apoiar',          txt: 'Descer até o prato repousar sobre a mesa.' },
+  { n: '07', t0: 8,  t1: 9,  nome: 'Destravar',       txt: 'Prato apoiado; abrir as duas travas.' },
+  { n: '08', t0: 9,  t1: 11, nome: 'Retirar suporte', txt: 'U recua; empurrador mantém o prato no lugar.' },
+  { n: '09', t0: 11, t1: 12, nome: 'Concluir',        txt: 'Braço recolhe; prato permanece na mesa.' },
+];
+const TOTAL = 12;
+
+// Pose determinística a partir do tempo T (pausar/avançar/pular cena é trivial)
+function poseAt(T){
+  let i = PHASES.findIndex(ph => T < ph.t1); if (i < 0) i = PHASES.length - 1;
+  const ph = PHASES[i];
+  const p = THREE.MathUtils.clamp((T - ph.t0) / (ph.t1 - ph.t0), 0, 1);
+  const o = { i, p, latch: 1, pads: 0, push: 0, where: 'tray', mood: 'neutro' };
+  switch (i){
+    case 0: { // Preparar: aproxima pela frente girando o suporte por fora (+X)
+      o.cart = lerpCart(K.REST, K.PRE, easeInOutCubic(p));
+      o.cart.p.y = lerp(K.REST.p.y, K.PRE.p.y, seg(p, 0.35, 1));    // só desce depois de sair da frente do prato
+      o.latch = 1 - seg(p, 0.3, 0.9);
+      break; }
+    case 1: // Encaixar
+      o.cart = lerpCart(K.PRE, K.PICK, seg(p, 0, 0.7));
+      o.latch = 0; o.pads = seg(p, 0.65, 1); o.mood = 'foco';
+      break;
+    case 2: // Travar
+      o.cart = K.PICK; o.pads = 1; o.latch = seg(p, 0.1, 0.75); o.mood = 'foco';
+      break;
+    case 3: // Elevar
+      o.cart = lerpCart(K.PICK, K.LIFT, easeInOutCubic(p)); o.pads = 1; o.where = 'grip';
+      break;
+    case 4: { // Transportar: gira até a mesa; só desce quando o U já está fora do robô
+      const q = easeInOutCubic(p);
+      o.cart = lerpCart(K.LIFT, K.ABOVE, q);
+      o.cart.p.y = lerp(K.LIFT.p.y, K.ABOVE.p.y, seg(q, 0.6, 1));
+      o.pads = 1; o.where = 'grip';
+      break; }
+    case 5: // Apoiar
+      o.cart = p < 0.85 ? lerpCart(K.ABOVE, K.TOUCH, seg(p, 0, 0.85)) : lerpCart(K.TOUCH, K.SET, seg(p, 0.85, 1));
+      o.pads = 1; o.where = p < 0.85 ? 'grip' : 'table';
+      break;
+    case 6: // Destravar
+      o.cart = K.SET; o.where = 'table'; o.mood = 'feliz';
+      o.latch = 1 - seg(p, 0, 0.6); o.pads = 1 - seg(p, 0.4, 1);
+      break;
+    case 7: { // Retirar suporte: o U recua e o empurrador avança na mesma medida
+      const r = RETREAT * seg(p, 0, 0.75);
+      o.cart = cart(K.SET.p.x - r, K.SET.p.y, K.SET.p.z, PI/2);
+      o.latch = 0; o.where = 'table'; o.mood = 'feliz';
+      o.push = Math.min(r, PUSH_MAX) * (1 - seg(p, 0.8, 1));
+      break; }
+    case 8: { // Concluir: sobe primeiro, depois gira e recolhe
+      o.cart = lerpCart(K.BACK, K.REST, seg(p, 0.25, 1));
+      o.cart.p.y = lerp(K.BACK.p.y, K.REST.p.y, seg(p, 0, 0.55));
+      o.latch = seg(p, 0.5, 1); o.where = 'table'; o.mood = 'feliz';
+      break; }
+  }
+  return o;
+}
+
+/* ================================================================
+   12. ESTADO + APLICAÇÃO DA POSE
+   ================================================================ */
+const state = { T: 0, playing: false, speed: 1, started: false, done: false };
+const _v = new THREE.Vector3();
+function applyPose(){
+  const o = poseAt(state.T);
+  applyJoints(ik(o.cart.p, o.cart.psi));
+  setLatches(o.latch); setPads(o.pads); setPusher(o.push);
+  robot.updateMatrixWorld(true);
+  if (o.where === 'grip'){
+    grip.localToWorld(_v.set(0, -RIM_Y, U_C));
+    plate.position.copy(_v);
+  } else if (o.where === 'table'){
+    plate.position.copy(PLACE);
+  } else {
+    plate.position.copy(TOP_PLATE);
+  }
+  return o;
+}
+
+/* ================================================================
+   13. INTERFACE
+   ================================================================ */
+const $ = id => document.getElementById(id);
+const btnPlay = $('btnPlay');
+const tl = $('timeline');
+PHASES.forEach((ph, i) => {
+  const b = document.createElement('button');
+  b.style.flexBasis = ((ph.t1 - ph.t0) / TOTAL * 100) + '%';
+  b.innerHTML = `<i></i><span>${ph.n}</span>`;
+  b.title = `${ph.n} | ${ph.t0}–${ph.t1} s · ${ph.nome}`;
+  b.addEventListener('click', () => { state.T = ph.t0 + 0.001; state.started = true; state.done = false; updatePlay(); });
+  tl.appendChild(b);
+});
+const tlBtns = [...tl.children];
+function updatePlay(){
+  btnPlay.textContent = state.playing ? '❚❚ Pausar' : (state.started && !state.done ? '▶ Continuar' : '▶ Iniciar');
+  btnPlay.classList.toggle('primario', !state.playing);
+}
+function reset(){ Object.assign(state, { T: 0, playing: false, started: false, done: false }); updatePlay(); }
+btnPlay.addEventListener('click', () => { if (state.done) reset(); state.playing = !state.playing; state.started = true; updatePlay(); });
+$('btnReset').addEventListener('click', reset);
+$('velocidade').addEventListener('input', e => { state.speed = +e.target.value; $('velTxt').textContent = state.speed.toFixed(2) + '×'; });
+let camMode = 'livre';
+document.querySelectorAll('#segCamera button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#segCamera button').forEach(x => x.classList.toggle('ativo', x === b));
+  camMode = b.dataset.c;
+}));
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space'){ e.preventDefault(); btnPlay.click(); }
+  else if (e.key === 'r' || e.key === 'R') $('btnReset').click();
+  else if (e.key === 'c' || e.key === 'C') document.querySelector(`#segCamera button[data-c="${camMode === 'livre' ? 'pinca' : 'livre'}"]`).click();
+});
+function updateCaption(o){
+  const ph = PHASES[o.i];
+  let etapa, texto;
+  if (state.done){ etapa = '09 | 11–12 s · <b>Concluído ✓</b>'; texto = 'Prato permanece na mesa — Reiniciar para repetir.'; }
+  else if (!state.started){ etapa = '<b>Pronto</b>'; texto = 'Toque em Iniciar ou escolha uma cena na linha do tempo.'; }
+  else { etapa = `${ph.n} | ${ph.t0}–${ph.t1} s · <b>${ph.nome}</b>${state.playing ? '' : ' · pausado'}`; texto = ph.txt; }
+  if ($('legEtapa').innerHTML !== etapa) $('legEtapa').innerHTML = etapa;
+  if ($('legTexto').textContent !== texto) $('legTexto').textContent = texto;
+  tlBtns.forEach((b, i) => {
+    const f = THREE.MathUtils.clamp((state.T - PHASES[i].t0) / (PHASES[i].t1 - PHASES[i].t0), 0, 1);
+    b.firstChild.style.width = (f*100).toFixed(1) + '%';
+    b.classList.toggle('atual', state.started && i === o.i);
+  });
+}
+
+/* ================================================================
+   14. CÂMERA ORBITAL FEITA À MÃO (mouse + toque)
+   ================================================================ */
+const orbit = {
+  livre: { target: new THREE.Vector3(0.5, 0.95, 0.1), theta: 0.5, phi: 1.24, radius: 3.2 },
+  pinca: { target: new THREE.Vector3(), theta: 0.75, phi: 0.95, radius: 1.05 },
+};
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+let camInit = false;
+const pointers = new Map(); let lastPinch = 0, lastMid = null, panMode = false;
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('pointerdown', e => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  panMode = e.button === 2 || e.shiftKey;
+  if (pointers.size === 2){ const [a, b] = [...pointers.values()]; lastPinch = Math.hypot(a.x - b.x, a.y - b.y); lastMid = { x: (a.x + b.x)/2, y: (a.y + b.y)/2 }; }
+});
+function pan(dx, dy){
+  const o = orbit[camMode], s = o.radius * 0.0012;
+  o.target.addScaledVector(new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0), -dx*s)
+          .addScaledVector(new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1), dy*s);
+}
+function zoom(f){ const o = orbit[camMode], lim = camMode === 'livre' ? [0.8, 7] : [0.3, 2]; o.radius = THREE.MathUtils.clamp(o.radius * f, lim[0], lim[1]); }
+canvas.addEventListener('pointermove', e => {
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId), dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const o = orbit[camMode];
+  if (pointers.size === 1){
+    if (panMode && camMode === 'livre') pan(dx, dy);
+    else { o.theta -= dx*0.006; o.phi = THREE.MathUtils.clamp(o.phi - dy*0.006, 0.15, 1.52); }
+  } else if (pointers.size === 2){
+    const [a, b] = [...pointers.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y), mid = { x: (a.x + b.x)/2, y: (a.y + b.y)/2 };
+    if (lastPinch) zoom(lastPinch / dist);
+    if (lastMid && camMode === 'livre') pan(mid.x - lastMid.x, mid.y - lastMid.y);
+    lastPinch = dist; lastMid = mid;
+  }
+});
+const endP = e => { pointers.delete(e.pointerId); lastPinch = 0; lastMid = null; };
+canvas.addEventListener('pointerup', endP); canvas.addEventListener('pointercancel', endP);
+canvas.addEventListener('wheel', e => { e.preventDefault(); zoom(Math.exp(e.deltaY*0.001)); }, { passive: false });
+function updateCamera(dt){
+  const o = orbit[camMode];
+  if (camMode === 'pinca') grip.localToWorld(o.target.set(0, 0, U_C));
+  const sp = Math.sin(o.phi);
+  const want = new THREE.Vector3(o.target.x + o.radius*sp*Math.sin(o.theta), o.target.y + o.radius*Math.cos(o.phi), o.target.z + o.radius*sp*Math.cos(o.theta));
+  want.y = Math.max(want.y, 0.05);
+  const k = camInit ? 1 - Math.exp(-dt*8) : 1;
+  camPos.lerp(want, k); camLook.lerp(o.target, k); camInit = true;
+  camera.position.copy(camPos); camera.lookAt(camLook);
+}
+
+/* ================================================================
+   15. LAÇO PRINCIPAL
+   ================================================================ */
+function resize(){
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w/h; camera.fov = w/h < 0.8 ? 52 : 40; camera.updateProjectionMatrix();
+  orbit.livre.radius = w/h < 0.8 ? 4.3 : 3.2;
+}
+window.addEventListener('resize', resize); resize();
+
+const clock = new THREE.Clock();
+let blinkTimer = 2.5, blinkT = -1, elapsed = 0;
+function frame(){
+  const dt = Math.min(clock.getDelta(), 0.05); elapsed += dt;
+  if (state.playing){
+    state.T += dt * state.speed;
+    if (state.T >= TOTAL){ state.T = TOTAL; state.playing = false; state.done = true; updatePlay(); }
+  }
+  const o = applyPose();
+  blinkTimer -= dt;
+  if (blinkTimer <= 0){ blinkT = 0; blinkTimer = 2.5 + Math.random()*2.5; }
+  let blink = 0;
+  if (blinkT >= 0){ blinkT += dt; blink = Math.sin(Math.min(1, blinkT/0.16)*PI); if (blinkT > 0.16) blinkT = -1; }
+  const mood = state.done ? 'feliz' : (state.started ? o.mood : 'neutro');
+  drawFace(mood, mood === 'feliz' ? 0 : Math.round(blink*4)/4);
+  M.led.emissiveIntensity = state.playing ? 1.2 + 0.5*Math.sin(elapsed*5) : 1.3;
+  updateCaption(o); updateCamera(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__robo = { state, setCam: m => { camMode = m; } };
+})();
+</script>
+</body>
+</html>
