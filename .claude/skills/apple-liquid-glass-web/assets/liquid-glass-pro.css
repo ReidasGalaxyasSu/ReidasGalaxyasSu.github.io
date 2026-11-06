@@ -1,0 +1,283 @@
+/* ==========================================================================
+   liquid-glass-pro.css — camada avançada sobre apple-glass.css
+   Parte da skill apple-liquid-glass-web. Carregue DEPOIS de apple-glass.css.
+   Anatomia do vidro (references/anatomia-do-vidro.md):
+     corpo (preenchimento + blur)  · borda especular (rim)  · brilho especular que segue a luz
+     sombra interna (espessura)    · dispersão cromática (arco-íris fino na borda)
+     sombra projetada              · refração (liquid-glass-lens.js, Chromium)
+   Componentes inspirados nas referências 1–5 (assets/referencias/):
+     .lg-panel--dark  modal escuro fumê (ref. 1)    .lg-orb-btn   bolhas clear/regular (ref. 2)
+     .lg-picker       seletor em cápsula c/ lente (ref. 3)  .lg-orb  objeto iridescente (ref. 4)
+     .lg-slide        toggle/slide-to-confirm preto cromado (ref. 5)
+   ========================================================================== */
+
+:root {
+  --lg-rim-light: rgba(255, 255, 255, 0.75);   /* lado iluminado da borda */
+  --lg-rim-dark: rgba(255, 255, 255, 0.08);    /* lado oposto */
+  --lg-rim-width: 1px;
+  --lg-light-angle: 135deg;                    /* luz vindo de cima-esquerda */
+  --lg-depth: 0.18;                            /* intensidade da sombra interna (espessura) */
+  --lg-mx: 30%;  --lg-my: 0%;                  /* posição do brilho (liquid-glass-lens.js) */
+  --lg-ease-morph: cubic-bezier(.32, .72, 0, 1); /* chegada longa e macia, sem rebote */
+  --lg-ease-spring: cubic-bezier(.34, 1.36, .64, 1);
+  --lg-dur-morph: 420ms;
+}
+
+/* --------------------------------------------------------------------------
+   1. Superfície com anatomia completa (combine com .glass ou .glass--clear)
+   -------------------------------------------------------------------------- */
+.lg-surface { position: relative; isolation: isolate; }
+
+/* Borda especular: gradiente só na espessura da borda (máscara padding-box × border-box) */
+.lg-surface::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  padding: var(--lg-rim-width);
+  background: linear-gradient(var(--lg-light-angle), var(--lg-rim-light), var(--lg-rim-dark) 38%,
+              var(--lg-rim-dark) 62%, color-mix(in srgb, var(--lg-rim-light) 55%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  z-index: 2;
+}
+
+/* Brilho especular + sombra interna (dá espessura). Substitui o ::before simples de .glass */
+.lg-surface::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
+  background:
+    radial-gradient(120% 80% at var(--lg-mx) var(--lg-my), rgba(255, 255, 255, .32), rgba(255, 255, 255, 0) 55%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .55),
+    inset 0 -10px 24px rgba(0, 0, 0, calc(var(--lg-depth) * .6)),
+    inset 0 0 0 1px rgba(255, 255, 255, .04);
+  mix-blend-mode: soft-light;
+  transition: background-position .2s linear;
+}
+.lg-surface > * { position: relative; z-index: 3; }
+
+/* Dispersão cromática na borda (refs. 4 e 5): use em 1 elemento de destaque, nunca em barras */
+.lg-chroma::after {
+  background: conic-gradient(from 200deg,
+    rgba(255, 255, 255, .85), rgba(140, 220, 255, .55) 8%, rgba(255, 255, 255, .1) 18%,
+    rgba(255, 255, 255, .05) 45%, rgba(255, 170, 120, .5) 52%, rgba(255, 120, 220, .45) 56%,
+    rgba(255, 255, 255, .7) 60%, rgba(255, 255, 255, .06) 72%, rgba(120, 200, 255, .5) 92%,
+    rgba(255, 255, 255, .85));
+}
+
+/* Elemento com refração ativa (o JS adiciona a classe): menos blur no CSS, a lente faz o trabalho */
+.lg-has-lens { background-color: color-mix(in srgb, var(--glass-fill, rgba(255,255,255,.2)) 40%, transparent); }
+
+/* --------------------------------------------------------------------------
+   2. Vidro escuro fumê (ref. 1) — modais, sheets e painéis sobre fundo escuro
+   -------------------------------------------------------------------------- */
+.lg-panel--dark {
+  --lg-rim-light: rgba(255, 255, 255, .42);
+  --lg-rim-dark: rgba(255, 255, 255, .04);
+  background: rgba(22, 22, 24, 0.58);
+  -webkit-backdrop-filter: blur(34px) saturate(1.5) brightness(.85);
+          backdrop-filter: blur(34px) saturate(1.5) brightness(.85);
+  color: #F5F5F7;
+  border-radius: 32px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .35);
+  --label: #F5F5F7; --label-secondary-strong: rgba(235, 235, 245, .62);
+}
+/* Título em abas grandes com sublinhado accent (ref. 1: "Sign In / Join") */
+.lg-title-tabs { display: flex; gap: clamp(24px, 5vw, 56px); justify-content: center; }
+.lg-title-tabs [role="tab"] {
+  position: relative; font: 600 clamp(28px, 4vw, 40px)/1.1 var(--font-display, system-ui);
+  letter-spacing: -0.03em; color: rgba(235, 235, 245, .32); background: none; border: 0;
+  padding: 8px 4px 20px; cursor: pointer; transition: color var(--dur-base, 250ms) ease;
+}
+.lg-title-tabs [role="tab"][aria-selected="true"] { color: #FFFFFF; }
+.lg-title-tabs [role="tab"]::after {
+  content: ""; position: absolute; left: 50%; bottom: 0; width: 48px; height: 3px; border-radius: 3px;
+  background: var(--accent); transform: translateX(-50%) scaleX(0);
+  transition: transform var(--lg-dur-morph) var(--lg-ease-morph);
+}
+.lg-title-tabs [role="tab"][aria-selected="true"]::after { transform: translateX(-50%) scaleX(1); }
+
+/* Campo escuro dentro do vidro (preenchimento, não vidro sobre vidro) */
+.lg-field { display: grid; gap: 8px; }
+.lg-field label { font: 500 .8125rem/1.2 var(--font-text, system-ui); color: rgba(235, 235, 245, .55); padding-left: 14px; }
+.lg-field input {
+  height: 48px; border-radius: 14px; padding: 0 16px; font: 400 1rem/1 var(--font-text, system-ui);
+  color: #FFFFFF; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .10);
+  outline: none; transition: border-color .2s, background-color .2s, box-shadow .2s;
+}
+.lg-field input::placeholder { color: rgba(235, 235, 245, .38); }
+.lg-field input:focus-visible { border-color: color-mix(in srgb, var(--accent) 70%, #fff); background: rgba(255, 255, 255, .09);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
+
+/* Ladrilhos brilhantes (ref. 1: botões sociais) — tinta da marca em --tile-tint */
+.lg-tile {
+  --tile-tint: rgba(255, 255, 255, .0);
+  position: relative; display: inline-grid; place-items: center; min-width: 96px; height: 44px;
+  border-radius: 12px; border: 1px solid rgba(255, 255, 255, .10); cursor: pointer; color: #FFFFFF;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 48%),
+    linear-gradient(0deg, var(--tile-tint), var(--tile-tint)),
+    #141416;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 6px 18px rgba(0, 0, 0, .45);
+  transition: transform .18s var(--lg-ease-spring), filter .2s;
+}
+.lg-tile:hover { filter: brightness(1.15); }
+.lg-tile:active { transform: scale(.96); }
+
+/* --------------------------------------------------------------------------
+   3. Bolhas de vidro (ref. 2) — botão redondo grande sobre foto/vídeo
+   .lg-orb-btn--clear  → use com data-lg-lens="sphere" (bola de vidro: fundo invertido e ampliado)
+   .lg-orb-btn--frost  → vidro regular (fundo desfocado, sem lente)
+   -------------------------------------------------------------------------- */
+.lg-orb-btn {
+  --size: 160px;
+  width: var(--size); aspect-ratio: 1; border-radius: 50%; display: grid; place-content: center;
+  justify-items: center; gap: 6px; color: #FFFFFF; border: 0; cursor: pointer;
+  font: 600 1.375rem/1 var(--font-display, system-ui); text-shadow: 0 1px 12px rgba(0, 0, 0, .25);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .22), inset 0 2px 1px rgba(255, 255, 255, .7),
+              inset 0 -12px 30px rgba(0, 0, 0, .12), inset 0 0 0 1px rgba(255, 255, 255, .35);
+}
+.lg-orb-btn svg { width: 38%; height: auto; fill: currentColor; }
+.lg-orb-btn--clear {
+  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .55), rgba(255, 255, 255, .06) 30%, rgba(255, 255, 255, .02) 70%, rgba(255, 255, 255, .25));
+  -webkit-backdrop-filter: blur(2px) saturate(1.4); backdrop-filter: blur(2px) saturate(1.4);
+}
+.lg-orb-btn--frost {
+  background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .45), rgba(255, 255, 255, .14) 40%, rgba(255, 255, 255, .22));
+  -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6);
+}
+
+/* --------------------------------------------------------------------------
+   4. Seletor em cápsula com lente (ref. 3: modos da câmera)
+   Estrutura: .lg-picker (trilho clear) > .lg-picker__lens (thumb, data-lg-lens="magnify")
+              + .lg-picker__track (rolagem horizontal com scroll-snap) > button[aria-pressed]
+   -------------------------------------------------------------------------- */
+.lg-picker {
+  position: relative; height: 72px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .10);
+  -webkit-backdrop-filter: blur(6px) saturate(1.6); backdrop-filter: blur(6px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55), inset 0 -1px 0 rgba(255, 255, 255, .2), 0 10px 30px rgba(0, 0, 0, .12);
+  border: 1.5px solid rgba(255, 255, 255, .55);
+}
+.lg-picker__track {
+  display: flex; gap: 8px; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding-inline: calc(50% - 90px); scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.lg-picker__track::-webkit-scrollbar { display: none; }
+.lg-picker__track button {
+  flex: 0 0 180px; scroll-snap-align: center; border: 0; background: none; cursor: pointer;
+  font: 500 1.5rem/1 var(--font-display, system-ui); letter-spacing: .02em; text-transform: uppercase;
+  color: rgba(255, 255, 255, .92); text-shadow: 0 1px 8px rgba(0, 0, 0, .18);
+  transition: color .25s ease, transform var(--lg-dur-morph) var(--lg-ease-morph);
+}
+.lg-picker__track button[aria-pressed="true"] { color: var(--picker-accent, #E4F03C); transform: scale(1.06); }
+.lg-picker__lens {
+  position: absolute; top: 4px; bottom: 4px; left: 50%; width: 196px; transform: translateX(-50%);
+  border-radius: 999px; pointer-events: none; z-index: 2;
+  background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, .28), rgba(255, 255, 255, .04) 55%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 -2px 6px rgba(0, 0, 0, .12),
+              inset 0 0 0 1.5px rgba(255, 255, 255, .45), 0 6px 16px rgba(0, 0, 0, .12);
+}
+
+/* --------------------------------------------------------------------------
+   5. Objeto de vidro iridescente (ref. 4) — ARTE/CONTEÚDO, não controle.
+   Versão CSS para hero e fundo de vídeo; para realismo use 3D (references/video-3d-e-prompts.md).
+   -------------------------------------------------------------------------- */
+.lg-orb {
+  --orb: 360px; width: var(--orb); aspect-ratio: 1; border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%;
+  position: relative; filter: saturate(1.1);
+  background:
+    radial-gradient(60% 55% at 50% 52%, rgba(255, 255, 255, .95), rgba(250, 250, 252, .6) 55%, rgba(255, 255, 255, 0) 72%),
+    conic-gradient(from 210deg, #f6f6f8, #bfe8ff, #ffffff, #ffd9f0, #e9f7ff, #fff0c9, #ffffff, #c9f3ff, #f6f6f8);
+  box-shadow: inset 0 0 40px rgba(255, 255, 255, .9), inset 12px -18px 40px rgba(120, 200, 255, .35),
+              inset -14px 14px 36px rgba(255, 150, 210, .3), 0 40px 80px rgba(120, 130, 160, .18);
+  animation: lg-orb-morph 14s ease-in-out infinite alternate, lg-orb-spin 22s linear infinite;
+}
+.lg-orb::after {
+  content: ""; position: absolute; inset: 6%; border-radius: inherit;
+  background: conic-gradient(from 90deg, transparent, rgba(80, 160, 255, .55), transparent 18%,
+              rgba(255, 120, 200, .45) 30%, transparent 40%, rgba(255, 200, 90, .4) 62%, transparent 70%);
+  -webkit-mask: radial-gradient(closest-side, transparent 78%, #000 92%, transparent);
+          mask: radial-gradient(closest-side, transparent 78%, #000 92%, transparent);
+  filter: blur(2px); mix-blend-mode: multiply;
+}
+@keyframes lg-orb-morph {
+  0%   { border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%; }
+  50%  { border-radius: 54% 46% 44% 56% / 46% 56% 44% 54%; }
+  100% { border-radius: 48% 52% 56% 44% / 54% 48% 52% 46%; }
+}
+@keyframes lg-orb-spin { to { rotate: 360deg; } }
+
+/* --------------------------------------------------------------------------
+   6. Toggle / slide-to-confirm preto cromado (ref. 5)
+   <button class="lg-slide" role="switch" aria-checked="false"><span class="lg-slide__knob">→</span></button>
+   O knob vira vidro (dispersão + borda cromada) só durante a interação, como na HIG.
+   -------------------------------------------------------------------------- */
+.lg-slide {
+  --w: 200px; --h: 92px; --pad: 8px;
+  position: relative; width: var(--w); height: var(--h); border-radius: 999px; border: 0; cursor: pointer;
+  background: radial-gradient(120% 140% at 30% 0%, #2a2a2c, #050505 60%);
+  box-shadow: inset 0 2px 1px rgba(255, 255, 255, .14), inset 0 -3px 8px rgba(0, 0, 0, .9),
+              0 1px 0 rgba(255, 255, 255, .06), 0 18px 40px rgba(0, 0, 0, .6);
+}
+.lg-slide__knob {
+  position: absolute; top: var(--pad); bottom: var(--pad); left: var(--pad);
+  width: calc(var(--w) * .55); border-radius: 999px; display: grid; place-items: center;
+  color: rgba(255, 255, 255, .55); font: 300 2rem/1 var(--font-display, system-ui);
+  background: linear-gradient(180deg, #303033, #1b1b1d);
+  box-shadow: inset 0 0 0 2px rgba(220, 222, 228, .85), inset 0 3px 2px rgba(255, 255, 255, .35),
+              inset 0 -3px 4px rgba(0, 0, 0, .6), 0 6px 14px rgba(0, 0, 0, .6);
+  transition: transform var(--lg-dur-morph) var(--lg-ease-spring), box-shadow .25s ease;
+}
+/* realce cromado com dispersão nos cantos (sempre sutil) */
+.lg-slide__knob::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px; pointer-events: none;
+  background: conic-gradient(from 300deg, transparent 0 8%, #ff6a3d 10%, #ffe14d 11.5%, #49d7ff 13%, #ffffff 14.5%, transparent 18% 58%,
+              #4c8dff 60%, #ffffff 61.5%, #ffb84d 63%, transparent 66%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: .9;
+}
+.lg-slide[aria-checked="true"] .lg-slide__knob { transform: translateX(calc(var(--w) - var(--w) * .55 - var(--pad) * 2)); }
+.lg-slide:active .lg-slide__knob, .lg-slide.is-dragging .lg-slide__knob {
+  background: rgba(40, 40, 44, .35);
+  -webkit-backdrop-filter: blur(4px) saturate(1.6); backdrop-filter: blur(4px) saturate(1.6);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .95), inset 0 4px 4px rgba(255, 255, 255, .4), 0 10px 24px rgba(0, 0, 0, .55);
+}
+.lg-slide:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* --------------------------------------------------------------------------
+   7. Morph (botão → menu/popover) e formas concêntricas
+   -------------------------------------------------------------------------- */
+.lg-concentric { --r-outer: 28px; --pad: 8px; border-radius: var(--r-outer); padding: var(--pad); }
+.lg-concentric > * { border-radius: max(4px, calc(var(--r-outer) - var(--pad))); }
+
+::view-transition-group(lg-morph) { animation-duration: var(--lg-dur-morph); animation-timing-function: var(--lg-ease-morph); }
+::view-transition-old(lg-morph), ::view-transition-new(lg-morph) { height: 100%; width: 100%; object-fit: none; overflow: clip; }
+
+/* Tab bar que encolhe ao rolar para baixo (tabBarMinimizeBehavior .onScrollDown) */
+.tabbar { transition: transform var(--lg-dur-morph) var(--lg-ease-morph), width var(--lg-dur-morph) var(--lg-ease-morph), padding var(--lg-dur-morph) var(--lg-ease-morph); }
+.tabbar.is-minimized { transform: translateX(-50%) scale(.86); }
+.tabbar.is-minimized .tabbar__item span { opacity: 0; width: 0; overflow: hidden; }
+
+/* --------------------------------------------------------------------------
+   8. Acessibilidade e fallbacks (não negociável)
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .lg-orb, .lg-orb::after { animation: none; }
+  .lg-slide__knob, .lg-title-tabs [role="tab"]::after, .lg-picker__track button, .tabbar { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .lg-panel--dark { background: #1C1C1E; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .lg-picker, .lg-orb-btn--clear, .lg-orb-btn--frost { background: rgba(60, 60, 67, .92); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .lg-surface::before, .lg-chroma::after { display: none; }
+}
+@media (prefers-contrast: more) {
+  .lg-panel--dark { background: #000; border: 1px solid #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .lg-surface::after { background: currentColor; }
+  .lg-field input { border-color: rgba(255, 255, 255, .7); }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .lg-panel--dark { background: rgba(22, 22, 24, .94); }
+  .lg-picker, .lg-orb-btn--frost { background: rgba(60, 60, 67, .85); }
+}

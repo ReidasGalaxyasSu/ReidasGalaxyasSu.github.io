@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liquid Glass — referências 1 a 5</title>
+<!-- Demonstração da skill apple-liquid-glass-web: as 5 imagens de referência recriadas em HTML/CSS.
+     Fundos desenhados em CSS para a página funcionar sozinha; troque por foto/vídeo real no projeto. -->
+<link rel="stylesheet" href="apple-glass.css">
+<link rel="stylesheet" href="liquid-glass-pro.css">
+<style>
+  body { margin: 0; background: #0b0b0c; color: #fff; font-family: var(--font-text); }
+  .stage { position: relative; min-height: 640px; display: grid; place-items: center; overflow: hidden; padding: 48px 20px; }
+  .stage + .stage { border-top: 1px solid #222; }
+  .stage__tag { position: absolute; left: 20px; top: 16px; font: 600 .8125rem/1 var(--font-text); opacity: .6; z-index: 5; }
+
+  /* Ref. 1: fundo preto com metal líquido */
+  .s1 { background: #000; }
+  .chrome { position: absolute; border-radius: 50%; filter: contrast(1.1);
+    background: radial-gradient(circle at 35% 30%, #fff 0 6%, #cfd3d8 12%, #6b7078 28%, #f4f6f8 40%, #3a3d42 55%, #e9ecef 66%, #1c1d20 80%);
+    box-shadow: inset 0 0 0 26px rgba(0,0,0,.0); }
+  .chrome::after { content: ""; position: absolute; inset: 28%; border-radius: 50%; background: radial-gradient(circle at 60% 60%, #000 0 40%, #2b2d31 60%, #9aa0a6 72%, #000 80%); }
+  .chrome--a { width: 360px; height: 300px; right: -40px; top: -60px; transform: rotate(-20deg); }
+  .chrome--b { width: 340px; height: 340px; left: -60px; bottom: -120px; }
+  .chrome--c { width: 200px; height: 120px; right: 60px; top: 120px; transform: rotate(30deg); z-index: 4; filter: blur(3px) contrast(1.1); } /* atravessa o vidro: profundidade */
+  .modal { width: min(860px, 100%); padding: 56px clamp(20px, 8vw, 180px) 64px; position: relative; z-index: 3; }
+  .modal__close { position: absolute; right: 28px; top: 28px; width: 44px; height: 44px; border: 0; background: none; color: rgba(255,255,255,.35); font-size: 40px; line-height: 1; cursor: pointer; }
+  .modal form { display: grid; gap: 22px; margin-top: 40px; }
+  .social { display: flex; gap: 14px; justify-content: center; margin-top: 44px; flex-wrap: wrap; }
+
+  /* Ref. 2: paisagem */
+  .s2 { background:
+      radial-gradient(60% 18% at 30% 32%, #fff 0 40%, transparent 70%),
+      radial-gradient(50% 16% at 72% 28%, #fff 0 40%, transparent 70%),
+      radial-gradient(3px 3px at 20% 70%, #f6c1d8 50%, transparent), radial-gradient(3px 3px at 26% 76%, #fff 50%, transparent),
+      radial-gradient(3px 3px at 74% 72%, #f6c1d8 50%, transparent), radial-gradient(3px 3px at 80% 66%, #fff 50%, transparent),
+      linear-gradient(180deg, #7fb2e5 0%, #b9d7f2 42%, #9cc9d8 52%, #5f9d4a 53%, #3f7d31 70%, #6aa75a 100%); }
+  .s2::after { content: ""; position: absolute; left: 35%; right: 35%; top: 53%; bottom: 0; background: linear-gradient(180deg, #8fb7cf, #4f7f9a); clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%); }
+  .orbs { display: flex; gap: clamp(24px, 8vw, 80px); position: relative; z-index: 2; }
+
+  /* Ref. 3: lâminas pastel */
+  .s3 { background:
+      repeating-linear-gradient(118deg, #e9ecf3 0 26px, #c9cfdc 26px 32px, #f7f4ef 32px 70px, #d9c3a5 70px 74px, #b8c2d6 74px 110px);
+      filter: none; }
+  .s3::before { content: ""; position: absolute; inset: 0; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .picker-wrap { width: min(780px, 100%); position: relative; z-index: 2; }
+
+  /* Ref. 4 */
+  .s4 { background: #f2f2f2; }
+
+  /* Ref. 5 */
+  .s5 { background: #1b1b1c; }
+</style>
+</head>
+<body>
+
+<!-- 1. Modal escuro fumê com metal líquido atrás (camada funcional: modal) -->
+<section class="stage s1" aria-label="Referência 1">
+  <span class="stage__tag">Ref. 1 · modal de vidro escuro</span>
+  <div class="chrome chrome--a" aria-hidden="true"></div>
+  <div class="chrome chrome--b" aria-hidden="true"></div>
+  <div class="chrome chrome--c" aria-hidden="true"></div>
+  <div class="modal lg-panel--dark lg-surface" role="dialog" aria-modal="true" aria-labelledby="t-signin" data-lg-specular>
+    <button class="modal__close" aria-label="Fechar">×</button>
+    <div class="lg-title-tabs" role="tablist">
+      <button role="tab" id="t-signin" aria-selected="true">Entrar</button>
+      <button role="tab" aria-selected="false">Criar conta</button>
+    </div>
+    <form onsubmit="return false">
+      <div class="lg-field"><label for="em">E-mail</label><input id="em" type="email" value="contato@exemplo.com" autocomplete="email"></div>
+      <div class="lg-field"><label for="pw">Senha</label><input id="pw" type="password" placeholder="Pelo menos 12 caracteres…" autocomplete="current-password"></div>
+    </form>
+    <div class="social">
+      <button class="lg-tile" style="--tile-tint: rgba(52,168,83,.18)" aria-label="Entrar com Google">G</button>
+      <button class="lg-tile" aria-label="Entrar com Apple"></button>
+      <button class="lg-tile" aria-label="Entrar com X">X</button>
+      <button class="lg-tile" style="--tile-tint: rgba(88,101,242,.45)" aria-label="Entrar com Discord">D</button>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Bolhas de vidro: clear com lente (esq.) × regular fosco (dir.) -->
+<section class="stage s2" aria-label="Referência 2">
+  <span class="stage__tag" style="color:#123">Ref. 2 · clear (lente) × regular (fosco)</span>
+  <div class="orbs">
+    <button class="lg-orb-btn lg-orb-btn--clear" data-lg-lens="sphere" data-lg-blur="0" data-lg-chroma="1" aria-label="Início">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg><span>Início</span>
+    </button>
+    <button class="lg-orb-btn lg-orb-btn--frost" aria-label="Início">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg><span>Início</span>
+    </button>
+  </div>
+</section>
+
+<!-- 3. Seletor de modos com lente no item ativo -->
+<section class="stage s3" aria-label="Referência 3">
+  <span class="stage__tag" style="color:#334">Ref. 3 · seletor em cápsula com lente</span>
+  <div class="picker-wrap">
+    <div class="lg-picker">
+      <div class="lg-picker__lens" data-lg-lens="magnify" data-lg-strength="40" data-lg-blur="0" aria-hidden="true"></div>
+      <div class="lg-picker__track" role="group" aria-label="Modo">
+        <button aria-pressed="false">Cinema</button>
+        <button aria-pressed="false">Vídeo</button>
+        <button aria-pressed="true">Foto</button>
+        <button aria-pressed="false">Retrato</button>
+        <button aria-pressed="false">Pano</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Objeto iridescente (arte, não controle) -->
+<section class="stage s4" aria-label="Referência 4">
+  <span class="stage__tag" style="color:#555">Ref. 4 · objeto de vidro iridescente (conteúdo)</span>
+  <div class="lg-orb" role="img" aria-label="Esfera de vidro iridescente"></div>
+</section>
+
+<!-- 5. Slide-to-confirm preto cromado -->
+<section class="stage s5" aria-label="Referência 5">
+  <span class="stage__tag">Ref. 5 · toggle preto cromado</span>
+  <button class="lg-slide" role="switch" aria-checked="false" aria-label="Deslize para confirmar">
+    <span class="lg-slide__knob" aria-hidden="true">→</span>
+  </button>
+</section>
+
+<script src="liquid-glass-lens.js"></script>
+<script>
+  // abas da ref. 1
+  document.querySelectorAll('.lg-title-tabs').forEach(function (list) {
+    list.addEventListener('click', function (e) {
+      var t = e.target.closest('[role="tab"]'); if (!t) return;
+      list.querySelectorAll('[role="tab"]').forEach(function (b) { b.setAttribute('aria-selected', String(b === t)); });
+    });
+  });
+  // seletor da ref. 3: centraliza o item clicado sob a lente
+  document.querySelectorAll('.lg-picker__track').forEach(function (track) {
+    var center = function (b, smooth) { track.scrollTo({ left: b.offsetLeft - (track.clientWidth - b.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' }); };
+    var cur = track.querySelector('[aria-pressed="true"]'); if (cur) center(cur, false);
+    track.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      track.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      center(b, !matchMedia('(prefers-reduced-motion: reduce)').matches);
+    });
+  });
+  // toggle da ref. 5
+  document.querySelectorAll('.lg-slide').forEach(function (s) {
+    s.addEventListener('click', function () { s.setAttribute('aria-checked', String(s.getAttribute('aria-checked') !== 'true')); });
+  });
+</script>
+</body>
+</html>
