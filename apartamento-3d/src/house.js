@@ -52,8 +52,11 @@ function makeMaterials() {
   const leatherTex = withRepeat(T.leather('#0f0e0e', 12), 1.2);
   const redLeatherTex = withRepeat(T.leather('#a8281f', 14), 0.9);
   const taupeTex = withRepeat(T.leather('#5b4a45', 15), 0.9);
+  const stone = T.stone();
+  withRepeat(stone.map, 1.0); withRepeat(stone.bump, 1.0);
   const cementTex = withRepeat(T.concrete('#8f8c88', 5), 1.4);
   return {
+    stone: std({ map: stone.map, bumpMap: stone.bump, bumpScale: 3, roughness: 0.95 }),
     wall: std({ map: wallTex, bumpMap: wallTex, bumpScale: 0.18, roughness: 0.92 }),
     wallDark: std({ map: wallDarkTex, bumpMap: wallDarkTex, bumpScale: 0.2, roughness: 0.8 }),
     cut: std({ color: '#161514', roughness: 1 }),
@@ -96,6 +99,7 @@ function makeMaterials() {
     screenOff: phys({ color: '#060708', roughness: 0.1, metalness: 0.2, clearcoat: 1, clearcoatRoughness: 0.03 }),
     glass: (() => { const m = new THREE.MeshStandardMaterial({ color: '#a9c2c8', roughness: 0.03, metalness: 0.1, transparent: true, opacity: 0.16, depthWrite: false, envMapIntensity: 1.4 }); allMaterials.add(m); return m; })(),
     glassSmoke: (() => { const m = new THREE.MeshStandardMaterial({ color: '#2a2c2e', roughness: 0.06, metalness: 0.2, transparent: true, opacity: 0.3, depthWrite: false }); allMaterials.add(m); return m; })(),
+    mirrorDoor: phys({ color: '#aeb6bf', roughness: 0.1, metalness: 0.35, clearcoat: 1, clearcoatRoughness: 0.03 }),
     mirror: std({ color: '#c9ccd0', roughness: 0.02, metalness: 1 }),
     sheer: (() => { const m = new THREE.MeshStandardMaterial({ color: '#efeae0', roughness: 1, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide }); allMaterials.add(m); return m; })(),
   };
@@ -382,7 +386,20 @@ export function buildHouse() {
   wall(X_B, X_B + TW, 0, Z_STEP, [{ a: 1.48, b: Z_STEP, y1: 0, y2: DOOR }]);       // sala | banho, com porta do dormitório
   wall(4.58, 6.98, 1.33, 1.48, [{ a: 4.67, b: 5.36, y1: 0, y2: DOOR }]);           // banho, lado sul, com porta
   wall(6.84, 6.98, 0, 1.33);                                                       // banho, lado leste
-  wall(0, X_P, Z_S, Z_S + TW, [{ a: 0, b: X_P, y1: 0, y2: 2.5 }], [M.wall, M.wall, M.wall, M.wall, M.wall, M.wall]); // verga sobre o vidro da sala
+  // Arco de pedra entre a sala e a varanda: vão até 2,30 m com canto arredondado
+  {
+    const g = new THREE.Group();
+    const sh = new THREE.Shape();
+    sh.moveTo(0, 2.3); sh.lineTo(0, H); sh.lineTo(X_P, H); sh.lineTo(X_P, 0); sh.lineTo(X_P - 0.25, 0);
+    sh.lineTo(X_P - 0.25, 1.62);
+    sh.absarc(X_P - 0.25 - 0.68, 1.62, 0.68, 0, Math.PI / 2, false);
+    sh.lineTo(0, 2.3);
+    const geo = new THREE.ExtrudeGeometry(sh, { depth: 0.2, bevelEnabled: true, bevelSize: 0.025, bevelThickness: 0.025, bevelSegments: 2, curveSegments: 24 });
+    worldUV(geo);
+    g.add(mesh(geo, M.stone, 0, 0, Z_S - 0.01));
+    g.userData.center = new THREE.Vector3(X_P / 2, 0, Z_S + 0.07);
+    walls.push(g); root.add(g);
+  }
 
   // Bloco do box: parede lateral + parede de fundo (0,14) com nicho; atrás dela, a pequena cavidade 0,58 × 0,25 do desenho
   {
@@ -428,21 +445,6 @@ export function buildHouse() {
     for (let i = 0; i < 6; i++) openings.add(bx(1.30 + i * 0.13, 1.302 + i * 0.13, 0.02, DOOR - 0.05, -0.056, -0.052, M.black));
     openings.add(bx(1.96, 1.985, 0.9, 1.5, -0.052, -0.03, M.steel, 0.008));
 
-    // sala | terraço: esquadria preta de 4 folhas, em dois trilhos
-    const fr = M.black, gz1 = Z_S + 0.045, gz2 = Z_S + 0.105;
-    openings.add(bx(0, X_P, 0, 0.05, Z_S, Z_S + TW, M.steel));                            // soleira
-    openings.add(bx(0, X_P, 2.46, 2.5, Z_S, Z_S + TW, fr));
-    for (let i = 0; i <= 4; i++) {
-      const x = i * X_P / 4;
-      openings.add(bx(Math.max(0, x - 0.03), Math.min(X_P, x + 0.03), 0.05, 2.46, i % 2 ? gz2 - 0.02 : gz1 - 0.02, i % 2 ? gz2 + 0.03 : gz1 + 0.03, fr));
-    }
-    for (let i = 0; i < 4; i++) {
-      const x1 = i * X_P / 4 + 0.03, x2 = (i + 1) * X_P / 4 - 0.03, zz = i % 2 ? gz2 : gz1;
-      openings.add(bx(x1, x2, 0.06, 2.45, zz - 0.004, zz + 0.004, M.glass));
-      openings.add(bx(x1, x2, 0.05, 0.1, zz - 0.02, zz + 0.02, fr), bx(x1, x2, 2.41, 2.46, zz - 0.02, zz + 0.02, fr));
-    }
-    openings.add(bx(0.93, 0.95, 1.0, 1.4, gz2 + 0.02, gz2 + 0.035, M.steel), bx(2.9, 2.92, 1.0, 1.4, gz1 - 0.035, gz1 - 0.02, M.steel));
-
     // janelas do dormitório: caixilho preto dentro do vão, duas folhas de correr, peitoril em concreto
     for (const w of [win1, win2]) {
       const t = 0.045, y1 = w.y1 + 0.02, mid = (w.a + w.b) / 2;
@@ -457,10 +459,12 @@ export function buildHouse() {
     // portas internas abertas a 90°, como no desenho
     for (const z of [1.48, Z_STEP]) openings.add(bx(X_B, X_B + TW, 0, DOOR, z - (z > 2 ? 0.02 : 0), z + (z > 2 ? 0 : 0.02), M.black));
     openings.add(bx(X_B, X_B + TW, DOOR - 0.03, DOOR, 1.48, Z_STEP, M.black));
-    openings.add(bx(X_B + TW, 5.2, 0, DOOR - 0.04, 1.505, 1.54, M.walnutDark), bx(4.98, 5.12, 1.0, 1.03, 1.54, 1.565, M.steel, 0.004));
-    for (const x of [4.67, 5.36]) openings.add(bx(x - (x < 5 ? 0.02 : 0), x + (x < 5 ? 0 : 0.02), 0, DOOR, 1.33, 1.48, M.black));
-    openings.add(bx(4.67, 5.36, DOOR - 0.03, DOOR, 1.33, 1.48, M.black));
-    openings.add(bx(4.69, 4.725, 0, DOOR - 0.04, 0.72, 1.33, M.walnutDark), bx(4.725, 4.745, 1.0, 1.04, 0.74, 0.9, M.steel));
+    openings.add(bx(3.76, X_B, 0, DOOR - 0.04, 1.505, 1.54, M.walnutDark), bx(3.88, 4.0, 1.0, 1.03, 1.54, 1.565, M.steel, 0.004));
+    // porta de correr espelhada do banho: folha fechada sobre o vão, no trilho do lado do dormitório, sem trinco
+    openings.add(bx(4.64, 5.40, 0.03, 2.13, 1.497, 1.527, M.black));
+    openings.add(bx(4.655, 5.385, 0.045, 2.115, 1.527, 1.531, M.mirrorDoor));
+    openings.add(bx(4.55, 6.10, 2.13, 2.18, 1.48, 1.545, M.black));
+    openings.add(bx(4.60, 5.45, 0.0, 0.03, 1.495, 1.51, M.black));
   }
   mergeByMaterial(openings);
   root.add(openings);
