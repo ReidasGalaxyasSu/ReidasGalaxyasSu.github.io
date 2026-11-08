@@ -44,6 +44,7 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture
 // Céu: gradiente que vai do estúdio escuro (dia) para a noite da cidade
 const skyUniforms = {
   uNight: { value: 0 },
+  uInside: { value: 0 },
 };
 const sky = new THREE.Mesh(
   new THREE.SphereGeometry(400, 32, 16),
@@ -51,10 +52,10 @@ const sky = new THREE.Mesh(
     side: THREE.BackSide, depthWrite: false, uniforms: skyUniforms,
     vertexShader: 'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
     fragmentShader: `
-      uniform float uNight; varying vec3 vDir;
+      uniform float uNight; uniform float uInside; varying vec3 vDir;
       void main(){
         float y = vDir.y;
-        vec3 dayTop = vec3(0.105,0.100,0.095), dayHor = vec3(0.16,0.15,0.14), dayLow = vec3(0.07,0.066,0.062);
+        vec3 dayTop = mix(vec3(0.105,0.100,0.095), vec3(0.34,0.50,0.78), uInside), dayHor = mix(vec3(0.16,0.15,0.14), vec3(0.72,0.80,0.88), uInside), dayLow = mix(vec3(0.07,0.066,0.062), vec3(0.34,0.36,0.37), uInside);
         vec3 nTop = vec3(0.010,0.013,0.026), nHor = vec3(0.075,0.05,0.042), nLow = vec3(0.012,0.011,0.014);
         vec3 top = mix(dayTop, nTop, uNight), hor = mix(dayHor, nHor, uNight), low = mix(dayLow, nLow, uNight);
         vec3 c = y > 0.0 ? mix(hor, top, pow(clamp(y,0.0,1.0), 0.5)) : mix(hor, low, pow(clamp(-y*3.0,0.0,1.0), 0.6));
@@ -68,11 +69,11 @@ sky.renderOrder = -1;
 scene.add(sky);
 
 // ------------------------------------------------------------------ luzes de dia
-const hemi = new THREE.HemisphereLight('#fff3e2', '#3a342e', 1.2);
+const hemi = new THREE.HemisphereLight('#fff3e2', '#3a342e', 1.0);
 scene.add(hemi);
-const sun = new THREE.DirectionalLight('#ffe7c9', 2.8);
+const sun = new THREE.DirectionalLight('#ffe7c9', 2.4);
 sun.position.set(-3, 13, 10);
-sun.target.position.set(4.3, 0, 3);
+sun.target.position.set(4.3, 0, 3.15);
 sun.castShadow = true;
 const sunMap = isMobile() ? 2048 : Math.min(4096, renderer.capabilities.maxTextureSize);
 sun.shadow.mapSize.set(sunMap, sunMap);
@@ -92,10 +93,10 @@ for (const mat of house.allMaterials) for (const k of ['map', 'bumpMap']) if (ma
 scene.add(house.root);
 
 // ------------------------------------------------------------------ folha da planta (papel) com revelação animada
-const SHEET = { x0: -1.7, x1: 10.3, z0: -1.6, z1: 7.7 };
+const SHEET = { x0: -2.3, x1: 11.5, z0: -2.0, z1: 9.2 };
 const sheetUniforms = { uReveal: { value: -0.1 } };
 function makeSheetTextures(img) {
-  const W = 2048, Hh = Math.round(W * (SHEET.z1 - SHEET.z0) / (SHEET.x1 - SHEET.x0));
+  const W = isMobile() ? 2048 : 2560, Hh = Math.round(W * (SHEET.z1 - SHEET.z0) / (SHEET.x1 - SHEET.x0));
   const toPx = (x, z) => [(x - SHEET.x0) / (SHEET.x1 - SHEET.x0) * W, (z - SHEET.z0) / (SHEET.z1 - SHEET.z0) * Hh];
   const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = Hh; return c; };
   const paper = mk(), ctx = paper.getContext('2d');
@@ -185,7 +186,7 @@ const city = (() => {
       const a = r() * Math.PI * 2, d = 22 + Math.pow(r(), 0.7) * 170;
       x = Math.cos(a) * d; z = Math.sin(a) * d;
     }
-    pos[i * 3] = 4.3 + x; pos[i * 3 + 1] = -36 + r() * 6; pos[i * 3 + 2] = 3 + z;
+    pos[i * 3] = 4.3 + x; pos[i * 3 + 1] = -36 + r() * 6; pos[i * 3 + 2] = 3.15 + z;
     const c = r() < 0.6 ? warm : r() < 0.6 ? white : amber;
     col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
   }
@@ -221,42 +222,43 @@ composer.addPass(new OutputPass());
 
 // ------------------------------------------------------------------ roteiro de câmera
 // ext = vista externa (afasta mais em telas verticais); ui = 1 quando o painel de texto ocupa a lateral
-const C = [4.27, 0.2, 3.0];
+const C = [4.3, 0.2, 3.15];
 const keys = [
-  { p: 0.000, pos: [4.27, 16.5, 3.04], tgt: [4.27, 0, 3.0], fov: 35, ui: 1, ext: 1 },
-  { p: 0.095, pos: [4.27, 15.2, 3.04], tgt: [4.27, 0, 3.0], fov: 35, ui: 1, ext: 1 },
+  { p: 0.000, pos: [4.3, 18.6, 3.2], tgt: [4.3, 0, 3.15], fov: 35, ui: 1, ext: 1 },
+  { p: 0.095, pos: [4.3, 17.0, 3.2], tgt: [4.3, 0, 3.15], fov: 35, ui: 1, ext: 1 },
   { p: 0.200, pos: [-4.2, 10.8, 14.2], tgt: C, fov: 35, ui: 1, ext: 1 },
   { p: 0.285, pos: [1.2, 12.8, 15.4], tgt: C, fov: 35, ui: 1, ext: 1 },
-  { p: 0.335, pos: [-4.6, 7.8, 9.2], tgt: [1.6, 0.4, 2.8], fov: 35, ui: 1, ext: 1 },
-  { p: 0.385, pos: [2.3, 10.2, -2.4], tgt: [2.2, 0.2, 2.9], fov: 35, ui: 1, ext: 1 },
-  { p: 0.430, pos: [-1.8, 6.8, 11.8], tgt: [2.3, 0.4, 4.6], fov: 35, ui: 1, ext: 1 },
-  { p: 0.475, pos: [5.75, 8.6, 2.9], tgt: [5.7, 0.2, 0.75], fov: 35, ui: 1, ext: 1 },
-  { p: 0.530, pos: [0.6, 9.2, 3.4], tgt: [6.9, 0.3, 2.8], fov: 35, ui: 1, ext: 1 },
-  { p: 0.570, pos: [12.8, 10.6, 13.2], tgt: C, fov: 35, ui: 1, ext: 1 },
+  { p: 0.325, pos: [7.4, 8.6, 2.8], tgt: [0.7, 0.4, 2.4], fov: 35, ui: 1, ext: 1 },
+  { p: 0.372, pos: [-2.0, 11.0, 6.8], tgt: [2.6, 0.4, 3.1], fov: 35, ui: 1, ext: 1 },
+  { p: 0.412, pos: [3.4, 9.4, 7.6], tgt: [3.2, 0.5, 0.9], fov: 35, ui: 1, ext: 1 },
+  { p: 0.452, pos: [-2.4, 6.6, 9.6], tgt: [2.0, 0.4, 5.4], fov: 35, ui: 1, ext: 1 },
+  { p: 0.492, pos: [6.8, 9.0, 3.6], tgt: [5.5, 0.3, 0.6], fov: 35, ui: 1, ext: 1 },
+  { p: 0.540, pos: [4.8, 11.0, 8.2], tgt: [6.6, 0.4, 2.6], fov: 35, ui: 1, ext: 1 },
+  { p: 0.575, pos: [12.8, 10.6, 13.2], tgt: C, fov: 35, ui: 1, ext: 1 },
   { p: 0.648, pos: [-4.4, 9.6, 13.6], tgt: C, fov: 35, ui: 1, ext: 1 },
   // tour interno: cada par é um "take" com transição por escurecimento (cut)
-  { p: 0.668, pos: [3.2, 1.5, 5.75], tgt: [1.0, 1.0, 2.2], fov: 58, ui: 0, cut: 1, shot: 0 },
-  { p: 0.702, pos: [2.85, 1.45, 5.25], tgt: [0.8, 1.0, 2.0], fov: 58, ui: 0, shot: 0 },
-  { p: 0.716, pos: [0.95, 1.6, 1.6], tgt: [3.7, 1.0, 3.7], fov: 58, ui: 0, cut: 1, shot: 1 },
-  { p: 0.752, pos: [0.95, 1.55, 2.25], tgt: [3.7, 1.0, 4.0], fov: 58, ui: 0, shot: 1 },
-  { p: 0.766, pos: [1.65, 1.55, 0.7], tgt: [3.2, 1.1, 5.6], fov: 58, ui: 0, cut: 1, shot: 2 },
-  { p: 0.802, pos: [2.0, 1.5, 1.2], tgt: [3.0, 1.1, 5.8], fov: 58, ui: 0, shot: 2 },
-  { p: 0.816, pos: [4.2, 1.6, 3.05], tgt: [8.5, 1.3, 2.85], fov: 58, ui: 0, cut: 1, shot: 3 },
-  { p: 0.852, pos: [4.55, 1.5, 3.1], tgt: [8.5, 1.35, 2.85], fov: 58, ui: 0, shot: 3 },
-  { p: 0.866, pos: [6.0, 1.3, 4.1], tgt: [8.4, 1.45, 2.6], fov: 58, ui: 0, cut: 1, shot: 4 },
-  { p: 0.898, pos: [5.7, 1.45, 3.9], tgt: [8.4, 1.5, 2.7], fov: 58, ui: 0, shot: 4 },
-  { p: 0.912, pos: [6.62, 1.6, 1.14], tgt: [4.9, 1.25, 0.05], fov: 62, ui: 0, cut: 1, shot: 5 },
-  { p: 0.938, pos: [6.5, 1.55, 1.04], tgt: [4.8, 1.2, 0.2], fov: 62, ui: 0, shot: 5 },
+  { p: 0.668, pos: [3.55, 1.55, 4.15], tgt: [0.6, 1.2, 1.4], fov: 58, ui: 0, cut: 1, shot: 0 },
+  { p: 0.702, pos: [3.2, 1.5, 3.7], tgt: [0.5, 1.2, 1.9], fov: 58, ui: 0, shot: 0 },
+  { p: 0.716, pos: [0.95, 1.6, 1.5], tgt: [3.4, 1.0, 3.5], fov: 58, ui: 0, cut: 1, shot: 1 },
+  { p: 0.752, pos: [1.0, 1.55, 1.9], tgt: [3.4, 1.0, 3.7], fov: 58, ui: 0, shot: 1 },
+  { p: 0.766, pos: [3.9, 1.55, 2.0], tgt: [2.8, 1.0, 0.4], fov: 58, ui: 0, cut: 1, shot: 2 },
+  { p: 0.802, pos: [3.6, 1.5, 1.7], tgt: [2.7, 1.0, 0.3], fov: 58, ui: 0, shot: 2 },
+  { p: 0.816, pos: [0.95, 1.5, 4.8], tgt: [3.2, 0.85, 5.6], fov: 58, ui: 0, cut: 1, shot: 3 },
+  { p: 0.852, pos: [1.2, 1.5, 5.05], tgt: [3.2, 0.85, 5.5], fov: 58, ui: 0, shot: 3 },
+  { p: 0.866, pos: [4.8, 1.55, 1.95], tgt: [8.3, 0.95, 3.0], fov: 58, ui: 0, cut: 1, shot: 4 },
+  { p: 0.898, pos: [5.5, 1.5, 2.1], tgt: [8.4, 0.95, 3.0], fov: 58, ui: 0, shot: 4 },
+  { p: 0.912, pos: [6.55, 1.6, 1.15], tgt: [4.9, 1.2, 0.1], fov: 62, ui: 0, cut: 1, shot: 5 },
+  { p: 0.938, pos: [6.5, 1.55, 1.1], tgt: [4.8, 1.15, 0.2], fov: 62, ui: 0, shot: 5 },
   { p: 0.955, pos: [12.5, 12.6, 14.0], tgt: C, fov: 35, ui: 1, ext: 1, cut: 1 },
   { p: 1.000, pos: [-2.5, 13.5, 15.5], tgt: C, fov: 35, ui: 1, ext: 1 },
 ];
 const shotNames = [
-  ['Sala & cozinha', 'Vista do terraço para a cozinha integrada'],
-  ['Estar', 'Sofá de couro voltado para a parede preta da TV'],
-  ['Arco de pedra', 'Do home office até o jantar no terraço'],
-  ['Dormitório', 'Cama flutuante com escultura iluminada'],
-  ['Dormitório', 'Luz quente de cabeceira e armário em vidro fumê'],
-  ['Banho', 'Bancada suspensa, espelho retroiluminado e box em vidro'],
+  ['Cozinha & estar', 'Cozinha preta, ilha-bancada e sofá voltado para a TV'],
+  ['Estar', 'Banquetas vermelhas e sofá de couro preto'],
+  ['Home office', 'Mesa de nogueira com vista para a sala'],
+  ['Varanda', 'Mesa oval, poltronas e banco de canto'],
+  ['Suíte', 'Cama queen, closet em laca e cortinas de voil'],
+  ['Banho', 'Bancada suspensa, cuba oval e box com ducha de teto'],
 ];
 
 const _sph = new THREE.Spherical(), _v = new THREE.Vector3();
@@ -293,10 +295,10 @@ function cameraAt(p, aspect) {
 }
 
 // ------------------------------------------------------------------ estado da cena em função do scroll
-const roomWindows = { cozinha: [0.295, 0.355], sala: [0.345, 0.41], jantar: [0.40, 0.448], banho: [0.448, 0.492], dormitorio: [0.492, 0.556] };
+const roomWindows = { cozinha: [0.292, 0.345], sala: [0.340, 0.392], escritorio: [0.388, 0.428], varanda: [0.424, 0.474], banho: [0.470, 0.512], dormitorio: [0.508, 0.562] };
 const ledBase = house.leds.map(m => m.color.clone());
 const screenBase = house.screens.map(m => m.color.clone());
-const dayEnv = 0.85, nightEnv = 0.14;
+const dayEnv = 0.6, nightEnv = 0.14;
 let nightAmount = 0;
 
 function applyScene(p) {
@@ -320,6 +322,8 @@ function applyScene(p) {
   // o papel dá lugar ao piso
   const fl = ease(seg(p, 0.225, 0.285));
   house.floorMats.forEach(m => { m.opacity = fl; });
+  house.floorDecals.forEach(m => { m.opacity = fl * m.userData.max; });
+  house.aoGroup.visible = fl > 0;
   house.floors.visible = fl > 0;
   sheetMat.opacity = 1 - ease(seg(p, 0.235, 0.3));
   sheet.visible = sheetMat.opacity > 0.001 && !!sheetMat.map;
@@ -334,14 +338,16 @@ function applyScene(p) {
       it.position.y = it.userData.baseY + (1 - k) * 1.6;
       it.scale.setScalar(0.6 + 0.4 * k);
     });
+    const d = house.rooms[key].userData.decals;
+    if (d) { const k = seg(p, a + (b - a) * 0.5, b); d.group.visible = k > 0; d.mats.forEach(m => { m.opacity = m.userData.max * k; }); }
   }
 
   // anoitecer
   const n = ease(seg(p, 0.575, 0.645));
   skyUniforms.uNight.value = n;
   house.coves.visible = n > 0.01;
-  hemi.intensity = lerp(1.2, 0.05, n);
-  sun.intensity = lerp(2.8, 0.0, n);
+  hemi.intensity = lerp(1.0, 0.05, n);
+  sun.intensity = lerp(2.4, 0.0, n);
   for (const m of house.allMaterials) m.envMapIntensity = lerp(dayEnv, nightEnv, n);
   sheetMat.envMapIntensity = dayEnv;
   for (const l of house.nightLights) l.intensity = l.userData.max * n * 0.6;
@@ -437,6 +443,12 @@ function adaptQuality(dt) {
   }
 }
 
+// forro só aparece (e projeta sombra) quando a câmera está dentro: o sol entra apenas por janelas e vidros
+function setInside(inside) {
+  if (house.ceilings.visible !== inside) { house.ceilings.visible = inside; sun.shadow.needsUpdate = true; }
+  skyUniforms.uInside.value = inside ? 1 : 0;
+}
+
 function draw(p) {
   const aspect = window.innerWidth / window.innerHeight;
   const cam = film.cam ? {
@@ -448,7 +460,7 @@ function draw(p) {
   camera.fov = cam.fov;
   viewOffset(cam.ui);
   camera.updateProjectionMatrix();
-  house.ceilings.visible = camera.position.y < H;
+  setInside(camera.position.y < H);
   applyScene(p);
   updateUI(p, cam);
   if (nightAmount < 0.98 && p !== lastShadowP) { sun.shadow.needsUpdate = true; lastShadowP = p; }
@@ -497,19 +509,22 @@ const dayNightBtn = document.getElementById('btn-daynight');
 let touchUI = window.matchMedia('(pointer: coarse)').matches;
 
 const spots = [
-  { id: 'geral', name: 'Visão geral', orbit: true, pos: [-3.6, 11.5, 13.6], tgt: [4.27, 0.3, 3.0] },
-  { id: 'sala', name: 'Sala', anchor: [2.7, 1.0, 3.4], pos: [3.35, 1.55, 4.4], tgt: [0.8, 1.05, 2.4] },
-  { id: 'cozinha', name: 'Cozinha', anchor: [0.4, 1.4, 1.9], pos: [0.95, 1.6, 4.15], tgt: [0.55, 1.15, 1.2] },
-  { id: 'terraco', name: 'Terraço', anchor: [2.6, 1.0, 5.6], pos: [1.15, 1.5, 5.8], tgt: [3.6, 1.0, 3.2] },
-  { id: 'escritorio', name: 'Home office', anchor: [2.9, 1.2, 0.4], pos: [3.5, 1.55, 1.9], tgt: [2.4, 1.0, 0.2] },
-  { id: 'banho', name: 'Banho', anchor: [5.6, 1.0, 0.6], pos: [6.55, 1.55, 1.05], tgt: [4.9, 1.25, 0.05] },
-  { id: 'dormitorio', name: 'Dormitório', anchor: [6.9, 1.0, 3.0], pos: [4.5, 1.55, 3.1], tgt: [8.5, 1.3, 2.85] },
+  { id: 'geral', name: 'Visão geral', orbit: true, pos: [-3.6, 11.5, 13.6], tgt: [4.3, 0.3, 3.15] },
+  { id: 'sala', name: 'Sala', anchor: [2.4, 1.1, 3.3], pos: [3.55, 1.55, 4.1], tgt: [0.8, 1.1, 2.0] },
+  { id: 'cozinha', name: 'Cozinha', anchor: [0.4, 1.5, 1.9], pos: [0.92, 1.6, 3.95], tgt: [0.5, 1.15, 1.2] },
+  { id: 'escritorio', name: 'Home office', anchor: [3.2, 1.2, 0.4], pos: [3.7, 1.55, 2.0], tgt: [2.8, 1.0, 0.3] },
+  { id: 'varanda', name: 'Varanda', anchor: [2.7, 1.0, 5.45], pos: [0.95, 1.5, 4.85], tgt: [3.2, 0.9, 5.5] },
+  { id: 'banho', name: 'Banho', anchor: [5.4, 1.0, 0.6], pos: [6.5, 1.6, 1.15], tgt: [4.9, 1.2, 0.1] },
+  { id: 'dormitorio', name: 'Suíte', anchor: [7.3, 0.9, 3.0], pos: [4.85, 1.55, 1.95], tgt: [8.4, 1.0, 3.0] },
 ];
-// áreas onde dá para caminhar (x1, x2, z1, z2) — evita atravessar paredes
+// áreas onde dá para caminhar (x1, x2, z1, z2) — evita atravessar paredes e móveis
 const walkable = [
-  [0.75, 4.25, 0.25, 2.15], [0.75, 3.6, 2.0, 5.85],
-  [4.2, 4.8, 1.5, 2.1], [4.65, 8.25, 1.5, 4.15], [4.4, 4.7, 2.45, 4.15], [7.05, 8.3, 0.75, 1.6],
-  [4.2, 4.8, 0.5, 1.0], [4.7, 6.65, 0.55, 1.12],
+  [0.75, 2.35, 0.25, 2.1], [2.35, 4.7, 1.3, 2.1],             // sala (parte alta, junto ao home office) e passagem
+  [2.95, 3.65, 2.0, 4.2], [0.75, 1.0, 2.0, 4.2],               // corredores ao lado do sofá e da cozinha
+  [4.65, 6.25, 1.6, 4.2], [6.2, 8.3, 3.9, 4.2], [6.3, 8.0, 1.55, 2.1], [7.45, 8.05, 0.65, 2.1], // dormitório e closet
+  [4.78, 5.3, 1.2, 1.7],                                       // porta do banho
+  [4.78, 5.55, 0.5, 1.3], [5.55, 6.0, 0.7, 1.3], [5.9, 6.2, 1.05, 1.3], [6.15, 6.8, 0.5, 1.3], // banho e box
+  [0.8, 1.55, 4.65, 6.0], [1.55, 3.3, 4.62, 4.78],             // varanda
 ];
 const canWalk = (x, z) => walkable.some(([a, b, c, d]) => x >= a && x <= b && z >= c && z <= d);
 
@@ -632,7 +647,7 @@ function updateLabels() {
 }
 
 function drawFree() {
-  house.ceilings.visible = camera.position.y < H;
+  setInside(camera.position.y < H);
   applyScene(0.56 + 0.1 * free.night);
   updateLabels();
   bloom.enabled = nightAmount > 0.01;
@@ -676,7 +691,7 @@ function enterFree() {
   c.enableDamping = true; c.dampingFactor = 0.08; c.screenSpacePanning = false;
   c.addEventListener('change', () => { // mantém o alvo dentro do apartamento
     if (free.mode === 'orbit') {
-      c.target.x = clamp(c.target.x, -1, 9.5); c.target.y = clamp(c.target.y, 0, 2.2); c.target.z = clamp(c.target.z, -1, 7);
+      c.target.x = clamp(c.target.x, -1, 9.5); c.target.y = clamp(c.target.y, 0, 2.2); c.target.z = clamp(c.target.z, -1, 7.2);
     }
   });
   camera.clearViewOffset();
@@ -735,7 +750,7 @@ async function warmUp() {
   // tudo visível de uma vez para o compilador ver todos os materiais
   house.root.traverse(o => { o.visible = true; });
   sheet.visible = !!sheetMat.map;
-  camera.position.set(4.27, 15, 3.04); camera.lookAt(4.27, 0, 3);
+  camera.position.set(4.3, 15, 3.2); camera.lookAt(4.3, 0, 3.15);
   // compila já para o alvo do pós-processamento (é nele que a cena é desenhada)
   renderer.setRenderTarget(composer.renderTarget1);
   try { await renderer.compileAsync(scene, camera); } catch (e) { /* navegadores antigos: compila no primeiro quadro */ }
@@ -801,6 +816,6 @@ if (new URLSearchParams(location.search).has('film')) {
 }
 
 // Testes: ?debug expõe o renderer; ?p=0.5 posiciona o scroll
-if (new URLSearchParams(location.search).has('debug')) window.__app = { renderer, scene, house, buildMs, enterFree, exitFree, goToSpot, spots, free };
+if (new URLSearchParams(location.search).has('debug')) window.__app = { renderer, scene, house, camera, buildMs, enterFree, exitFree, goToSpot, spots, free };
 const qp = new URLSearchParams(location.search).get('p');
 if (qp !== null) planReady.then(() => { window.scrollTo(0, +qp * maxScroll()); readScroll(); current = target; });
