@@ -15,7 +15,7 @@ A experiência foi pensada primeiro para o computador. No celular, o texto vai p
 |---|---|
 | 0–11% | A planta se desenha sozinha sobre a folha |
 | 11–29% | A câmera inclina, as paredes sobem e o piso substitui o papel |
-| 29–56% | Os móveis entram por ambiente: cozinha, sala, terraço, banho e dormitório |
+| 29–56% | Os móveis entram por ambiente: cozinha, estar, home office, varanda, banho e dormitório |
 | 56–66% | Anoitece: acendem as sancas, os LEDs e a cidade |
 | 66–95% | Tour interno em 6 takes |
 | 95–100% | Chamada final |
@@ -33,10 +33,10 @@ O botão **Explorar em 3D**, no topo e no final da página, pausa o roteiro e li
 
 - `index.html`, `style.css`: textos e layout
 - `app.js`: código final já empacotado (Three.js incluso). **Gerado — não editar.**
-- `src/house.js`: paredes, aberturas e móveis, com medidas em metros tiradas das cotas da planta
+- `src/house.js`: paredes, aberturas e móveis, com medidas em metros tiradas das cotas da planta (escala 72,4 px/m; as paredes não se sobrepõem e batem com a planta a menos de 1 cm)
 - `src/textures.js`: texturas procedurais (cimento, madeira, pedra, tecidos)
 - `src/main.js`: câmera, iluminação dia/noite e animações ligadas ao scroll
-- `assets/planta.jpg`: planta original, usada na folha
+- `assets/planta.jpg`: planta (versão nova, recortada e limpa), usada na folha
 
 ## Editar e gerar de novo
 
