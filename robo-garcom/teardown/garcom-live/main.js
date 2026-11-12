@@ -1024,4 +1024,4 @@ warmComposer(st.renderer, st.composer, st.scene, st.camera).then(() => {
   startTour();
   requestAnimationFrame(frame);
 });
-window.LIVE = {snap: () => (snapNext = true), S, R, st, startTour, takeOver, startMission, world: () => world, select, toggleDisp, setView};
+window.LIVE = {reset: () => { resetWorld(); refreshMission(); }, snap: () => (snapNext = true), S, R, st, startTour, takeOver, startMission, world: () => world, select, toggleDisp, setView};
