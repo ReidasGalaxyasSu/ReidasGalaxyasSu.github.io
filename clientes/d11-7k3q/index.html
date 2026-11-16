@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Seu apartamento em 3D · Planta Viva</title>
+  <meta name="description" content="Role a página e veja a planta do seu apartamento virar o apartamento decorado em 3D.">
+  <meta name="theme-color" content="#0d0c0b">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="scene" aria-label="Apartamento em 3D"></canvas>
+  <div id="scrim"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#" data-goto="0" data-until="0" aria-label="Planta Viva, por GPC Software Solutions"><img src="assets/gpc-symbol-primary.svg" alt="" width="30" height="30"><span>Planta Viva</span><small>por GPC Software Solutions</small></a>
+    <nav aria-label="Capítulos">
+      <a href="#" data-goto="0" data-until="0.11">Planta</a>
+      <a href="#" data-goto="0.11" data-until="0.29">Estrutura</a>
+      <a href="#" data-goto="0.29" data-until="0.565">Ambientes</a>
+      <a href="#" data-goto="0.565" data-until="0.66">Noite</a>
+      <a href="#" data-goto="0.66" data-until="0.95">Tour</a>
+    </nav>
+    <div class="top-actions">
+      <button class="explore-btn" type="button" data-explore><span aria-hidden="true">⟲</span> Explorar em 3D</button>
+      <a class="cta-top" href="#" data-goto="0.668" data-until="0.95">Ver o tour</a>
+    </div>
+  </header>
+
+  <aside class="panel">
+    <article data-chapter data-from="0" data-to="0.11">
+      <p class="kicker"><b>01</b> Planta do contrato</p>
+      <h1>Seu apartamento <br>começa como um <em>plano</em></h1>
+      <p>Esta é a planta do seu apartamento. A seguir, levantamos as paredes nas medidas reais, mobiliamos cada ambiente e acendemos as luzes. Role a página e acompanhe.</p>
+      <dl>
+        <div><dt>Dormitórios</dt><dd>2 (1 suíte)</dd></div>
+        <div><dt>Área</dt><dd>65,54 m²</dd></div>
+        <div><dt>Banheiros</dt><dd>3</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.11" data-to="0.29">
+      <p class="kicker"><b>02</b> Estrutura</p>
+      <h2>As paredes saem <br>do <em>papel</em></h2>
+      <p>Cada parede, porta e janela segue as cotas da planta, com 2,60 m de pé-direito. A sala fica como está, integrada à cozinha e aberta para a varanda.</p>
+      <dl>
+        <div><dt>Suíte</dt><dd>3,60 × 4,20</dd></div>
+        <div><dt>Quarto 2</dt><dd>2,50 × 3,20</dd></div>
+        <div><dt>Varanda</dt><dd>4,00 × 0,90</dd></div>
+      </dl>
+    </article>
+
+    <article data-chapter data-from="0.29" data-to="0.336">
+      <p class="kicker"><b>03</b> Cozinha</p>
+      <h2>Cozinha <em>integrada</em></h2>
+      <p>Bancada em L com armários pretos foscos, tampo e frontão de pedra preta, armários superiores em nogueira com LED por baixo, cooktop e geladeira inox.</p>
+      <dl><div><dt>Largura</dt><dd>3,35 m</dd></div><div><dt>Acabamento</dt><dd>Preto + nogueira</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.336" data-to="0.38">
+      <p class="kicker"><b>04</b> Sala</p>
+      <h2>Estar e <em>jantar</em></h2>
+      <p>Sofá taupe de três lugares de frente para o painel grafite da TV, com rack suspenso e tapete de juta. A mesa de jantar em nogueira, para quatro, fica junto à porta da varanda, sob um pendente.</p>
+      <dl><div><dt>Mesa</dt><dd>4 lugares</dd></div><div><dt>Sofá</dt><dd>3 lugares</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.38" data-to="0.42">
+      <p class="kicker"><b>05</b> Varanda & serviço</p>
+      <h2>Um canto <em>ao ar livre</em></h2>
+      <p>Duas poltronas e uma mesinha de apoio ao longo da varanda, protegidas por mureta e gradil preto de 1,20 m. No fim dela, a área de serviço com máquina, tanque e armário.</p>
+      <dl><div><dt>Varanda</dt><dd>4,00 × 0,90</dd></div><div><dt>Guarda-corpo</dt><dd>1,20 m</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.42" data-to="0.466">
+      <p class="kicker"><b>06</b> Banheiros</p>
+      <h2>Três <em>banhos</em></h2>
+      <p>A suíte tem box com ducha de teto e nicho iluminado. O banho social tem box de vidro, e o lavabo é compacto. Todos com bancada de pedra preta, cuba de apoio, espelho com luz e metais pretos.</p>
+      <dl><div><dt>Bancadas</dt><dd>Pedra preta</dd></div><div><dt>Metais</dt><dd>Preto fosco</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.466" data-to="0.514">
+      <p class="kicker"><b>07</b> Suíte</p>
+      <h2>Suíte de <em>descanso</em></h2>
+      <p>Cama queen com cabeceira estofada grafite e criados-mudos em nogueira. Na parede de 4,20 m, o guarda-roupa em laca cinza-claro vai de ponta a ponta. A janela tem voil e blackout.</p>
+      <dl><div><dt>Cama</dt><dd>Queen 1,58 × 1,98</dd></div><div><dt>Guarda-roupa</dt><dd>≈ 3,2 m</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.514" data-to="0.565">
+      <p class="kicker"><b>08</b> Quarto 2</p>
+      <h2>Quarto <em>jovem</em></h2>
+      <p>Cama de solteiro com colcha rosa, escrivaninha em nogueira sob a janela, estante com livros e plantas e armário em laca. Tons suaves, sem ficar infantil.</p>
+      <dl><div><dt>Cama</dt><dd>Solteiro</dd></div><div><dt>Estudo</dt><dd>Escrivaninha 1,90 m</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.565" data-to="0.66">
+      <p class="kicker"><b>09</b> Noite</p>
+      <h2>Quando a <br>luz <em>cai</em></h2>
+      <p>À noite, a luz indireta toma conta. Há sancas no encontro com o forro, LED sob os armários e no rack, espelhos retroiluminados e luminárias de cabeceira. A cidade acende lá fora.</p>
+      <dl><div><dt>Temperatura</dt><dd>2700 K</dd></div><div><dt>Pontos de luz</dt><dd>Indiretos</dd></div></dl>
+    </article>
+
+    <article data-chapter data-from="0.66" data-to="0.95" class="tour-intro">
+      <p class="kicker"><b>10</b> Tour</p>
+      <h2>Entre e <em>sinta</em></h2>
+    </article>
+
+    <article data-chapter data-from="0.95" data-to="1.01" class="final">
+      <p class="kicker"><b>11</b> Do papel ao 3D</p>
+      <h2>Seu apartamento, <br>do jeito que vai <em>ficar</em></h2>
+      <p>Esta é a primeira versão do seu projeto. Explore à vontade e nos diga o que quer ajustar: móveis, cores ou acabamentos.</p>
+      <div class="actions">
+        <button class="btn" type="button" data-explore>Explorar livremente</button>
+        <a class="btn ghost" href="#" data-goto="0" data-until="0">Ver a planta de novo</a>
+      </div>
+      <div class="made-by"><span>Uma solução</span><img src="assets/gpc-logo-horizontal-primary.svg" alt="GPC Software Solutions" width="230" height="64"></div>
+    </article>
+  </aside>
+
+  <div id="room-tag" aria-live="polite"><em></em><strong></strong><span></span></div>
+  <div class="hint">Role para construir <i></i></div>
+  <div class="progress" aria-hidden="true"><i></i></div>
+  <div id="free-ui">
+    <div class="free-head">
+      <div class="free-title"><b>Modo livre</b><p id="free-help"></p></div>
+      <div class="free-actions">
+        <button id="btn-daynight" class="pill" type="button">☾ Ver à noite</button>
+        <button id="btn-exit" class="pill solid" type="button">✕ Voltar ao tour</button>
+      </div>
+    </div>
+    <div id="free-labels"></div>
+    <div class="walk-pad">
+      <button type="button" data-walk="1" aria-label="Andar para frente">▲</button>
+      <button type="button" data-walk="-1" aria-label="Andar para trás">▼</button>
+    </div>
+    <nav class="free-rooms" aria-label="Ambientes"></nav>
+  </div>
+  <div id="fade"></div>
+  <div id="loader"><img src="assets/gpc-symbol-primary.svg" alt="" width="64" height="64"><span>Planta Viva</span><small>preparando o projeto…</small></div>
+
+  <div id="scroll-space"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
