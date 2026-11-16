@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Símbolo GPC Portal Celestial em prata">
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F3F3F0"/>
+      <stop offset="0.46" stop-color="#AEB4BA"/>
+      <stop offset="0.72" stop-color="#D1D0D0"/>
+      <stop offset="1" stop-color="#7D858D"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#silver)" stroke-width="12" stroke-linejoin="miter" stroke-linecap="square">
+    <path d="M105 22 31 66v51"/>
+    <path d="m135 22 74 44v43"/>
+    <path d="M209 132v42l-74 44"/>
+    <path d="m105 218-74-44v-36"/>
+  </g>
+  <path d="M111 48C70 65 42 96 31 137" fill="none" stroke="#6D8196" stroke-width="5" stroke-linecap="round"/>
+  <path d="M208 106c-3 45-34 84-91 105" fill="none" stroke="#6D8196" stroke-width="5" stroke-linecap="round"/>
+  <path d="M120 70c4 31 10 43 43 50-33 7-39 19-43 52-4-33-10-45-43-52 33-7 39-19 43-50Z" fill="#FFFFE3"/>
+</svg>
