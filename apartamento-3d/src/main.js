@@ -501,7 +501,7 @@ window.addEventListener('resize', onResize);
 
 
 // ------------------------------------------------------------------ modo livre: navegar à vontade pela maquete
-const free = { active: false, mode: 'orbit', controls: null, tween: null, night: 0, nightTarget: 0, savedScroll: 0, move: 0, strafe: 0, wheel: 0 };
+const free = { active: false, mode: 'orbit', controls: null, tween: null, night: 0, nightTarget: 0, savedScroll: 0, move: 0, strafe: 0, wheel: 0, joyX: 0, joyY: 0 };
 const freeHelp = document.getElementById('free-help');
 const labelsEl = document.getElementById('free-labels');
 const roomsNav = document.querySelector('.free-rooms');
@@ -543,10 +543,10 @@ for (const s of spots) {
 
 function setHelp() {
   freeHelp.textContent = free.mode === 'orbit'
-    ? (touchUI ? 'Arraste para girar · pinça para aproximar · dois dedos para mover · toque num ambiente para entrar'
+    ? (touchUI ? 'Arraste para girar · pinça para aproximar · joystick para mover · toque num ambiente para entrar'
       : 'Arraste para girar · role para aproximar · botão direito para mover · clique num ambiente para entrar')
-    : (touchUI ? 'Arraste para olhar em volta · use ▲ ▼ para andar'
-      : 'Arraste para olhar em volta · role o mouse, use W A S D ou as setas para andar');
+    : (touchUI ? 'Arraste para olhar em volta · use o joystick para andar'
+      : 'Arraste para olhar em volta · use o joystick, W A S D ou as setas para andar');
 }
 
 function setMode(mode, pos, tgt) {
@@ -616,7 +616,7 @@ function stepTween(now) {
 // caminhar: frente/trás pela direção do olhar, sem atravessar paredes
 function walkStep(dt) {
   const speed = 1.5;
-  let fwd = free.move + free.wheel, side = free.strafe;
+  let fwd = free.move + free.wheel + free.joyY, side = free.strafe + free.joyX;
   free.wheel *= Math.exp(-dt * 6);
   if (Math.abs(free.wheel) < 0.01) free.wheel = 0;
   if (!fwd && !side) return false;
@@ -630,6 +630,17 @@ function walkStep(dt) {
   }
   p.x += dx; p.z += dz;
   free.controls.target.x += dx; free.controls.target.z += dz;
+  return true;
+}
+
+// maquete: o joystick desloca a visão pelo plano do chão, na direção para onde a câmera olha
+function panStep(dt) {
+  const fwd = free.move + free.joyY, side = free.strafe + free.joyX;
+  if (!fwd && !side) return false;
+  const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; dir.normalize();
+  const right = new THREE.Vector3(-dir.z, 0, dir.x);
+  const d = dir.multiplyScalar(fwd * 5 * dt).addScaledVector(right, side * 5 * dt);
+  camera.position.add(d); free.controls.target.add(d);
   return true;
 }
 
@@ -657,7 +668,7 @@ function frameFree(now, dt) {
   let changed = needsDraw;
   if (free.tween) { stepTween(now); changed = true; }
   else {
-    if (free.mode === 'walk') changed = walkStep(dt) || changed;
+    changed = (free.mode === 'walk' ? walkStep(dt) : panStep(dt)) || changed;
     changed = free.controls.update() || changed;
   }
   if (free.night !== free.nightTarget) {
@@ -706,7 +717,7 @@ function enterFree() {
 function exitFree() {
   if (!free.active) return;
   free.active = false;
-  free.tween = null; free.move = free.strafe = free.wheel = 0;
+  free.tween = null; free.move = free.strafe = free.wheel = 0; joyReset();
   free.controls.dispose(); free.controls = null;
   canvas.style.touchAction = '';
   document.documentElement.classList.remove('free-lock');
@@ -739,11 +750,23 @@ window.addEventListener('keyup', e => {
   const k = keyMap[e.code];
   if (k && free[k[0]] === k[1]) free[k[0]] = 0;
 });
-document.querySelectorAll('[data-walk]').forEach(b => {
-  const go = v => e => { e.preventDefault(); free.move = v; };
-  b.addEventListener('pointerdown', go(+b.dataset.walk));
-  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, go(0));
-});
+// joystick analógico: arrastar para qualquer direção (360°); a força acompanha a distância do centro
+const joy = document.getElementById('joystick'), joyKnob = joy.querySelector('i');
+let joyId = null;
+function joyReset() { joyId = null; free.joyX = free.joyY = 0; joyKnob.style.transform = ''; joy.classList.remove('on'); }
+function joyMove(e) {
+  const r = joy.getBoundingClientRect(), R = r.width / 2 - joyKnob.offsetWidth / 4;
+  let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const L = Math.hypot(dx, dy); if (L > R) { dx *= R / L; dy *= R / L; }
+  joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+  let x = dx / R, y = dy / R; const mag = Math.hypot(x, y), dz = 0.14;
+  if (mag < dz) x = y = 0; else { const k = (mag - dz) / (1 - dz) / mag; x *= k; y *= k; }
+  free.joyX = x; free.joyY = -y;
+}
+joy.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); joyId = e.pointerId; joy.setPointerCapture(joyId); joy.classList.add('on'); joyMove(e); });
+joy.addEventListener('pointermove', e => { if (e.pointerId === joyId) joyMove(e); });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) joy.addEventListener(ev, e => { if (e.pointerId === joyId || ev === 'lostpointercapture') joyReset(); });
+joy.addEventListener('contextmenu', e => e.preventDefault());
 
 async function warmUp() {
   // tudo visível de uma vez para o compilador ver todos os materiais
